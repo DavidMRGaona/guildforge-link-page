@@ -12,6 +12,6 @@ jobs:
   sync:
     uses: DavidMRGaona/GuildForge/.github/workflows/reusable-project-sync.yml@main
     with:
-      module: 'surveys'
+      module: 'link-page'
     secrets:
       project_token: ${{ secrets.PROJECT_TOKEN }}
