@@ -29,6 +29,10 @@ export default {
             iosOtherBrowserHint:
                 'En iPhone, este navegador no abre la app Calendario: abre esta página en Safari o copia la dirección.',
         },
+        myCalendar: {
+            button: 'Mi calendario',
+            hint: 'Solo en lo que estoy inscrito. Se abre tu perfil.',
+        },
         noticeMoreInfo: 'Más información',
         noticeTones: {
             info: 'Información',
