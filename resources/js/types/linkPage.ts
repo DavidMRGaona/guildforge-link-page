@@ -63,6 +63,13 @@ export interface LinkPageAppearance {
     logo: { shape: LinkPageLogoShape; custom: boolean };
 }
 
+/** What the share button passes on: the page's own address and the text of its card. */
+export interface LinkPageShare {
+    url: string;
+    title: string;
+    text: string;
+}
+
 export interface LinkPageProps {
     site: LinkPageSite;
     appearance: LinkPageAppearance;
@@ -70,4 +77,5 @@ export interface LinkPageProps {
     events: LinkPageEvent[];
     calendar: LinkPageCalendar;
     homeUrl: string;
+    share: LinkPageShare;
 }

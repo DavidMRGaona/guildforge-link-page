@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
+import ShareButton from '../../components/ShareButton.vue';
 import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/linkPage';
 
 /**
@@ -125,7 +126,11 @@ function formatStart(event: LinkPageEvent): string | null {
             />
         </template>
 
-        <main class="mx-auto flex w-full max-w-xl flex-col gap-10 px-4 pb-10 pt-10 sm:px-6">
+        <main
+            class="relative mx-auto flex w-full max-w-xl flex-col gap-10 px-4 pb-10 pt-10 sm:px-6"
+        >
+            <ShareButton :share="share" />
+
             <header class="flex flex-col items-center gap-3 text-center">
                 <img
                     v-if="site.logoUrl"

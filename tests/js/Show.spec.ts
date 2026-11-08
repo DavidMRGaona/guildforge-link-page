@@ -82,6 +82,11 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         events: [],
         calendar: { initialView: 'list', views: ['list', 'month'] },
         homeUrl: 'https://example.test',
+        share: {
+            url: 'https://example.test/enlaces',
+            title: 'Example guild',
+            text: 'Scan, play, repeat.',
+        },
         ...overrides,
     };
 }
@@ -111,6 +116,16 @@ describe('LinkPage/Show', () => {
         expect(logo.attributes('src')).toBe('https://example.test/logo.png');
         expect(logo.attributes('alt')).toBe('Logo de Example guild');
         expect(wrapper.find('[data-testid="link-page-initial"]').exists()).toBe(false);
+    });
+
+    it('offers a share button, first in the page for keyboards and screen readers', () => {
+        const wrapper = mount(Show, { props: props() });
+
+        const button = wrapper.get('[data-testid="link-page-share-button"]');
+        expect(button.attributes('aria-label')).toBe(es.linkPage.share);
+        expect(wrapper.get('main').element.firstElementChild).toBe(
+            wrapper.get('[data-testid="link-page-share"]').element
+        );
     });
 
     it('lists each event as a link to its page with its date at the venue', () => {
