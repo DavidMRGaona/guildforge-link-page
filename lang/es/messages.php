@@ -8,6 +8,7 @@ return [
     'permissions' => [
         'manage' => 'Configurar la página de enlaces',
         'qr_codes_manage' => 'Gestionar e imprimir los códigos QR',
+        'links_manage' => 'Gestionar los enlaces propios de la página',
     ],
 
     'calendar_views' => [
@@ -139,6 +140,111 @@ return [
             ],
             'passes' => 'Cumple',
             'fails' => 'No cumple',
+        ],
+    ],
+
+    'link_icons' => [
+        'instagram' => 'Instagram',
+        'discord' => 'Discord',
+        'telegram' => 'Telegram',
+        'whatsapp' => 'WhatsApp',
+        'youtube' => 'YouTube',
+        'twitch' => 'Twitch',
+        'x' => 'X',
+        'facebook' => 'Facebook',
+        'tiktok' => 'TikTok',
+        'bluesky' => 'Bluesky',
+        'email' => 'Correo electrónico',
+        'phone' => 'Teléfono',
+        'website' => 'Web',
+        'link' => 'Enlace',
+        'calendar' => 'Calendario',
+        'group' => 'Grupo de personas',
+        'book' => 'Libro',
+        'dice' => 'Dado',
+        'ticket' => 'Entrada',
+        'map_pin' => 'Ubicación',
+        'form' => 'Formulario',
+    ],
+
+    'social_networks' => [
+        'instagram' => 'Instagram',
+        'discord' => 'Discord',
+        'telegram' => 'Telegram',
+        'whatsapp' => 'WhatsApp',
+        'youtube' => 'YouTube',
+        'twitch' => 'Twitch',
+        'x' => 'X',
+        'facebook' => 'Facebook',
+        'tiktok' => 'TikTok',
+        'bluesky' => 'Bluesky',
+        'email' => 'Correo electrónico',
+        'phone' => 'Teléfono',
+    ],
+
+    'social_positions' => [
+        'top' => 'Arriba, bajo el nombre',
+        'bottom' => 'Abajo, al final de la página',
+    ],
+
+    'link_placements' => [
+        'before' => 'Antes de los eventos',
+        'after' => 'Después de los eventos',
+    ],
+
+    'link_visibility' => [
+        'visible' => 'Visible',
+        'scheduled' => 'Programado',
+        'expired' => 'Caducado',
+        'hidden' => 'Oculto',
+    ],
+
+    'social' => [
+        'section' => 'Redes sociales',
+        'section_help' => 'Una fila de iconos con las redes y los medios de contacto de la asociación. Las direcciones son las del sitio: se cambian en :group → :page, pestañas «:social» y «:contact», y así todos los módulos usan las mismas.',
+        'position' => 'Dónde va la fila',
+        'shown' => 'Redes que se muestran',
+        'shown_help' => 'Debajo de cada red, la dirección que tiene el sitio. Una red sin dirección no se puede marcar.',
+        'no_address' => 'Sin dirección en el sitio',
+    ],
+
+    'links' => [
+        'navigation' => 'Enlaces propios',
+        'model' => [
+            'singular' => 'enlace',
+            'plural' => 'Enlaces propios',
+        ],
+        'list_help' => 'Botones de la página de enlaces: Discord, el formulario de socios… Arrastra las filas para cambiar el orden.',
+        'sections' => [
+            'link' => 'Enlace',
+            'appearance' => 'Cómo se ve',
+            'schedule' => 'Programación',
+            'schedule_help' => 'Fuera de estas fechas el enlace no se muestra. Las horas son las del sitio. Vacías, se muestra siempre que esté activo.',
+        ],
+        'fields' => [
+            'title' => 'Título',
+            'url' => 'Dirección',
+            'url_help' => 'Solo https://, mailto: o tel:. Cualquier otra cosa se rechaza.',
+            'url_placeholder' => 'https://',
+            'url_invalid' => 'No es una dirección válida. Solo se admiten https://, mailto: y tel:.',
+            'description' => 'Descripción corta',
+            'description_help' => 'Una línea bajo el título, opcional.',
+            'icon' => 'Icono',
+            'icon_help' => 'Opcional. Se dibuja a la izquierda del título.',
+            'placement' => 'Posición',
+            'placement_help' => 'Antes o después de los botones de próximos eventos. Dentro de cada grupo manda el orden de la lista.',
+            'is_featured' => 'Destacado',
+            'is_featured_help' => 'Se ve más grande y con un brillo suave (quieto si el visitante prefiere menos movimiento).',
+            'is_active' => 'Activo',
+            'is_active_help' => 'Apagado, no se muestra aunque esté dentro de sus fechas.',
+            'starts_at' => 'Se muestra desde',
+            'ends_at' => 'Se muestra hasta',
+            'status' => 'Estado',
+        ],
+        'no_date' => 'Sin fecha',
+        'actions' => [
+            'delete_description' => 'El botón desaparece de la página y no se puede recuperar.',
+            'delete_confirmation' => 'Entiendo que se borra para siempre',
         ],
     ],
 
