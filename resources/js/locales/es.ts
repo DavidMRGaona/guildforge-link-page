@@ -7,5 +7,8 @@ export default {
         pinned: 'Destacado',
         calendar: 'Calendario',
         visitSite: 'Ir a la web de {name}',
+        share: 'Compartir esta página',
+        shareCopied: 'Enlace copiado',
+        shareCopyFailed: 'No se pudo copiar el enlace. Cópialo de la barra de direcciones.',
     },
 };

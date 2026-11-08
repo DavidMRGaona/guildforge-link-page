@@ -133,11 +133,11 @@ final class LinkPageSettingsPageTest extends ModuleTestCase
     public function test_saving_keeps_the_keys_the_form_does_not_show(): void
     {
         $this->actingAsPanelAdmin();
-        app(ModuleSettingsStoreInterface::class)->store('link-page', ['share' => ['noindex' => true]]);
+        app(ModuleSettingsStoreInterface::class)->store('link-page', ['future_feature' => ['enabled' => true]]);
 
         Livewire::test(LinkPageSettingsPage::class)->call('save')->assertHasNoFormErrors();
 
-        $this->assertSame(['noindex' => true], app(ModuleSettingsStoreInterface::class)->stored('link-page')['share'] ?? null);
+        $this->assertSame(['enabled' => true], app(ModuleSettingsStoreInterface::class)->stored('link-page')['future_feature'] ?? null);
     }
 
     public function test_saving_is_refused_once_the_permission_is_gone(): void
