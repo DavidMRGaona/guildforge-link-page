@@ -27,11 +27,18 @@ Se gestionan en **Contenido** → **Enlaces propios**.
 
 ### Ordenar
 
-En la lista, **arrastra las filas** para cambiar el orden: se guarda al soltar. Dentro de cada posición manda el orden de la lista.
+1. En la lista, pulsa **Reordenar registros**, encima de la tabla.
+2. Arrastra las filas hasta dejarlas en el orden que quieras. Cada cambio se guarda al soltar.
+3. Pulsa **Terminar de reordenar registros**.
+
+Dentro de cada posición (antes o después de los eventos) manda el orden de la lista.
 
 ### Programar
 
 En la sección **Programación**, **Se muestra desde** y **Se muestra hasta** limitan el enlace a unos días, por ejemplo la inscripción a una jornada. Las horas son las del sitio y el final ya no se muestra. La columna **Estado** dice si cada enlace está **Visible**, **Programado**, **Caducado** u **Oculto**.
+
+> [!TIP]
+> En pantallas estrechas la tabla esconde algunas columnas. Abre el menú ⋯ de una fila y pulsa **Ver detalles** para verlas todas.
 
 ### Borrar
 

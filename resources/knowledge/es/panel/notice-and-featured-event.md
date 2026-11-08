@@ -40,7 +40,7 @@ El evento destacado no se repite en **Próximos eventos**.
 
 ### La cuenta atrás
 
-- Antes del día del evento cuenta el tiempo que falta: días y horas, y en la última hora también los segundos.
+- Antes del día del evento cuenta el tiempo que falta en días, horas y minutos; en la última hora, también los segundos.
 - El día del evento antes de empezar pone **Hoy**, y mientras dura pone **Ahora mismo** (con «Hasta el …» si dura varios días).
 - Cuando termina, la página pide sola el siguiente evento, o quita el bloque si no hay más.
 - La cuenta usa la hora del servidor, así que sale bien aunque el móvil tenga el reloj o la zona mal puestos. Para quien prefiere menos movimiento, los segundos no se animan.

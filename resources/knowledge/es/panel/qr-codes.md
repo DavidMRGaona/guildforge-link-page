@@ -51,7 +51,7 @@ En el menú ⋯ de la fila, elige **Imprimir en A4** o **Imprimir en A5**. Se ab
 
 ## Activar, desactivar y borrar
 
-En el menú ⋯ de la fila:
+En el menú ⋯ de la fila (donde también está **Ver detalles**, que enseña las columnas que la tabla esconde en pantallas estrechas):
 
 - **Desactivar** / **Activar**: un QR desactivado sigue llevando a la página, pero deja de contar escaneos. Útil para retirar un cartel antiguo sin perder su historial.
 - **Borrar**: el QR desaparece del panel y no se puede recuperar ni volver a descargar. Se pide marcar una casilla para confirmarlo. Los carteles ya impresos siguen llevando a la página.

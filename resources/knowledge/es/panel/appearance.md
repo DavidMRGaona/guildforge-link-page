@@ -11,7 +11,7 @@ conditions:
   permissions:
     all: ['link-page:settings.manage']
 ---
-La página de enlaces se adapta a la imagen de {{site_name}} sin necesidad de escribir CSS. En el menú lateral, abre **Contenido** → **Página de enlaces** y baja hasta la sección **Apariencia**. A la derecha tienes una **Vista previa** en forma de móvil que se actualiza mientras cambias cosas (un móvil por cada tema que se usa, con el contraste de cada par de colores).
+La página de enlaces se adapta a la imagen de {{site_name}} sin necesidad de escribir CSS. En el menú lateral, abre **Contenido** → **Página de enlaces** y baja hasta la sección **Apariencia**. La sección tiene una **Vista previa** en forma de móvil (al lado de los campos en pantallas anchas, debajo en las estrechas) que se actualiza mientras cambias cosas: un móvil por cada tema que se usa, con el contraste de cada par de colores.
 
 [[action:filament.admin.pages.link-page-settings|Abrir los ajustes de la página]]
 
