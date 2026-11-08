@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Pages;
 
-use App\Application\DTOs\Response\EventResponseDTO;
-use App\Application\DTOs\Response\TagResponseDTO;
 use App\Application\Modules\Services\ModuleManagerServiceInterface;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use App\Application\Services\EventQueryServiceInterface;
@@ -243,7 +241,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
         $options = [];
         foreach ($events as $event) {
-            if ($event instanceof EventResponseDTO && $event->endDate > $now) {
+            if ($event->endDate > $now) {
                 $options[$event->id] = $timezone->format($event->startDate).' · '.$event->title;
             }
         }
@@ -262,9 +260,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
         $options = [];
         foreach (app(TagQueryServiceInterface::class)->getByType('events') as $tag) {
-            if ($tag instanceof TagResponseDTO) {
-                $options[$tag->slug] = $tag->name;
-            }
+            $options[$tag->slug] = $tag->name;
         }
 
         return $this->tagOptions = $options;
