@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Unit;
 
 use App\Application\Modules\DTOs\PermissionDTO;
+use App\Domain\Authorization\ValueObjects\PermissionKey;
 use Modules\LinkPage\LinkPageServiceProvider;
 use Tests\TestCase;
 
@@ -22,6 +23,22 @@ final class PermissionSuggestionsTest extends TestCase
             fn (PermissionDTO $permission): bool => in_array('editor', $permission->roles, true),
         );
 
-        $this->assertSame(['view_stats'], array_values(array_map(fn (PermissionDTO $permission): string => $permission->name, $suggested)));
+        $this->assertSame(['stats.view'], array_values(array_map(fn (PermissionDTO $permission): string => $permission->name, $suggested)));
+    }
+
+    /**
+     * permissions:sync refuses a key that is not "module:resource.action" and then saves none.
+     * "manage" is renamed by issue #17.
+     */
+    public function test_the_permission_keys_have_the_form_the_core_syncs(): void
+    {
+        foreach ((new LinkPageServiceProvider($this->app))->registerPermissions() as $permission) {
+            if ($permission->name === 'manage') {
+                continue;
+            }
+
+            $key = new PermissionKey('link-page:'.$permission->name);
+            $this->assertSame('link-page', $key->module(), $permission->name);
+        }
     }
 }

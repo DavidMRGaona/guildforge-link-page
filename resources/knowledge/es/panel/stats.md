@@ -8,7 +8,7 @@ order: 92
 keywords: [estadísticas, visitas, escaneos, qr, código qr, clics, pulsaciones, carteles, cartel más escaneado, enlaces más pulsados, analítica, métricas, página de enlaces, enlaces, bots, robots, privacidad, cookies]
 conditions:
   permissions:
-    all: ['link-page:view_stats']
+    all: ['link-page:stats.view']
 ---
 Las estadísticas dicen si la página de enlaces y sus códigos QR funcionan: cuánta gente la abre, qué cartel se escanea más y qué enlaces se pulsan. Son recuentos anónimos por día: nunca se guarda quién visita, escanea o pulsa.
 

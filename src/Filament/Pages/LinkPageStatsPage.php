@@ -23,7 +23,7 @@ use Modules\LinkPage\Filament\Widgets\TopQrCodesWidget;
 
 /**
  * The anonymous statistics of /enlaces over a period: the totals, the evolution per day and
- * the rankings of QR codes and links. Open to link-page:view_stats.
+ * the rankings of QR codes and links. Open to link-page:stats.view.
  */
 final class LinkPageStatsPage extends Page
 {
@@ -32,7 +32,7 @@ final class LinkPageStatsPage extends Page
     use HasKnowledgeGuideAction;
     use SafeModuleNavigation;
 
-    public const string PERMISSION = 'link-page:view_stats';
+    public const string PERMISSION = 'link-page:stats.view';
 
     public const string GUIDE = 'link-page.panel.stats';
 

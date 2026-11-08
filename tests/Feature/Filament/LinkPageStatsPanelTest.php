@@ -43,7 +43,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_page_and_the_widget_need_the_statistics_permission(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']))
+        $this->actingAs($this->userWith(['link-page:stats.view']))
             ->get(LinkPageStatsPage::getUrl())
             ->assertOk();
         $this->assertTrue(LinkPageStatsOverviewWidget::canView());
@@ -64,7 +64,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_overview_adds_up_the_last_30_days_on_the_dashboard(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']));
+        $this->actingAs($this->userWith(['link-page:stats.view']));
         $this->seedRow('visit', '', '2026-11-08', 1200);
         $this->seedRow('visit', '', '2026-10-01', 9);
         $this->seedRow('scan', '0199f3a2-7b1c-7d4e-9a10-3c5b2e8f6d41', '2026-11-01', 34);
@@ -88,7 +88,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_chart_has_one_point_per_day_of_the_period(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']));
+        $this->actingAs($this->userWith(['link-page:stats.view']));
 
         $widget = Livewire::test(LinkPageDailyChartWidget::class, ['pageFilters' => ['days' => '7']])->instance();
         $this->assertInstanceOf(LinkPageDailyChartWidget::class, $widget);
@@ -102,7 +102,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_qr_ranking_names_each_code_and_says_which_no_longer_count(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']));
+        $this->actingAs($this->userWith(['link-page:stats.view']));
         $poster = $this->qrCode(['name' => 'Shop window poster']);
         $off = $this->qrCode(['name' => 'Old flyer', 'is_active' => false]);
         $gone = $this->qrCode(['name' => 'Lost banner']);
@@ -117,7 +117,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_link_ranking_names_every_kind_of_target(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']));
+        $this->actingAs($this->userWith(['link-page:stats.view']));
         $link = $this->link(['title' => 'Join our Discord']);
         $this->seedRow('click', $link->linkId(), '2026-11-08', 9);
         $this->seedRow('click', 'social:instagram', '2026-11-08', 8);
@@ -139,7 +139,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
 
     public function test_the_rankings_fit_a_phone_with_secondary_columns_from_wider_screens(): void
     {
-        $this->actingAs($this->userWith(['link-page:view_stats']));
+        $this->actingAs($this->userWith(['link-page:stats.view']));
 
         $linksWidget = Livewire::test(TopLinksWidget::class)->instance();
         $this->assertInstanceOf(TopLinksWidget::class, $linksWidget);

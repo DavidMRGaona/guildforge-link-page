@@ -96,8 +96,8 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
 
     /**
      * Stored as "link-page:manage", "link-page:qr_codes.manage", "link-page:links.manage" and
-     * "link-page:view_stats". Admins pass every check; other roles only get them when an admin
-     * ticks them in the role editor. Only view_stats is suggested for editor (see
+     * "link-page:stats.view". Admins pass every check; other roles only get them when an admin
+     * ticks them in the role editor. Only stats.view is suggested for editor (see
      * PermissionSuggestionsTest).
      *
      * @return array<PermissionDTO>
@@ -125,8 +125,8 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
             ),
             // Read only, like the core's search.view_stats: suggested for editor, never granted
             new PermissionDTO(
-                name: 'view_stats',
-                label: __('link-page::messages.permissions.view_stats'),
+                name: 'stats.view',
+                label: __('link-page::messages.permissions.stats_view'),
                 group: __('link-page::messages.title'),
                 module: $this->moduleName(),
                 roles: ['editor'],
