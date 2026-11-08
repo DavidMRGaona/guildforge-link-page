@@ -13,6 +13,7 @@ use App\Application\Services\TagQueryServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use App\Domain\Modules\ValueObjects\ModuleName;
 use App\Filament\Concerns\ChecksPermissions;
+use App\Filament\Concerns\HasKnowledgeGuideAction;
 use App\Filament\Concerns\SafeModuleNavigation;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -59,8 +60,11 @@ use Throwable;
 final class LinkPageSettingsPage extends Page implements HasForms
 {
     use ChecksPermissions;
+    use HasKnowledgeGuideAction;
     use InteractsWithForms;
     use SafeModuleNavigation;
+
+    public const string GUIDE = 'link-page.panel.settings';
 
     private const string MODULE = 'link-page';
 
@@ -101,6 +105,14 @@ final class LinkPageSettingsPage extends Page implements HasForms
     public static function canAccess(): bool
     {
         return self::userCan('link-page:settings.manage');
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return array_filter([$this->knowledgeGuideAction(self::GUIDE)]);
     }
 
     public function mount(LinkPageSettingsInterface $settings, HighlightsSettingsInterface $highlights): void

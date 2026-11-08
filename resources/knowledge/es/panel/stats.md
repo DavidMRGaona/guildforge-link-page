@@ -6,6 +6,7 @@ category: content
 audience: panel
 order: 92
 keywords: [estadísticas, visitas, escaneos, qr, código qr, clics, pulsaciones, carteles, cartel más escaneado, enlaces más pulsados, analítica, métricas, página de enlaces, enlaces, bots, robots, privacidad, cookies]
+related: [link-page.panel.qr-codes, link-page.panel.settings, link-page.panel.links-and-socials]
 conditions:
   permissions:
     all: ['link-page:stats.view']

@@ -89,6 +89,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             googleUrl: 'https://calendar.google.com/calendar/r?cid=example',
             outlookUrl: 'https://outlook.live.com/calendar/0/addfromweb?url=example',
         },
+        personalCalendar: null,
         homeUrl: 'https://example.test',
         share: {
             url: 'https://example.test/enlaces',

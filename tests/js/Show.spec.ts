@@ -93,6 +93,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             googleUrl: 'https://calendar.google.com/calendar/r?cid=example',
             outlookUrl: 'https://outlook.live.com/calendar/0/addfromweb?url=example',
         },
+        personalCalendar: null,
         homeUrl: 'https://example.test',
         share: {
             url: 'https://example.test/enlaces',
@@ -355,6 +356,53 @@ describe('LinkPage/Show appearance', () => {
         const logo = wrapper.find('[data-testid="link-page-logo"]');
         expect(logo.classes()).toEqual(expect.arrayContaining(['rounded-2xl', 'object-cover']));
         expect(logo.classes()).not.toContain('bg-surface');
+    });
+
+    it('offers only the public feed to someone without a session', () => {
+        const wrapper = mount(Show, { props: props({ personalCalendar: null }) });
+
+        expect(wrapper.find('[data-testid="link-page-subscribe-button"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="link-page-my-calendar"]').exists()).toBe(false);
+    });
+
+    it('puts «Mi calendario» next to «Suscribirse», leading to the profile calendar tab', () => {
+        const wrapper = mount(Show, {
+            props: props({
+                personalCalendar: { profileUrl: 'https://example.test/perfil?tab=calendar' },
+            }),
+        });
+
+        const actions = wrapper.get('[data-testid="link-page-subscribe-actions"]');
+        const mine = actions.get('[data-testid="link-page-my-calendar"]');
+
+        expect(mine.element.tagName).toBe('A');
+        expect(mine.attributes('href')).toBe('https://example.test/perfil?tab=calendar');
+        expect(mine.attributes('target')).toBeUndefined();
+        expect(mine.text()).toContain(es.linkPage.myCalendar.button);
+        expect(mine.text()).toContain(es.linkPage.myCalendar.hint);
+        // Same row, after the subscribe button
+        expect(actions.element.children[0]?.getAttribute('data-testid')).toBe(
+            'link-page-subscribe-button'
+        );
+        expect(actions.element.children[1]).toBe(mine.element);
+    });
+
+    it('gives «Mi calendario» the page button look and a touch target of 48 px', () => {
+        const wrapper = mount(Show, {
+            props: props({ personalCalendar: { profileUrl: '/perfil?tab=calendar' } }),
+        });
+
+        const classes = wrapper.get('[data-testid="link-page-my-calendar"]').classes();
+        expect(classes).toEqual(expect.arrayContaining(['link-page-button', 'min-h-12']));
+        expect(classes).not.toContain('focus:outline-none');
+    });
+
+    it('never builds a feed address from «Mi calendario»', () => {
+        const wrapper = mount(Show, {
+            props: props({ personalCalendar: { profileUrl: '/perfil?tab=calendar' } }),
+        });
+
+        expect(wrapper.html()).not.toContain('/calendario/personal/');
     });
 
     it('forces the chosen theme on the document and gives the previous one back', () => {
