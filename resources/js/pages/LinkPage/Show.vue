@@ -1,19 +1,85 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
-import type { LinkPageEvent, LinkPageProps } from '../../types/linkPage';
+import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/linkPage';
 
 /**
  * /enlaces, the page a printed QR code leads to: no site header, menu or footer
  * (its prefix does not use the core layout), laid out for a phone first.
+ *
+ * The appearance arrives as values from closed lists and #RRGGBB colours checked on the
+ * server; they only become CSS variables here, and module.css turns them into styles.
  */
 const props = defineProps<LinkPageProps>();
 
 const { t, locale } = useI18n();
 
 const initial = computed(() => props.site.name.trim().charAt(0).toLocaleUpperCase());
+
+// A forced theme sets the class the core reads (its palette and the calendar follow it)
+// before the first render; the page has no content before Vue mounts, so nothing flashes
+const root = typeof document !== 'undefined' ? document.documentElement : null;
+const previousDark = root?.classList.contains('dark') ?? false;
+if (root !== null && props.appearance.theme !== 'device') {
+    root.classList.toggle('dark', props.appearance.theme === 'dark');
+}
+onBeforeUnmount(() => {
+    if (root !== null && props.appearance.theme !== 'device') {
+        root.classList.toggle('dark', previousDark);
+    }
+});
+
+const COLOR_KEYS: Record<Exclude<keyof LinkPageColors, 'overlay'>, string> = {
+    background: 'bg',
+    backgroundTo: 'bg-to',
+    text: 'text',
+    button: 'button',
+    buttonText: 'button-text',
+    buttonStrong: 'button-strong',
+    muted: 'muted',
+};
+
+const rootStyle = computed<Record<string, string>>(() => {
+    const { appearance } = props;
+    const style: Record<string, string> = {
+        '--lp-font': appearance.font,
+        '--lp-angle': `${appearance.background.angle}deg`,
+    };
+
+    if (appearance.colors !== null) {
+        for (const set of ['light', 'dark'] as const) {
+            const colors = appearance.colors[set];
+            for (const [key, name] of Object.entries(COLOR_KEYS)) {
+                style[`--lp-${set}-${name}`] = colors[key as keyof typeof COLOR_KEYS];
+            }
+            style[`--lp-${set}-overlay`] = String(colors.overlay);
+        }
+    }
+
+    return style;
+});
+
+const rootClass = computed(() => {
+    const { appearance } = props;
+
+    return [
+        'link-page',
+        `link-page--buttons-${appearance.buttons.style}`,
+        `link-page--shape-${appearance.buttons.shape}`,
+        `link-page--background-${appearance.background.type}`,
+        { 'link-page--custom': appearance.colors !== null },
+    ];
+});
+
+const backgroundImage = computed(() =>
+    props.appearance.background.type === 'image' ? props.appearance.background.imageUrl : null
+);
+
+const logoShapeClass = computed(() =>
+    props.appearance.logo.shape === 'circle' ? 'rounded-full' : 'rounded-2xl'
+);
 
 // Dates as announced at the venue, whatever the visitor's own time zone
 const dateFormatter = computed(
@@ -40,7 +106,25 @@ function formatStart(event: LinkPageEvent): string | null {
 </script>
 
 <template>
-    <div class="min-h-screen bg-page text-base-primary">
+    <div
+        :class="rootClass"
+        :style="rootStyle"
+        class="relative isolate min-h-screen bg-page text-base-primary"
+        data-testid="link-page"
+    >
+        <template v-if="backgroundImage">
+            <img
+                :src="backgroundImage"
+                alt=""
+                class="pointer-events-none fixed inset-0 -z-20 size-full object-cover"
+                data-testid="link-page-background"
+            />
+            <div
+                class="link-page__overlay pointer-events-none fixed inset-0 -z-10"
+                aria-hidden="true"
+            />
+        </template>
+
         <main class="mx-auto flex w-full max-w-xl flex-col gap-10 px-4 pb-10 pt-10 sm:px-6">
             <header class="flex flex-col items-center gap-3 text-center">
                 <img
@@ -48,15 +132,25 @@ function formatStart(event: LinkPageEvent): string | null {
                     :src="site.logoUrl"
                     :alt="t('linkPage.logoAlt', { name: site.name })"
                     :class="[
-                        'size-24 rounded-full object-contain p-2',
-                        site.logoIsDark ? 'bg-neutral-900' : 'bg-surface',
+                        'size-24',
+                        logoShapeClass,
+                        appearance.logo.custom
+                            ? 'object-cover'
+                            : [
+                                  'object-contain p-2',
+                                  site.logoIsDark ? 'bg-neutral-900' : 'bg-surface',
+                              ],
                     ]"
                     width="96"
                     height="96"
+                    data-testid="link-page-logo"
                 />
                 <span
                     v-else
-                    class="flex size-24 items-center justify-center rounded-full bg-primary text-4xl font-bold text-white"
+                    :class="[
+                        'link-page__initial flex size-24 items-center justify-center text-4xl font-bold',
+                        logoShapeClass,
+                    ]"
                     aria-hidden="true"
                     data-testid="link-page-initial"
                 >
@@ -80,13 +174,13 @@ function formatStart(event: LinkPageEvent): string | null {
                     <li v-for="event in events" :key="event.id">
                         <a
                             :href="event.url"
-                            class="flex min-h-14 flex-col justify-center rounded-xl border border-default bg-surface px-4 py-3 shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                            class="link-page-button flex min-h-14 flex-col justify-center px-4 py-3 focus:outline-none"
                             data-testid="link-page-event"
                         >
                             <span class="flex items-center gap-2 font-semibold">
                                 <span
                                     v-if="event.pinned"
-                                    class="rounded-full bg-primary-light px-2 py-0.5 text-xs font-semibold text-base-primary"
+                                    class="link-page-button__badge rounded-full px-2 py-0.5 text-xs font-semibold"
                                 >
                                     {{ t('linkPage.pinned') }}
                                 </span>
@@ -94,7 +188,7 @@ function formatStart(event: LinkPageEvent): string | null {
                             </span>
                             <span
                                 v-if="formatStart(event)"
-                                class="mt-0.5 text-sm text-base-secondary"
+                                class="link-page-button__meta mt-0.5 text-sm"
                             >
                                 <time :datetime="event.startsAt ?? undefined">{{
                                     formatStart(event)
@@ -113,13 +207,18 @@ function formatStart(event: LinkPageEvent): string | null {
                 <h2 id="link-page-calendar" class="mb-3 text-lg font-semibold">
                     {{ t('linkPage.calendar') }}
                 </h2>
-                <ModuleEventCalendar :initial-view="calendar.initialView" :views="calendar.views" />
+                <div class="link-page__calendar">
+                    <ModuleEventCalendar
+                        :initial-view="calendar.initialView"
+                        :views="calendar.views"
+                    />
+                </div>
             </section>
 
             <footer class="text-center">
                 <a
                     :href="homeUrl"
-                    class="inline-flex min-h-11 items-center text-sm text-base-secondary underline underline-offset-2 hover:text-base-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    class="link-page__link inline-flex min-h-11 items-center text-sm text-base-secondary underline underline-offset-2 hover:text-base-primary focus:outline-none"
                 >
                     {{ t('linkPage.visitSite', { name: site.name }) }}
                 </a>

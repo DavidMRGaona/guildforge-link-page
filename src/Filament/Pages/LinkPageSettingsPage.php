@@ -7,6 +7,7 @@ namespace Modules\LinkPage\Filament\Pages;
 use App\Application\Modules\Services\ModuleManagerServiceInterface;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use App\Application\Services\EventQueryServiceInterface;
+use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TagQueryServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use App\Domain\Modules\ValueObjects\ModuleName;
@@ -26,8 +27,19 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Domain\Enums\BackgroundType;
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Domain\Enums\LogoSource;
+use Modules\LinkPage\Filament\Schemas\AppearanceSection;
+use Modules\LinkPage\Filament\Support\AppearanceFormState;
+use Modules\LinkPage\Filament\Support\AppearancePreview;
+use Modules\LinkPage\Http\Presenters\AppearancePresenter;
+use Throwable;
 
 /**
  * The settings of /enlaces, open to link-page:manage (admins hold every permission).
@@ -98,6 +110,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'calendar' => [
                 'initial_view' => $settings->calendarInitialView()->value,
             ],
+            'appearance' => $settings->appearance()->toArray(),
         ]);
     }
 
@@ -173,17 +186,33 @@ final class LinkPageSettingsPage extends Page implements HasForms
                             ->selectablePlaceholder(false)
                             ->required(),
                     ]),
+                AppearanceSection::make(),
             ])
             ->statePath('data');
     }
 
-    public function save(ModuleManagerServiceInterface $moduleManager, ModuleSettingsStoreInterface $settingsStore): void
-    {
+    public function save(
+        ModuleManagerServiceInterface $moduleManager,
+        ModuleSettingsStoreInterface $settingsStore,
+        LinkPageSettingsInterface $settings,
+    ): void {
         // Livewire methods can be called without the page's button
         abort_unless(self::canAccess(), 403);
 
         $state = $this->form->getState();
         $events = is_array($state['events'] ?? null) ? $state['events'] : [];
+
+        // Colours below WCAG AA are not saved; the field says which pair fails and by how much
+        $storedAppearance = $settings->appearance();
+        try {
+            $appearance = AppearanceFormState::toAppearance(is_array($state['appearance'] ?? null) ? $state['appearance'] : [], $storedAppearance);
+        } catch (InvalidArgumentException) {
+            throw ValidationException::withMessages(['data.appearance.template' => __('validation.in', ['attribute' => __('link-page::messages.appearance.template')])]);
+        }
+        $contrastErrors = AppearanceFormState::contrastErrors($appearance);
+        if ($contrastErrors !== []) {
+            throw ValidationException::withMessages($contrastErrors);
+        }
 
         // Keys this form does not show (other releases or pages) keep their stored values
         $moduleManager->updateSettings(new ModuleName(self::MODULE), array_replace($settingsStore->stored(self::MODULE), [
@@ -199,12 +228,68 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'calendar' => [
                 'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
             ],
+            'appearance' => $appearance->toArray(),
         ]));
+
+        AppearanceFormState::deleteReplacedImages($storedAppearance, $appearance);
 
         Notification::make()
             ->title(__('link-page::messages.settings.saved'))
             ->success()
             ->send();
+    }
+
+    /**
+     * What the appearance preview shows, from the form as it is now. A value that is not valid
+     * yet (a half-typed colour) shows the saved appearance instead.
+     *
+     * @return array{valid: bool, siteColors: bool, name: string, intro: string|null, initial: string, logoUrl: string|null, logoIsDark: bool, logoCustom: bool, phones: list<array<string, mixed>>}
+     */
+    public function appearancePreview(): array
+    {
+        $settings = app(LinkPageSettingsInterface::class);
+        $branding = app(SiteBrandingServiceInterface::class);
+        $stored = $settings->appearance();
+        $state = is_array($this->data['appearance'] ?? null) ? $this->data['appearance'] : [];
+
+        // Uploads not saved yet are shown from their temporary URL
+        $uploads = [];
+        foreach (['logo', 'background'] as $group) {
+            $upload = $this->previewUpload($state[$group]['image'] ?? null);
+            $uploads[$group] = $upload['url'];
+            if (is_array($state[$group] ?? null)) {
+                $state[$group]['image'] = $upload['path'];
+            }
+        }
+
+        try {
+            $appearance = AppearanceFormState::toAppearance($state, $stored);
+            $valid = true;
+        } catch (InvalidArgumentException) {
+            $appearance = $stored;
+            $valid = false;
+        }
+
+        $presenter = app(AppearancePresenter::class);
+        $logo = $presenter->logo($appearance, $branding->customLogoUrl(), $branding->customLogoIsDark());
+        $logoUrl = $valid && $appearance->effectiveLogoSource() === LogoSource::Custom ? ($uploads['logo'] ?? $logo['url']) : $logo['url'];
+        $backgroundUrl = $appearance->effectiveBackgroundType() === BackgroundType::Image
+            ? ($valid ? $uploads['background'] : null) ?? ($appearance->backgroundImage !== null ? Storage::disk('images')->url($appearance->backgroundImage) : null)
+            : null;
+        $name = $branding->siteName();
+        $intro = is_string($this->data['intro'] ?? null) && trim($this->data['intro']) !== '' ? trim($this->data['intro']) : null;
+
+        return [
+            'valid' => $valid,
+            'siteColors' => $appearance->template->usesSiteColors(),
+            'name' => $name,
+            'intro' => $intro,
+            'initial' => mb_strtoupper(mb_substr(trim($name), 0, 1)),
+            'logoUrl' => $logoUrl,
+            'logoIsDark' => $logo['isDark'],
+            'logoCustom' => $appearance->effectiveLogoSource() === LogoSource::Custom,
+            'phones' => app(AppearancePreview::class)->phones($appearance, $backgroundUrl),
+        ];
     }
 
     /**
@@ -264,6 +349,31 @@ final class LinkPageSettingsPage extends Page implements HasForms
         }
 
         return $this->tagOptions = $options;
+    }
+
+    /**
+     * A file upload's raw state: the stored path, or a placeholder path and the temporary URL
+     * of a file not saved yet.
+     *
+     * @return array{path: string|null, url: string|null}
+     */
+    private function previewUpload(mixed $state): array
+    {
+        $file = is_array($state) ? (array_first($state) ?? null) : $state;
+
+        if (is_string($file) && $file !== '') {
+            return ['path' => $file, 'url' => null];
+        }
+
+        if ($file instanceof TemporaryUploadedFile) {
+            try {
+                return ['path' => 'link-page/preview.png', 'url' => $file->temporaryUrl()];
+            } catch (Throwable) {
+                return ['path' => null, 'url' => null];
+            }
+        }
+
+        return ['path' => null, 'url' => null];
     }
 
     /**
