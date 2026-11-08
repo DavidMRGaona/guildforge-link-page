@@ -295,6 +295,48 @@ return [
         ],
     ],
 
+    'notice' => [
+        'section' => 'Aviso temporal',
+        'section_help' => 'Una línea arriba del todo para lo puntual: «Este sábado el local está cerrado». Fuera de sus fechas no se muestra. Las fechas se escriben en la zona horaria del sitio.',
+        'enabled' => 'Mostrar el aviso',
+        'enabled_help' => 'Desactivado, el aviso se guarda pero no se muestra.',
+        'text' => 'Texto del aviso',
+        'text_help' => 'Corto y directo, hasta :max caracteres.',
+        'tone' => 'Tono',
+        'tone_help' => 'Cambia el icono, el borde y la palabra que antecede al texto; los colores siguen los de la página, con el contraste comprobado.',
+        'link_url' => 'Enlace',
+        'link_url_help' => 'Opcional. Una dirección que empiece por https:// o una ruta del sitio, como /eventos.',
+        'link_url_invalid' => 'Escribe una dirección que empiece por https:// o una ruta del sitio que empiece por /.',
+        'link_label' => 'Texto del enlace',
+        'link_label_help' => 'Vacío, «Más información». Hasta :max caracteres.',
+        'starts_at' => 'Mostrar desde',
+        'starts_at_help' => 'Vacío, se muestra desde ya.',
+        'ends_at' => 'Mostrar hasta',
+        'ends_at_help' => 'Vacío, se muestra hasta que lo desactives. Esa hora ya no se muestra.',
+        'ends_before_start' => 'El aviso tiene que terminar después de empezar.',
+        'tones' => [
+            'info' => 'Información',
+            'warning' => 'Aviso',
+            'important' => 'Importante',
+        ],
+    ],
+
+    'featured' => [
+        'section' => 'Evento destacado',
+        'section_help' => 'Un evento en grande bajo el logo, con su imagen, la fecha, el lugar y una cuenta atrás. Solo eventos publicados. Si destacas uno, no se repite en «Próximos eventos».',
+        'mode' => 'Qué evento destacar',
+        'mode_help' => 'Automático: el que empieza antes entre los que no han terminado; cuando termina, pasa al siguiente. A mano: el que elijas, y desaparece al terminar.',
+        'tag' => 'Solo con la etiqueta',
+        'tag_help' => 'Opcional. Vacío, el próximo evento publicado. Los eventos escondidos de la lista tampoco se destacan.',
+        'event' => 'Evento',
+        'event_help' => 'Eventos publicados que no han terminado.',
+        'modes' => [
+            'off' => 'No destacar ninguno',
+            'auto' => 'Automático: el próximo evento',
+            'manual' => 'Elegido a mano',
+        ],
+    ],
+
     'qr_codes' => [
         'navigation' => 'Códigos QR',
         'model' => [
