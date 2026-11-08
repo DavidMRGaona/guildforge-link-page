@@ -80,6 +80,12 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             },
         ],
         calendar: { initialView: 'list', views: ['list', 'month'] },
+        calendarFeed: {
+            feedUrl: 'https://example.test/calendario.ics',
+            webcalUrl: 'webcal://example.test/calendario.ics',
+            googleUrl: 'https://calendar.google.com/calendar/r?cid=example',
+            outlookUrl: 'https://outlook.live.com/calendar/0/addfromweb?url=example',
+        },
         homeUrl: 'https://example.test',
         share: {
             url: 'https://example.test/enlaces',

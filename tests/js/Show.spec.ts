@@ -84,6 +84,12 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         social: { position: 'bottom', links: [] },
         events: [],
         calendar: { initialView: 'list', views: ['list', 'month'] },
+        calendarFeed: {
+            feedUrl: 'https://example.test/calendario.ics',
+            webcalUrl: 'webcal://example.test/calendario.ics',
+            googleUrl: 'https://calendar.google.com/calendar/r?cid=example',
+            outlookUrl: 'https://outlook.live.com/calendar/0/addfromweb?url=example',
+        },
         homeUrl: 'https://example.test',
         share: {
             url: 'https://example.test/enlaces',
@@ -162,6 +168,22 @@ describe('LinkPage/Show', () => {
 
         expect(wrapper.find('[data-testid="link-page-no-events"]').text()).toBe(
             es.linkPage.noEvents
+        );
+    });
+
+    it('puts the subscribe button at the end of the calendar section', () => {
+        const wrapper = mount(Show, { props: props() });
+
+        const section = wrapper.get('section[aria-labelledby="link-page-calendar"]');
+        const subscribe = section.get('[data-testid="link-page-subscribe"]');
+        const calendar = section.get('[data-testid="calendar"]');
+        expect(section.element.lastElementChild).toBe(subscribe.element);
+        expect(
+            calendar.element.compareDocumentPosition(subscribe.element) &
+                Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        expect(subscribe.get('[data-testid="link-page-subscribe-button"]').text()).toBe(
+            es.linkPage.subscribe.button
         );
     });
 

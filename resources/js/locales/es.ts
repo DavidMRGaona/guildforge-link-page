@@ -15,5 +15,19 @@ export default {
         share: 'Compartir esta página',
         shareCopied: 'Enlace copiado',
         shareCopyFailed: 'No se pudo copiar el enlace. Cópialo de la barra de direcciones.',
+        subscribe: {
+            button: 'Suscribirse',
+            optionsLabel: 'Formas de suscribirse al calendario',
+            app: 'Abrir en mi app de calendario',
+            google: 'Añadir a Google Calendar',
+            outlook: 'Añadir a Outlook en la web',
+            copy: 'Copiar dirección',
+            copied: 'Dirección copiada. Pégala en tu app de calendario.',
+            copyFailed: 'No se pudo copiar la dirección. Cópiala de aquí:',
+            addressLabel: 'Dirección del calendario',
+            hint: 'Se actualiza solo con los cambios, sin necesidad de cuenta.',
+            iosOtherBrowserHint:
+                'En iPhone, este navegador no abre la app Calendario: abre esta página en Safari o copia la dirección.',
+        },
     },
 };
