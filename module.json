@@ -1,7 +1,7 @@
 {
   "name": "link-page",
   "displayName": "Página de enlaces",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "repository": "DavidMRGaona/guildforge-link-page",
   "namespace": "Modules\\LinkPage",
   "provider": "LinkPageServiceProvider",
