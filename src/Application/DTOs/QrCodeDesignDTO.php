@@ -15,6 +15,8 @@ final readonly class QrCodeDesignDTO
      * @param  string  $code  The stable code the image encodes in /qr/{code}
      * @param  int  $marginPercent  Quiet zone as a share of the whole image, so every size looks alike
      * @param  string|null  $logoPath  Path on the images disk; only read when the source is Custom
+     * @param  string|null  $logoContents  A Custom logo not stored yet (the form's preview of an upload);
+     *                                     used instead of $logoPath when given
      */
     public function __construct(
         public string $code,
@@ -23,6 +25,7 @@ final readonly class QrCodeDesignDTO
         public int $marginPercent,
         public QrLogoSource $logoSource = QrLogoSource::None,
         public ?string $logoPath = null,
+        public ?string $logoContents = null,
     ) {}
 
     public function withoutLogo(): self

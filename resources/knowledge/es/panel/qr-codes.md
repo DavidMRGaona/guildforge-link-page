@@ -29,7 +29,7 @@ En el menú lateral, abre **Contenido** → **Códigos QR** y pulsa **Crear cód
 2. **Frase del cartel**: sale debajo del QR en la versión para imprimir. Vacía, se usa «Escanea para ver los próximos eventos».
 3. **Activo**: déjalo encendido para contar los escaneos.
 4. En **Diseño**, elige el **Color del código** y el **Color del fondo**, el **Margen** (el espacio en blanco alrededor, en porcentaje; los lectores necesitan algo) y, si quieres, un **Logo en el centro**: **Sin logo**, el **Logo del sitio** o una **Imagen propia** (PNG, JPEG o WebP de hasta 1 MB). Con logo, el código se dibuja con la máxima corrección de errores para que se siga leyendo.
-5. Mira la **Vista previa**, que se actualiza al cambiar cualquier cosa (un logo recién subido aparece al guardar).
+5. Mira la **Vista previa**, que se actualiza al cambiar cualquier cosa, también en cuanto termina de subirse un logo, antes de guardar. Si la imagen no sirve como logo (no es PNG, JPEG o WebP, o pasa de 1 MB o de 2048 × 2048 px), la vista previa lo avisa y sale sin logo.
 6. Pulsa **Crear**.
 
 Para que los móviles lo lean, el color del código debe ser **más oscuro** que el del fondo y el contraste debe ser de al menos 4,5:1. Si no se cumple, el campo lo explica y no se guarda.

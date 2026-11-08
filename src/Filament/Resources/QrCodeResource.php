@@ -61,6 +61,10 @@ final class QrCodeResource extends BaseResource
         'image/webp' => 'webp',
     ];
 
+    private const int LOGO_MAX_KILOBYTES = 1024;
+
+    private const int LOGO_MAX_PIXELS = 2048;
+
     /** For the preview while the code does not exist yet: same length, so the same density. */
     private const string PREVIEW_CODE = '222222';
 
@@ -171,10 +175,12 @@ final class QrCodeResource extends BaseResource
                                 fn (TemporaryUploadedFile $file): string => Str::uuid()->toString().'.'.self::LOGO_EXTENSIONS[$file->getMimeType()]
                             )
                             ->acceptedFileTypes(array_keys(self::LOGO_EXTENSIONS))
-                            ->maxSize(1024)
-                            ->rules(['mimes:png,jpg,jpeg,webp', 'dimensions:max_width=2048,max_height=2048'])
+                            ->maxSize(self::LOGO_MAX_KILOBYTES)
+                            ->rules(['mimes:png,jpg,jpeg,webp', 'dimensions:max_width='.self::LOGO_MAX_PIXELS.',max_height='.self::LOGO_MAX_PIXELS])
                             ->visible(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
                             ->required(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
+                            // The preview draws an upload as soon as it arrives, before saving
+                            ->live()
                             ->columnSpanFull(),
                     ]),
                 Section::make(__('link-page::messages.qr_codes.sections.preview'))
@@ -189,6 +195,9 @@ final class QrCodeResource extends BaseResource
                         Text::make(__('link-page::messages.qr_codes.preview_unavailable'))
                             ->color('danger')
                             ->visible(fn (Get $get, ?QrCodeModel $record): bool => self::previewUri($get, $record) === null),
+                        Text::make(__('link-page::messages.qr_codes.preview_logo_unusable'))
+                            ->color('warning')
+                            ->visible(fn (Get $get): bool => self::pendingLogoIsUnusable($get)),
                     ]),
             ]);
     }
@@ -403,14 +412,13 @@ final class QrCodeResource extends BaseResource
 
     /**
      * An SVG of what the form holds now, or null when it cannot be drawn (colours a phone
-     * could not read: the field error says why). A logo just uploaded shows once saved.
+     * could not read: the field error says why). A logo just uploaded is drawn from the
+     * upload itself, before anything is stored.
      */
     private static function previewUri(Get $get, ?QrCodeModel $record): ?string
     {
         $margin = $get('margin');
-        // The upload's state is a list of stored paths or files not saved yet
-        $uploaded = $get('logo_path');
-        $stored = array_values(array_filter(is_array($uploaded) ? $uploaded : [$uploaded], is_string(...)));
+        $pending = self::pendingLogo($get);
 
         $design = new QrCodeDesignDTO(
             code: $record instanceof QrCodeModel ? $record->code : self::PREVIEW_CODE,
@@ -418,7 +426,9 @@ final class QrCodeResource extends BaseResource
             backgroundColor: (string) $get('background_color'),
             marginPercent: is_numeric($margin) ? (int) $margin : QrCodeModel::DEFAULT_MARGIN,
             logoSource: self::logoSource($get) ?? QrLogoSource::None,
-            logoPath: $stored[0] ?? $record?->logo_path,
+            // A new upload replaces the stored logo, even when it cannot be used (then: none)
+            logoPath: $pending instanceof TemporaryUploadedFile ? null : (self::storedLogos($get)[0] ?? $record?->logo_path),
+            logoContents: $pending instanceof TemporaryUploadedFile ? self::usableLogoContents($pending) : null,
         );
 
         // The image and the notice both ask: draw once per form state
@@ -434,5 +444,72 @@ final class QrCodeResource extends BaseResource
         }
 
         return self::$preview['uri'];
+    }
+
+    /**
+     * The upload's state is a list of stored paths, files not saved yet or both.
+     *
+     * @return list<mixed>
+     */
+    private static function logoUploads(Get $get): array
+    {
+        $uploaded = $get('logo_path');
+
+        return array_values(is_array($uploaded) ? $uploaded : [$uploaded]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function storedLogos(Get $get): array
+    {
+        return array_values(array_filter(self::logoUploads($get), is_string(...)));
+    }
+
+    /**
+     * A logo uploaded in this form and not stored yet, when the form uses an uploaded logo.
+     */
+    private static function pendingLogo(Get $get): ?TemporaryUploadedFile
+    {
+        if (self::logoSource($get) !== QrLogoSource::Custom) {
+            return null;
+        }
+
+        $pending = array_find(self::logoUploads($get), fn (mixed $upload): bool => $upload instanceof TemporaryUploadedFile);
+
+        return $pending instanceof TemporaryUploadedFile ? $pending : null;
+    }
+
+    private static function pendingLogoIsUnusable(Get $get): bool
+    {
+        $pending = self::pendingLogo($get);
+
+        return $pending instanceof TemporaryUploadedFile && self::usableLogoContents($pending) === null;
+    }
+
+    /**
+     * The upload's bytes when saving would accept it: the field's own rules (type from the
+     * content, 1 MB, 2048 × 2048 px). Null for anything else, so the preview never draws a
+     * logo the form would then reject.
+     */
+    private static function usableLogoContents(TemporaryUploadedFile $file): ?string
+    {
+        try {
+            if (! array_key_exists($file->getMimeType(), self::LOGO_EXTENSIONS) || $file->getSize() > self::LOGO_MAX_KILOBYTES * 1024) {
+                return null;
+            }
+
+            $contents = $file->get();
+            $dimensions = is_string($contents) ? getimagesizefromstring($contents) : false;
+        } catch (Throwable) {
+            // The temporary file is gone or unreadable
+            return null;
+        }
+
+        if ($dimensions === false || $dimensions[0] > self::LOGO_MAX_PIXELS || $dimensions[1] > self::LOGO_MAX_PIXELS) {
+            return null;
+        }
+
+        return $contents;
     }
 }
