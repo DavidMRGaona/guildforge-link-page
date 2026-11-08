@@ -52,7 +52,7 @@ use Modules\LinkPage\Http\Presenters\AppearancePresenter;
 use Throwable;
 
 /**
- * The settings of /enlaces, open to link-page:manage (admins hold every permission).
+ * The settings of /enlaces, open to link-page:settings.manage (admins hold every permission).
  *
  * @property Schema $form
  */
@@ -100,7 +100,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return self::userCan('link-page:manage');
+        return self::userCan('link-page:settings.manage');
     }
 
     public function mount(LinkPageSettingsInterface $settings, HighlightsSettingsInterface $highlights): void

@@ -33,7 +33,7 @@ final class QrPrintTest extends ModuleTestCase
     {
         $qr = $this->qrCode();
 
-        $this->actingAs($this->userWith(['link-page:manage']))
+        $this->actingAs($this->userWith(['link-page:settings.manage']))
             ->get(route('link_page.qr_codes.print', [$qr, 'a4']))
             ->assertForbidden();
     }

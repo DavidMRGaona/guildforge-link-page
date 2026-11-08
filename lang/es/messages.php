@@ -6,7 +6,7 @@ return [
     'title' => 'Página de enlaces',
 
     'permissions' => [
-        'manage' => 'Configurar la página de enlaces',
+        'settings_manage' => 'Configurar la página de enlaces',
         'qr_codes_manage' => 'Gestionar e imprimir los códigos QR',
         'links_manage' => 'Gestionar los enlaces propios de la página',
         'stats_view' => 'Ver las estadísticas de la página de enlaces',

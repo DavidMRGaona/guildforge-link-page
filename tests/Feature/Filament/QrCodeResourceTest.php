@@ -55,7 +55,7 @@ final class QrCodeResourceTest extends ModuleTestCase
 
     public function test_only_qr_code_managers_open_the_list(): void
     {
-        $this->actingAs($this->userWith(['link-page:manage']));
+        $this->actingAs($this->userWith(['link-page:settings.manage']));
         $this->assertFalse(QrCodeResource::canViewAny());
         Livewire::test(ListQrCodes::class)->assertForbidden();
 

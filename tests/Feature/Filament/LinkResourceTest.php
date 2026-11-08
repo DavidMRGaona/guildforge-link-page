@@ -54,7 +54,7 @@ final class LinkResourceTest extends ModuleTestCase
 
     public function test_only_link_managers_open_the_list(): void
     {
-        $this->actingAs($this->userWithLinkPermissions(['link-page:manage']));
+        $this->actingAs($this->userWithLinkPermissions(['link-page:settings.manage']));
         $this->assertFalse(LinkResource::canViewAny());
         Livewire::test(ListLinks::class)->assertForbidden();
 

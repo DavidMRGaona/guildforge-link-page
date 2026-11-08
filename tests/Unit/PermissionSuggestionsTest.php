@@ -28,15 +28,10 @@ final class PermissionSuggestionsTest extends TestCase
 
     /**
      * permissions:sync refuses a key that is not "module:resource.action" and then saves none.
-     * "manage" is renamed by issue #17.
      */
     public function test_the_permission_keys_have_the_form_the_core_syncs(): void
     {
         foreach ((new LinkPageServiceProvider($this->app))->registerPermissions() as $permission) {
-            if ($permission->name === 'manage') {
-                continue;
-            }
-
             $key = new PermissionKey('link-page:'.$permission->name);
             $this->assertSame('link-page', $key->module(), $permission->name);
         }
