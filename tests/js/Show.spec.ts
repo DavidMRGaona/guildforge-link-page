@@ -80,6 +80,9 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         site: { name: 'Example guild', logoUrl: null, logoIsDark: false },
         appearance: appearance(),
         intro: null,
+        serverNow: null,
+        notice: null,
+        featured: null,
         links: { before: [], after: [] },
         social: { position: 'bottom', links: [] },
         events: [],
@@ -125,6 +128,48 @@ describe('LinkPage/Show', () => {
         expect(logo.attributes('src')).toBe('https://example.test/logo.png');
         expect(logo.attributes('alt')).toBe('Logo de Example guild');
         expect(wrapper.find('[data-testid="link-page-initial"]').exists()).toBe(false);
+    });
+
+    it('shows no notice and no featured event unless the server sends them', () => {
+        const wrapper = mount(Show, { props: props() });
+
+        expect(wrapper.find('[data-testid="link-page-notice"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="link-page-featured"]').exists()).toBe(false);
+    });
+
+    it('puts the notice at the very top, above the page content', () => {
+        const wrapper = mount(Show, {
+            props: props({ notice: { text: 'Closed on Saturday.', tone: 'warning', link: null } }),
+        });
+
+        const root = wrapper.get('[data-testid="link-page"]').element;
+        expect(root.firstElementChild).toBe(wrapper.get('[data-testid="link-page-notice"]').element);
+        expect(wrapper.get('main').element.contains(wrapper.get('[data-testid="link-page-notice"]').element)).toBe(false);
+    });
+
+    it('puts the featured event between the presentation and the list of events', () => {
+        const wrapper = mount(Show, {
+            props: props({
+                serverNow: '2026-06-15T10:00:00+02:00',
+                featured: {
+                    id: 'event-9',
+                    title: 'Big convention',
+                    url: 'https://example.test/eventos/big-convention',
+                    startsAt: '2026-06-20T10:00:00+02:00',
+                    endsAt: '2026-06-20T20:00:00+02:00',
+                    dayStartsAt: '2026-06-20T00:00:00+02:00',
+                    spansDays: false,
+                    location: null,
+                    imagePublicId: null,
+                },
+            }),
+        });
+
+        const featured = wrapper.get('[data-testid="link-page-featured"]').element;
+        const header = wrapper.get('header').element;
+        const events = wrapper.get('#link-page-events').element;
+        expect(header.compareDocumentPosition(featured) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(featured.compareDocumentPosition(events) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('offers a share button, first in the page for keyboards and screen readers', () => {

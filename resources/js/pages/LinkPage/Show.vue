@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
 import CalendarSubscribe from '../../components/CalendarSubscribe.vue';
+import FeaturedEvent from '../../components/FeaturedEvent.vue';
+import NoticeBanner from '../../components/NoticeBanner.vue';
 import ShareButton from '../../components/ShareButton.vue';
 import OwnLinkButton from '../../components/OwnLinkButton.vue';
 import SocialRow from '../../components/SocialRow.vue';
@@ -129,6 +131,8 @@ function formatStart(event: LinkPageEvent): string | null {
             />
         </template>
 
+        <NoticeBanner v-if="notice" :notice="notice" />
+
         <main
             class="relative mx-auto flex w-full max-w-xl flex-col gap-10 px-4 pb-10 pt-10 sm:px-6"
         >
@@ -174,6 +178,8 @@ function formatStart(event: LinkPageEvent): string | null {
                 </p>
                 <SocialRow v-if="social.position === 'top'" :links="social.links" class="mt-1" />
             </header>
+
+            <FeaturedEvent v-if="featured" :featured="featured" :server-now="serverNow" />
 
             <section
                 v-if="links.before.length > 0"

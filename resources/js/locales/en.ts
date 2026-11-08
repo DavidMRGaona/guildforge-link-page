@@ -29,5 +29,22 @@ export default {
             iosOtherBrowserHint:
                 'On iPhone, this browser does not open the Calendar app: open this page in Safari or copy the address.',
         },
+        noticeMoreInfo: 'More information',
+        noticeTones: {
+            info: 'Information',
+            warning: 'Notice',
+            important: 'Important',
+        },
+        featuredEyebrow: 'Featured event',
+        featuredToday: 'Today',
+        featuredLive: 'Happening now',
+        featuredStartsIn: 'Starts in',
+        featuredUntil: 'Until {date}',
+        featuredCta: 'See the event',
+        countdownDays: '{n} d',
+        countdownHours: '{n} h',
+        countdownMinutes: '{n} min',
+        countdownSeconds: '{n} s',
+        countdownLessThanMinute: 'Less than 1 min',
     },
 };
