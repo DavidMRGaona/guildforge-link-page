@@ -55,7 +55,10 @@ function social(overrides: Partial<LinkPageSocialLink> = {}): LinkPageSocialLink
 
 function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
     return {
-        site: { name: 'Example guild', logoUrl: null, logoIsDark: false },
+        site: {
+            name: 'Example guild',
+            logo: { light: { url: null, isDark: false }, dark: { url: null, isDark: false } },
+        },
         appearance: {
             theme: 'device',
             colors: null,

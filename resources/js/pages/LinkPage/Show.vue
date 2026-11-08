@@ -91,6 +91,31 @@ const logoShapeClass = computed(() =>
     props.appearance.logo.shape === 'circle' ? 'rounded-full' : 'rounded-2xl'
 );
 
+interface ShownLogo {
+    key: string;
+    url: string;
+    isDark: boolean;
+    /** Which theme shows it: the document's `dark` class, forced by the appearance or the device's */
+    themeClass: string[];
+}
+
+// One image when both themes share it; otherwise both, and the theme hides one (display: none,
+// so assistive technology only reads the visible one)
+const logos = computed((): ShownLogo[] => {
+    const { light, dark } = props.site.logo;
+    if (light.url === null || dark.url === null) {
+        return [];
+    }
+    if (light.url === dark.url) {
+        return [{ key: 'both', url: light.url, isDark: light.isDark, themeClass: [] }];
+    }
+
+    return [
+        { key: 'light', url: light.url, isDark: light.isDark, themeClass: ['dark:hidden'] },
+        { key: 'dark', url: dark.url, isDark: dark.isDark, themeClass: ['hidden', 'dark:block'] },
+    ];
+});
+
 // Dates as announced at the venue, whatever the visitor's own time zone
 const dateFormatter = computed(
     () =>
@@ -143,24 +168,28 @@ function formatStart(event: LinkPageEvent): string | null {
             <ShareButton :share="share" />
 
             <header class="flex flex-col items-center gap-3 text-center">
-                <img
-                    v-if="site.logoUrl"
-                    :src="site.logoUrl"
-                    :alt="t('linkPage.logoAlt', { name: site.name })"
-                    :class="[
-                        'size-24',
-                        logoShapeClass,
-                        appearance.logo.custom
-                            ? 'object-cover'
-                            : [
-                                  'object-contain p-2',
-                                  site.logoIsDark ? 'bg-neutral-900' : 'bg-surface',
-                              ],
-                    ]"
-                    width="96"
-                    height="96"
-                    data-testid="link-page-logo"
-                />
+                <template v-if="logos.length > 0">
+                    <img
+                        v-for="logo in logos"
+                        :key="logo.key"
+                        :src="logo.url"
+                        :alt="t('linkPage.logoAlt', { name: site.name })"
+                        :class="[
+                            'size-24',
+                            logoShapeClass,
+                            logo.themeClass,
+                            appearance.logo.custom
+                                ? 'object-cover'
+                                : [
+                                      'object-contain p-2',
+                                      logo.isDark ? 'bg-neutral-900' : 'bg-surface',
+                                  ],
+                        ]"
+                        width="96"
+                        height="96"
+                        data-testid="link-page-logo"
+                    />
+                </template>
                 <span
                     v-else
                     :class="[

@@ -25,9 +25,10 @@
                     @endif
                     <div style="display: flex; flex-direction: column; gap: 0.875rem; padding: 1.25rem 0.875rem;">
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 0.375rem; text-align: center;">
-                            @if ($preview['logoUrl'] !== null)
-                                <img src="{{ $preview['logoUrl'] }}" alt="" width="56" height="56"
-                                     style="width: 3.5rem; height: 3.5rem; {{ $preview['logoCustom'] ? 'object-fit: cover;' : 'object-fit: contain; padding: 0.25rem; background-color: '.($preview['logoIsDark'] ? '#1c1917' : '#ffffff').';' }} {{ $phone['logo'] }}">
+                            @php($logo = $preview['logos'][$phone['set']])
+                            @if ($logo['url'] !== null)
+                                <img src="{{ $logo['url'] }}" alt="" width="56" height="56"
+                                     style="width: 3.5rem; height: 3.5rem; {{ $preview['logoCustom'] ? 'object-fit: cover;' : 'object-fit: contain; padding: 0.25rem; background-color: '.($logo['isDark'] ? '#1c1917' : '#ffffff').';' }} {{ $phone['logo'] }}">
                             @else
                                 <span aria-hidden="true" style="display: flex; width: 3.5rem; height: 3.5rem; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; {{ $phone['initial'] }}">{{ $preview['initial'] }}</span>
                             @endif
