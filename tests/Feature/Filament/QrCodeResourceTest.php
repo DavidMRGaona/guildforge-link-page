@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\Modules\DTOs\PermissionDTO;
+use App\Filament\Actions\RowDetailsAction;
 use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
@@ -277,6 +278,17 @@ final class QrCodeResourceTest extends ModuleTestCase
 
         $this->assertSame(route('link_page.qr_codes.print', [$qr, 'a4']), $table->getAction('print_a4')?->record($qr)->getUrl());
         $this->assertSame(route('link_page.qr_codes.print', [$qr, 'a5']), $table->getAction('print_a5')?->record($qr)->getUrl());
+    }
+
+    public function test_the_menu_starts_with_the_row_details(): void
+    {
+        $this->actingAsPanelAdmin();
+        $table = $this->table();
+        $group = $table->getRecordActions()[0];
+
+        $this->assertInstanceOf(ActionGroup::class, $group);
+        $this->assertSame(RowDetailsAction::NAME, array_key_first($group->getFlatActions()));
+        $this->assertNotNull($table->getAction(RowDetailsAction::NAME));
     }
 
     public function test_the_row_actions_sit_in_one_menu(): void

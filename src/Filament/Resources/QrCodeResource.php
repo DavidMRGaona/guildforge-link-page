@@ -8,6 +8,7 @@ use App\Application\QrCodes\DTOs\QrCodeOptionsDTO;
 use App\Application\QrCodes\Enums\QrCodeFormat;
 use App\Application\QrCodes\HexColor;
 use App\Application\Services\SiteBrandingServiceInterface;
+use App\Filament\Actions\RowDetailsAction;
 use App\Filament\Resources\BaseResource;
 use BackedEnum;
 use Closure;
@@ -225,6 +226,7 @@ final class QrCodeResource extends BaseResource
             ])
             ->recordActions([
                 ActionGroup::make([
+                    RowDetailsAction::make(),
                     EditAction::make(),
                     self::downloadAction(),
                     self::printAction(PrintPaper::A4),

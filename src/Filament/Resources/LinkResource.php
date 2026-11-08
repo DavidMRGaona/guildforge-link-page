@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Resources;
 
+use App\Filament\Actions\RowDetailsAction;
 use App\Filament\Resources\BaseResource;
 use BackedEnum;
 use Closure;
@@ -179,6 +180,7 @@ final class LinkResource extends BaseResource
             // One menu: two labelled actions would widen the table past its container
             ->recordActions([
                 ActionGroup::make([
+                    RowDetailsAction::make(),
                     EditAction::make(),
                     self::deleteAction(DeleteAction::make()),
                 ]),
