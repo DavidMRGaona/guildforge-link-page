@@ -1,18 +1,18 @@
 {
-    "name": "link-page",
-    "displayName": "Página de enlaces",
-    "version": "0.0.0",
-    "repository": "DavidMRGaona/guildforge-link-page",
-    "namespace": "Modules\\LinkPage",
-    "provider": "LinkPageServiceProvider",
-    "description": "Página de enlaces para el móvil, con los próximos eventos y el calendario",
-    "author": "GuildForge",
-    "requires": {
-        "core": "^3.41",
-        "php": ">=8.5",
-        "laravel": ">=13.0",
-        "filament": "^5.0"
-    },
-    "storesUtc": true,
-    "dependencies": []
+  "name": "link-page",
+  "displayName": "Página de enlaces",
+  "version": "1.0.0",
+  "repository": "DavidMRGaona/guildforge-link-page",
+  "namespace": "Modules\\LinkPage",
+  "provider": "LinkPageServiceProvider",
+  "description": "Página de enlaces para el móvil, con los próximos eventos y el calendario",
+  "author": "GuildForge",
+  "requires": {
+    "core": "^3.41",
+    "php": ">=8.5",
+    "laravel": ">=13.0",
+    "filament": "^5.0"
+  },
+  "storesUtc": true,
+  "dependencies": []
 }
