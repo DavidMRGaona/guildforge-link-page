@@ -25,12 +25,13 @@ final readonly class LinkPageEventsService
     ) {}
 
     /**
+     * @param  list<string>  $excludedIds  events left out as if hidden, such as the featured one
      * @return list<LinkPageEventDTO>
      */
-    public function upcoming(): array
+    public function upcoming(array $excludedIds = []): array
     {
         $limit = $this->settings->eventsLimit();
-        $hidden = array_flip($this->settings->hiddenEventIds());
+        $hidden = array_flip([...$this->settings->hiddenEventIds(), ...$excludedIds]);
 
         $pinned = array_slice($this->pinned($hidden), 0, $limit);
         $taken = $hidden + array_flip(array_map(fn (EventResponseDTO $event): string => $event->id, $pinned));

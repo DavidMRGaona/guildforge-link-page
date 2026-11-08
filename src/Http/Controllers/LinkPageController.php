@@ -13,11 +13,13 @@ use Modules\LinkPage\Application\Contracts\LinkPageLinksInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Application\DTOs\LinkPageEventDTO;
 use Modules\LinkPage\Application\DTOs\LinkPageLinkDTO;
+use Modules\LinkPage\Application\Services\FeaturedEventService;
 use Modules\LinkPage\Application\Services\LinkPageEventsService;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LinkPlacement;
 use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 use Modules\LinkPage\Http\Presenters\AppearancePresenter;
+use Modules\LinkPage\Http\Presenters\HighlightsPresenter;
 use Modules\LinkPage\Http\Presenters\ShareCardPresenter;
 
 /**
@@ -34,6 +36,8 @@ final readonly class LinkPageController
         private AppearancePresenter $appearance,
         private ShareCardPresenter $shareCard,
         private PublicCalendarFeedInterface $calendarFeed,
+        private FeaturedEventService $featuredEvent,
+        private HighlightsPresenter $highlights,
     ) {}
 
     public function __invoke(): Response
@@ -45,8 +49,10 @@ final readonly class LinkPageController
         $appearance = $this->settings->appearance();
         $card = $this->shareCard->present($intro);
         $logo = $this->appearance->logo($appearance, $this->branding->customLogoUrl(), $this->branding->customLogoIsDark());
+        $featured = $this->featuredEvent->current();
 
         return Inertia::render('LinkPage/Show', [
+            ...$this->highlights->props($featured),
             'site' => [
                 'name' => $siteName,
                 'logoUrl' => $logo['url'],
@@ -59,7 +65,7 @@ final readonly class LinkPageController
                 'position' => $this->settings->socialPosition()->value,
                 'links' => array_map($this->socialProps(...), $this->settings->socialLinks()),
             ],
-            'events' => array_map($this->eventProps(...), $this->events->upcoming()),
+            'events' => array_map($this->eventProps(...), $this->events->upcoming($featured === null ? [] : [$featured->id])),
             'calendar' => [
                 'initialView' => $this->settings->calendarInitialView()->value,
                 'views' => array_map(fn (CalendarView $view): string => $view->value, CalendarView::cases()),
