@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use App\Application\Services\SettingsServiceInterface;
+use Filament\Forms\Components\CheckboxList;
 use Livewire\Livewire;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\SocialNetwork;
@@ -111,10 +112,7 @@ final class LinkPageSocialFormTest extends ModuleTestCase
     {
         $this->site(['social_instagram' => 'www.instagram.com/example', 'contact_phone' => '+34 600 123 456']);
 
-        $component = Livewire::test(LinkPageSettingsPage::class);
-        $field = $component->instance()->form->getComponent('social.shown');
-
-        $this->assertNotNull($field);
+        $field = $this->shownField();
         $descriptions = $field->getDescriptions();
 
         $this->assertStringContainsString('instagram.com/example', (string) $descriptions['instagram']);
@@ -127,13 +125,21 @@ final class LinkPageSocialFormTest extends ModuleTestCase
     {
         $this->site(['social_instagram' => 'www.instagram.com/example']);
 
-        $component = Livewire::test(LinkPageSettingsPage::class);
-        $field = $component->instance()->form->getComponent('social.shown');
-
-        $this->assertNotNull($field);
+        $field = $this->shownField();
         $this->assertFalse($field->isOptionDisabled('instagram', 'Instagram'));
         $this->assertTrue($field->isOptionDisabled('discord', 'Discord'));
         $this->assertTrue($field->isOptionDisabled('email', 'Correo electrónico'));
+    }
+
+    private function shownField(): CheckboxList
+    {
+        $page = Livewire::test(LinkPageSettingsPage::class)->instance();
+        $this->assertInstanceOf(LinkPageSettingsPage::class, $page);
+
+        $field = $page->form->getComponent('social.shown');
+        $this->assertInstanceOf(CheckboxList::class, $field);
+
+        return $field;
     }
 
     /**

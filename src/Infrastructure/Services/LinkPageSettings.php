@@ -11,8 +11,8 @@ use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\SocialNetwork;
 use Modules\LinkPage\Domain\Enums\SocialPosition;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
-use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Domain\ValueObjects\LinkUrl;
+use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 
 /**

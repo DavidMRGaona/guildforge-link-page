@@ -81,7 +81,11 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         ],
         calendar: { initialView: 'list', views: ['list', 'month'] },
         homeUrl: 'https://example.test',
-        share: { url: 'https://example.test/enlaces', title: 'Example guild', text: 'Scan, play, repeat.' },
+        share: {
+            url: 'https://example.test/enlaces',
+            title: 'Example guild',
+            text: 'Scan, play, repeat.',
+        },
         ...overrides,
     };
 }
