@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\Modules\DTOs\PermissionDTO;
 use App\Application\Services\TimezoneServiceInterface;
+use App\Filament\Actions\RowDetailsAction;
 use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
@@ -297,6 +298,17 @@ final class LinkResourceTest extends ModuleTestCase
             ->assertTableColumnStateSet('status', 'hidden', $off)
             ->assertTableColumnStateSet('status', 'scheduled', $later)
             ->assertTableColumnStateSet('status', 'expired', $gone);
+    }
+
+    public function test_the_menu_starts_with_the_row_details(): void
+    {
+        $this->actingAs($this->userWithLinkPermissions([self::MANAGE]));
+        $table = $this->table();
+        $group = $table->getRecordActions()[0];
+
+        $this->assertInstanceOf(ActionGroup::class, $group);
+        $this->assertSame(RowDetailsAction::NAME, array_key_first($group->getFlatActions()));
+        $this->assertNotNull($table->getAction(RowDetailsAction::NAME));
     }
 
     public function test_the_row_actions_sit_in_one_menu(): void
