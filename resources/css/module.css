@@ -89,7 +89,8 @@
 .link-page {
     font-family: var(--lp-font);
     --lp-radius: 0.75rem;
-    --lp-focus: var(--color-primary-500);
+    /* A core that does not emit the primary scale still gets a visible focus ring */
+    --lp-focus: var(--color-primary-500, var(--color-primary));
 
     /* Buttons with the site colours: the bordered card the page always had */
     --lp-btn-bg: var(--color-bg-surface);
@@ -273,6 +274,63 @@
 .link-page-button__badge {
     background-color: var(--lp-badge-bg);
     color: var(--lp-badge-fg);
+}
+
+/* A featured own link: bigger (utility classes on the element) and surrounded by a soft ring
+   in the button colour, which is the one the server already checked against the background
+   (3:1 for filled and shadow buttons, 4.5:1 for outline ones). The ring only breathes; with
+   prefers-reduced-motion it stays still and fully visible. */
+.link-page-button--featured {
+    --lp-ring: var(--color-primary);
+    position: relative;
+}
+
+.link-page--custom .link-page-button--featured {
+    --lp-ring: var(--lp-button);
+}
+
+.link-page-button--featured::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 2px solid var(--lp-ring);
+    border-radius: calc(var(--lp-radius) + 6px);
+    pointer-events: none;
+    animation: link-page-glow 2.8s ease-in-out infinite;
+}
+
+.link-page--shape-square .link-page-button--featured::after {
+    border-radius: 0;
+}
+
+@keyframes link-page-glow {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.012);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .link-page-button--featured::after {
+        animation: none;
+        opacity: 1;
+    }
+
+    .link-page-button,
+    .link-page--buttons-shadow .link-page-button:hover {
+        transition: none;
+        transform: none;
+    }
+}
+
+.link-page-icon {
+    flex: none;
 }
 
 .link-page-button:focus-visible,

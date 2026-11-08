@@ -38,6 +38,7 @@ vi.mock('@/utils/datetime', () => ({ VENUE_TIMEZONE: 'Europe/Madrid' }));
 function event(overrides: Partial<LinkPageEvent> = {}): LinkPageEvent {
     return {
         id: 'event-1',
+        linkId: 'event:event-1',
         title: 'Campaign night',
         url: 'https://example.test/eventos/campaign-night',
         startsAt: '2026-06-16T20:00:00+02:00',
@@ -79,6 +80,8 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         site: { name: 'Example guild', logoUrl: null, logoIsDark: false },
         appearance: appearance(),
         intro: null,
+        links: { before: [], after: [] },
+        social: { position: 'bottom', links: [] },
         events: [],
         calendar: { initialView: 'list', views: ['list', 'month'] },
         homeUrl: 'https://example.test',
@@ -133,7 +136,12 @@ describe('LinkPage/Show', () => {
             props: props({
                 events: [
                     event({ pinned: true }),
-                    event({ id: 'event-2', title: 'Skirmish', location: null }),
+                    event({
+                        id: 'event-2',
+                        linkId: 'event:event-2',
+                        title: 'Skirmish',
+                        location: null,
+                    }),
                 ],
             }),
         });

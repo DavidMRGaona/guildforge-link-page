@@ -6,9 +6,14 @@ namespace Modules\LinkPage\Infrastructure\Services;
 
 use InvalidArgumentException;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Application\Contracts\SiteSocialProfilesInterface;
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Domain\Enums\SocialNetwork;
+use Modules\LinkPage\Domain\Enums\SocialPosition;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
+use Modules\LinkPage\Domain\ValueObjects\LinkUrl;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
+use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 
 /**
  * Reads config('modules.settings.link-page'), where the core loads the release defaults
@@ -17,6 +22,8 @@ use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 final readonly class LinkPageSettings implements LinkPageSettingsInterface
 {
     private const string KEY = 'modules.settings.link-page';
+
+    public function __construct(private SiteSocialProfilesInterface $siteProfiles) {}
 
     public function isEnabled(): bool
     {
@@ -86,6 +93,43 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
     public function noindex(): bool
     {
         return $this->shareValue('noindex') === true;
+    }
+
+    public function socialLinks(): array
+    {
+        $links = [];
+
+        foreach ($this->shownNetworks() as $network) {
+            $url = $this->siteProfiles->for($network);
+
+            if ($url instanceof LinkUrl) {
+                $links[] = new SocialLink($network, $url);
+            }
+        }
+
+        return $links;
+    }
+
+    public function shownNetworks(): array
+    {
+        $saved = config(self::KEY.'.social.shown');
+
+        if (! is_array($saved)) {
+            return SocialNetwork::cases();
+        }
+
+        // In catalogue order, whatever order they were saved in; anything unknown is ignored
+        return array_values(array_filter(
+            SocialNetwork::cases(),
+            static fn (SocialNetwork $network): bool => in_array($network->value, $saved, true),
+        ));
+    }
+
+    public function socialPosition(): SocialPosition
+    {
+        $position = config(self::KEY.'.social.position');
+
+        return (is_string($position) ? SocialPosition::tryFrom($position) : null) ?? SocialPosition::Bottom;
     }
 
     public function appearance(): Appearance
