@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
+import CalendarSubscribe from '../../components/CalendarSubscribe.vue';
 import ShareButton from '../../components/ShareButton.vue';
 import OwnLinkButton from '../../components/OwnLinkButton.vue';
 import SocialRow from '../../components/SocialRow.vue';
@@ -246,6 +247,9 @@ function formatStart(event: LinkPageEvent): string | null {
                         :views="calendar.views"
                     />
                 </div>
+                <!-- «Mi calendario» (the signed-in person's own feed) goes in this component's
+                     `actions` slot, next to «Suscribirse» -->
+                <CalendarSubscribe :links="calendarFeed" class="mt-4" />
             </section>
 
             <SocialRow v-if="social.position === 'bottom'" :links="social.links" />

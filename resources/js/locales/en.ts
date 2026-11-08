@@ -15,5 +15,19 @@ export default {
         share: 'Share this page',
         shareCopied: 'Link copied',
         shareCopyFailed: 'The link could not be copied. Copy it from the address bar.',
+        subscribe: {
+            button: 'Subscribe',
+            optionsLabel: 'Ways to subscribe to the calendar',
+            app: 'Open in my calendar app',
+            google: 'Add to Google Calendar',
+            outlook: 'Add to Outlook on the web',
+            copy: 'Copy address',
+            copied: 'Address copied. Paste it into your calendar app.',
+            copyFailed: 'The address could not be copied. Copy it from here:',
+            addressLabel: 'Calendar address',
+            hint: 'It updates by itself with every change, no account needed.',
+            iosOtherBrowserHint:
+                'On iPhone, this browser does not open the Calendar app: open this page in Safari or copy the address.',
+        },
     },
 };

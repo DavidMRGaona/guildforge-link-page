@@ -2,6 +2,7 @@
 import { onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { LinkPageShare } from '../types/linkPage';
+import { writeToClipboard } from '../utils/clipboard';
 
 /**
  * «Compartir»: the phone's own share sheet (Web Share API) when the browser has one, else the
@@ -36,35 +37,6 @@ function canShareNatively(data: ShareData): boolean {
     }
 
     return typeof navigator.canShare === 'function' ? navigator.canShare(data) : true;
-}
-
-async function writeToClipboard(text: string): Promise<boolean> {
-    if (typeof navigator.clipboard?.writeText === 'function') {
-        try {
-            await navigator.clipboard.writeText(text);
-
-            return true;
-        } catch {
-            // Denied or not in a secure context: the older way below may still work
-        }
-    }
-
-    // execCommand is deprecated but is all an insecure origin or an old browser has
-    const field = document.createElement('textarea');
-    field.value = text;
-    field.setAttribute('readonly', '');
-    field.style.position = 'fixed';
-    field.style.opacity = '0';
-    document.body.appendChild(field);
-    field.select();
-
-    try {
-        return document.execCommand('copy');
-    } catch {
-        return false;
-    } finally {
-        field.remove();
-    }
 }
 
 async function copyLink(): Promise<void> {

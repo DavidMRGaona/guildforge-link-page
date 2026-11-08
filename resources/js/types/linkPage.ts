@@ -79,6 +79,21 @@ export interface LinkPageCalendar {
     views: CalendarView[];
 }
 
+/**
+ * The addresses to subscribe to the site's public calendar, as the core builds them
+ * (`CalendarSubscriptionLinksDTO`): the module only shows them.
+ */
+export interface LinkPageCalendarFeed {
+    /** The https address of the feed, the one to paste into a calendar service. */
+    feedUrl: string;
+    /** The same address as webcal://, which Apple Calendar and Outlook hand to their app. */
+    webcalUrl: string;
+    /** Opens Google Calendar with the subscription ready. */
+    googleUrl: string;
+    /** Opens Outlook on the web with the subscription ready. */
+    outlookUrl: string;
+}
+
 /** Device follows the class the core puts on the document; light and dark force one set. */
 export type LinkPageTheme = 'device' | 'light' | 'dark';
 
@@ -132,6 +147,7 @@ export interface LinkPageProps {
     social: { position: LinkPageSocialPosition; links: LinkPageSocialLink[] };
     events: LinkPageEvent[];
     calendar: LinkPageCalendar;
+    calendarFeed: LinkPageCalendarFeed;
     homeUrl: string;
     share: LinkPageShare;
 }
