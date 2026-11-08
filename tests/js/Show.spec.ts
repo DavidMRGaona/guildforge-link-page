@@ -367,7 +367,9 @@ describe('LinkPage/Show appearance', () => {
 
     it('puts «Mi calendario» next to «Suscribirse», leading to the profile calendar tab', () => {
         const wrapper = mount(Show, {
-            props: props({ personalCalendar: { profileUrl: 'https://example.test/perfil?tab=calendar' } }),
+            props: props({
+                personalCalendar: { profileUrl: 'https://example.test/perfil?tab=calendar' },
+            }),
         });
 
         const actions = wrapper.get('[data-testid="link-page-subscribe-actions"]');

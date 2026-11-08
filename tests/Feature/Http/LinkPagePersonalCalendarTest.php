@@ -74,9 +74,9 @@ final class LinkPagePersonalCalendarTest extends ModuleTestCase
 
     private function personalCalendarIsAvailable(bool $available): void
     {
-        $this->app->instance(PersonalCalendarServiceInterface::class, new class($available) implements PersonalCalendarServiceInterface
+        $this->app->instance(PersonalCalendarServiceInterface::class, new readonly class($available) implements PersonalCalendarServiceInterface
         {
-            public function __construct(private readonly bool $available) {}
+            public function __construct(private bool $available) {}
 
             public function isAvailable(): bool
             {

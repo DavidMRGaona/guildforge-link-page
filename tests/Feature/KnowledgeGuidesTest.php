@@ -18,8 +18,8 @@ use Modules\LinkPage\Filament\Resources\QrCodeResource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\ListQrCodes;
 use Modules\LinkPage\Tests\Support\CreatesLinks;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
-use Tests\Support\Modules\InteractsWithModulePanel;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
 /**
