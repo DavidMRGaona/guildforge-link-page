@@ -33,6 +33,12 @@ return [
         'image' => null,
         'noindex' => false,
     ],
+    // The row of social icons: 'top' (under the site name) or 'bottom'. The addresses are
+    // the site's own (Sobre nosotros); 'shown' lists the networks ticked to show, and its
+    // absence means every network the site has
+    'social' => [
+        'position' => 'bottom',
+    ],
     // The page as the site paints it; the colour sets are the Minimal template, used once a
     // template other than the site one is picked. Same values as Appearance::defaults().
     'appearance' => [

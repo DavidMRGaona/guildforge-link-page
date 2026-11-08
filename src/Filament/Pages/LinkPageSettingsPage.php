@@ -39,6 +39,7 @@ use Modules\LinkPage\Domain\Enums\LogoSource;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Filament\Schemas\AppearanceSection;
 use Modules\LinkPage\Filament\Schemas\ShareSection;
+use Modules\LinkPage\Filament\Schemas\SocialSection;
 use Modules\LinkPage\Filament\Support\AppearanceFormState;
 use Modules\LinkPage\Filament\Support\AppearancePreview;
 use Modules\LinkPage\Filament\Support\ShareFormState;
@@ -120,6 +121,10 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 'image' => $settings->shareImage(),
                 'noindex' => $settings->noindex(),
             ],
+            'social' => [
+                'position' => $settings->socialPosition()->value,
+                'shown' => SocialSection::formState($settings->shownNetworks()),
+            ],
             'appearance' => $settings->appearance()->toArray(),
         ]);
     }
@@ -197,6 +202,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                             ->required(),
                     ]),
                 ShareSection::make(),
+                SocialSection::make(),
                 AppearanceSection::make(),
             ])
             ->statePath('data');
@@ -212,6 +218,9 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
         $state = $this->form->getState();
         $events = is_array($state['events'] ?? null) ? $state['events'] : [];
+
+        // Only which of the site's networks to show and where: the addresses stay the site's
+        $social = SocialSection::toSettings(is_array($state['social'] ?? null) ? $state['social'] : []);
 
         // Colours below WCAG AA are not saved; the field says which pair fails and by how much
         $storedAppearance = $settings->appearance();
@@ -244,6 +253,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
             ],
             'share' => $share,
+            'social' => $social,
             'appearance' => $appearance->toArray(),
         ]));
 

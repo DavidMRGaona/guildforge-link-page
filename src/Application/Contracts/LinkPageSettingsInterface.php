@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Application\Contracts;
 
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Domain\Enums\SocialNetwork;
+use Modules\LinkPage\Domain\Enums\SocialPosition;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
+use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 
 /**
  * The page settings: release defaults (config/settings.php) with what the panel saved on top,
@@ -78,6 +81,23 @@ interface LinkPageSettingsInterface
 
     /** Whether search engines are asked not to index the page. Off unless saved as true. */
     public function noindex(): bool;
+
+    /**
+     * The icons of the social row as the page shows them: the ticked networks the site has an
+     * address for (Sobre nosotros → Redes sociales and Contacto), in catalogue order.
+     *
+     * @return list<SocialLink>
+     */
+    public function socialLinks(): array;
+
+    /**
+     * The networks ticked to show, in catalogue order. Nothing saved yet means every one.
+     *
+     * @return list<SocialNetwork>
+     */
+    public function shownNetworks(): array;
+
+    public function socialPosition(): SocialPosition;
 
     /**
      * How the page looks. A malformed stored value gives the defaults; stored colours below
