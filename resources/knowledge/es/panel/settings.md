@@ -13,9 +13,9 @@ conditions:
 ---
 La página de enlaces es una página pensada para el móvil que reúne en un solo sitio los próximos eventos, el calendario, tus enlaces y tus redes. Está en la dirección `/enlaces` de {{site_name}} y es la que se abre al escanear un cartel con código QR. No tiene la cabecera ni el menú de la web: solo lo esencial.
 
-Todo se configura en una sola pantalla. En el menú lateral, abre **Contenido** y elige **Página de enlaces**. Verás las secciones una debajo de otra; al terminar pulsa **Guardar** (los cambios de todas las secciones se guardan a la vez).
+Todo se configura en una sola pantalla. En el menú lateral, abre **Sistema**, elige **Configuración** y después **Página de enlaces**. Verás las secciones una debajo de otra; al terminar pulsa **Guardar** (los cambios de todas las secciones se guardan a la vez).
 
-[[action:filament.admin.pages.link-page-settings|Abrir los ajustes de la página]]
+[[action:filament.admin.configuracion.pages.link-page-settings|Abrir los ajustes de la página]]
 
 ## Encender o apagar la página
 

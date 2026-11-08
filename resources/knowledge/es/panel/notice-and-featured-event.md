@@ -11,9 +11,9 @@ conditions:
   permissions:
     all: ['link-page:settings.manage']
 ---
-Dos bloques de la página de enlaces sirven para lo que cambia a menudo: el **Aviso temporal**, una línea arriba del todo, y el **Evento destacado**, un evento en grande bajo el logo. Se configuran en **Contenido** → **Página de enlaces**, en sus propias secciones.
+Dos bloques de la página de enlaces sirven para lo que cambia a menudo: el **Aviso temporal**, una línea arriba del todo, y el **Evento destacado**, un evento en grande bajo el logo. Se configuran en **Sistema** → **Configuración** → **Página de enlaces**, en sus propias secciones.
 
-[[action:filament.admin.pages.link-page-settings|Abrir los ajustes de la página]]
+[[action:filament.admin.configuracion.pages.link-page-settings|Abrir los ajustes de la página]]
 
 ## Aviso temporal
 

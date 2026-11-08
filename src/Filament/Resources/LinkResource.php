@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Filament\Resources;
 
 use App\Filament\Actions\RowDetailsAction;
 use App\Filament\Resources\BaseResource;
+use App\Filament\Support\PanelNavigationGroup;
 use BackedEnum;
 use Closure;
 use Filament\Actions\ActionGroup;
@@ -42,13 +43,13 @@ final class LinkResource extends BaseResource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static ?int $navigationSort = 92;
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $slug = 'link-page-links';
 
     public static function getNavigationGroup(): string
     {
-        return __('filament.navigation.content');
+        return PanelNavigationGroup::Site->getLabel();
     }
 
     public static function getNavigationLabel(): string

@@ -23,7 +23,7 @@ Cada QR tiene un **código** fijo de seis caracteres y su dirección es siempre 
 
 ## Crear un QR
 
-En el menú lateral, abre **Contenido** → **Códigos QR** y pulsa **Crear código QR**.
+En el menú lateral, abre **Sitio web** → **Página de enlaces** → **Códigos QR** y pulsa **Crear código QR**.
 
 1. **Nombre**: solo se ve en el panel, por ejemplo «Cartel del local».
 2. **Frase del cartel**: sale debajo del QR en la versión para imprimir. Vacía, se usa «Escanea para ver los próximos eventos».
@@ -67,7 +67,7 @@ En el menú ⋯ de la fila (donde también está **Ver detalles**, que enseña l
 
 ## Ver los escaneos
 
-Cada QR cuenta por separado. Las cifras están en **Contenido** → **Estadísticas de enlaces**, en **Códigos QR más escaneados**.
+Cada QR cuenta por separado. Las cifras están en **Sitio web** → **Página de enlaces** → **Estadísticas de enlaces**, en **Códigos QR más escaneados**.
 
 ## Si algo no sale bien
 

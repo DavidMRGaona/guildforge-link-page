@@ -16,7 +16,7 @@ Las estadísticas dicen si la página de enlaces y sus códigos QR funcionan: cu
 ## Dónde verlas
 
 - En el **Escritorio**, la tarjeta **Página de enlaces** muestra las visitas, los escaneos y los clics de los últimos 30 días. Pulsa una cifra para abrir la página de estadísticas.
-- En el menú lateral, abre **Contenido** y elige **Estadísticas de enlaces**. Arriba eliges el **Periodo** (los últimos 7, 30, 90 o 365 días, contando hoy) y debajo salen los totales, la **Evolución por día**, los **Códigos QR más escaneados** y los **Enlaces más pulsados**.
+- En el menú lateral, abre **Sitio web**, elige **Página de enlaces** y después **Estadísticas de enlaces**. Arriba eliges el **Periodo** (los últimos 7, 30, 90 o 365 días, contando hoy) y debajo salen los totales, la **Evolución por día**, los **Códigos QR más escaneados** y los **Enlaces más pulsados**.
 
 Los días se cuentan con la hora de la web: lo que pasa a las 23:30 cuenta en ese día.
 
@@ -53,6 +53,6 @@ Solo un contador por día de cada cosa: la página, cada código QR y cada enlac
 
 ## Cuánto tiempo se conservan
 
-Se conservan 365 días y cada noche se borran los días más antiguos. Quien configura la página de enlaces puede cambiar el plazo en **Contenido** → **Página de enlaces** → **Estadísticas** → **Conservar**, entre 30 y 3650 días. Los días borrados no se recuperan.
+Se conservan 365 días y cada noche se borran los días más antiguos. Quien configura la página de enlaces puede cambiar el plazo en **Sistema** → **Configuración** → **Página de enlaces** → **Estadísticas** → **Conservar**, entre 30 y 3650 días. Los días borrados no se recuperan.
 
 [[action:filament.admin.pages.link-page-stats|Ver las estadísticas]]

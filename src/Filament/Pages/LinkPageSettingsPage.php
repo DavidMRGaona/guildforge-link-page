@@ -13,6 +13,7 @@ use App\Application\Services\TagQueryServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use App\Domain\Enums\ColorScheme as SiteColorScheme;
 use App\Domain\Modules\ValueObjects\ModuleName;
+use App\Filament\Clusters\SettingsCluster;
 use App\Filament\Concerns\ChecksPermissions;
 use App\Filament\Concerns\HasKnowledgeGuideAction;
 use App\Filament\Concerns\SafeModuleNavigation;
@@ -71,7 +72,9 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-link';
 
-    protected static ?int $navigationSort = 90;
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static ?int $navigationSort = 150;
 
     protected static ?string $slug = 'link-page-settings';
 
@@ -87,11 +90,6 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
     /** @var array<string, string>|null */
     private ?array $tagOptions = null;
-
-    public static function getNavigationGroup(): string
-    {
-        return __('filament.navigation.content');
-    }
 
     public static function getNavigationLabel(): string
     {
