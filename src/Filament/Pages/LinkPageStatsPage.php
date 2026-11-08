@@ -7,6 +7,7 @@ namespace Modules\LinkPage\Filament\Pages;
 use App\Filament\Concerns\ChecksPermissions;
 use App\Filament\Concerns\HasKnowledgeGuideAction;
 use App\Filament\Concerns\SafeModuleNavigation;
+use App\Filament\Support\PanelNavigationGroup;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -15,6 +16,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Modules\LinkPage\Filament\Resources\LinkResource;
 use Modules\LinkPage\Filament\Support\StatsPeriod;
 use Modules\LinkPage\Filament\Widgets\LinkPageDailyChartWidget;
 use Modules\LinkPage\Filament\Widgets\LinkPageStatsOverviewWidget;
@@ -38,13 +40,19 @@ final class LinkPageStatsPage extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?int $navigationSort = 93;
+    // Children sort only among themselves, under the link page entry
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'link-page-stats';
 
     public static function getNavigationGroup(): string
     {
-        return __('filament.navigation.content');
+        return PanelNavigationGroup::Site->getLabel();
+    }
+
+    public static function getNavigationParentItem(): string
+    {
+        return LinkResource::getNavigationLabel();
     }
 
     public static function getNavigationLabel(): string

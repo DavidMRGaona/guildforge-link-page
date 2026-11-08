@@ -14,6 +14,7 @@ use App\Filament\Resources\BaseResource;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
+use App\Filament\Support\PanelNavigationGroup;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -87,13 +88,19 @@ final class QrCodeResource extends BaseResource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-qr-code';
 
-    protected static ?int $navigationSort = 91;
+    // Children sort only among themselves, under the link page entry
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'link-page-qr-codes';
 
     public static function getNavigationGroup(): string
     {
-        return __('filament.navigation.content');
+        return PanelNavigationGroup::Site->getLabel();
+    }
+
+    public static function getNavigationParentItem(): string
+    {
+        return LinkResource::getNavigationLabel();
     }
 
     public static function getNavigationLabel(): string

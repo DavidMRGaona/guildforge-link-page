@@ -210,7 +210,7 @@ return [
     ],
 
     'links' => [
-        'navigation' => 'Enlaces propios',
+        'navigation' => 'Página de enlaces',
         'model' => [
             'singular' => 'enlace',
             'plural' => 'Enlaces propios',

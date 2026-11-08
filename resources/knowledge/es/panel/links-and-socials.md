@@ -15,7 +15,7 @@ Además de los eventos y el calendario, la página de enlaces lleva tus propios 
 
 ## Enlaces propios
 
-Se gestionan en **Contenido** → **Enlaces propios**.
+Se gestionan en **Sitio web** → **Página de enlaces**.
 
 1. Pulsa **Crear enlace**.
 2. Escribe el **Título** y la **Dirección**. Solo se admiten direcciones `https://`, `mailto:` (un correo) y `tel:` (un teléfono). Cualquier otra se rechaza.
@@ -46,19 +46,19 @@ Borrar un enlace lo quita de la página y no se puede recuperar. Se pide confirm
 
 ## Redes sociales
 
-La fila de iconos (Instagram, Discord, Telegram, WhatsApp, YouTube, Twitch, X, Facebook, TikTok, Bluesky, correo y teléfono) **no guarda direcciones propias**: usa las del sitio, para que todas las partes de la web enseñen las mismas. Para cambiar una dirección, ve a **Páginas** → **Nosotros** y abre las pestañas **Redes sociales** o **Contacto**.
+La fila de iconos (Instagram, Discord, Telegram, WhatsApp, YouTube, Twitch, X, Facebook, TikTok, Bluesky, correo y teléfono) **no guarda direcciones propias**: usa las del sitio, para que todas las partes de la web enseñen las mismas. Para cambiar una dirección, ve a **Sitio web** → **Nosotros** y abre las pestañas **Redes sociales** o **Contacto**.
 
-Para elegir cuáles salen y dónde, abre **Contenido** → **Página de enlaces** → **Redes sociales**:
+Para elegir cuáles salen y dónde, abre **Sistema** → **Configuración** → **Página de enlaces** → **Redes sociales**:
 
 - **Dónde va la fila**: **Arriba, bajo el nombre** o **Abajo, al final de la página**.
 - **Redes que se muestran**: marca las que quieras. Debajo de cada una ves la dirección que tiene el sitio. Una red sin dirección en el sitio no se puede marcar y, si el sitio la borra más adelante, su icono desaparece de la página aunque siga marcada.
 
 Mientras no cambies nada, se muestran todas las redes que tenga el sitio.
 
-[[action:filament.admin.pages.link-page-settings|Abrir los ajustes de la página|if=link-page:settings.manage]]
+[[action:filament.admin.configuracion.pages.link-page-settings|Abrir los ajustes de la página|if=link-page:settings.manage]]
 
 ## Si algo no sale bien
 
 - **«No es una dirección válida»**: la dirección debe empezar por `https://`, `mailto:` o `tel:`. Las `http://` sin la «s» no se admiten.
-- **Una red no se puede marcar**: el sitio aún no tiene su dirección. Añádela en **Páginas** → **Nosotros**.
+- **Una red no se puede marcar**: el sitio aún no tiene su dirección. Añádela en **Sitio web** → **Nosotros**.
 - **No veo mi enlace en la página**: mira su **Estado** en la lista. Si está **Oculto**, actívalo; si está **Programado** o **Caducado**, ajusta las fechas.

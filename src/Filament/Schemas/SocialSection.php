@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Schemas;
 
+use App\Filament\Support\PanelNavigationGroup;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
@@ -24,7 +25,7 @@ final class SocialSection
     {
         return Section::make(__('link-page::messages.social.section'))
             ->description(__('link-page::messages.social.section_help', [
-                'group' => __('filament.navigation.pages'),
+                'group' => PanelNavigationGroup::Site->getLabel(),
                 'page' => __('filament.pages.about.title'),
                 'social' => __('filament.pages.about.tabs.social'),
                 'contact' => __('filament.pages.about.tabs.contact'),
