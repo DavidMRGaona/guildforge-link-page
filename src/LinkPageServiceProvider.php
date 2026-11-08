@@ -95,7 +95,7 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
     }
 
     /**
-     * Stored as "link-page:manage", "link-page:qr_codes.manage", "link-page:links.manage" and
+     * Stored as "link-page:settings.manage", "link-page:qr_codes.manage", "link-page:links.manage" and
      * "link-page:stats.view". Admins pass every check; other roles only get them when an admin
      * ticks them in the role editor. Only stats.view is suggested for editor (see
      * PermissionSuggestionsTest).
@@ -106,8 +106,8 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
     {
         return [
             new PermissionDTO(
-                name: 'manage',
-                label: __('link-page::messages.permissions.manage'),
+                name: 'settings.manage',
+                label: __('link-page::messages.permissions.settings_manage'),
                 group: __('link-page::messages.title'),
                 module: $this->moduleName(),
             ),

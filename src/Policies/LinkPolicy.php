@@ -10,7 +10,7 @@ use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\LinkModel;
 
 /**
  * Everything about the own links needs link-page:links.manage. Admins hold every permission;
- * the settings permission (link-page:manage) does not open this list.
+ * the settings permission (link-page:settings.manage) does not open this list.
  */
 final class LinkPolicy
 {

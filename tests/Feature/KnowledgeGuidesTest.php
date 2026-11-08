@@ -61,7 +61,7 @@ final class KnowledgeGuidesTest extends ModuleTestCase
         $this->syncGuides();
 
         $this->assertContains(self::STATS_GUIDE, $this->queries()->visibleIds($this->userWith([LinkPageStatsPage::PERMISSION]), GuideAudience::Panel));
-        $this->assertNotContains(self::STATS_GUIDE, $this->queries()->visibleIds($this->userWith(['link-page:manage']), GuideAudience::Panel));
+        $this->assertNotContains(self::STATS_GUIDE, $this->queries()->visibleIds($this->userWith(['link-page:settings.manage']), GuideAudience::Panel));
     }
 
     public function test_the_statistics_page_opens_its_guide(): void

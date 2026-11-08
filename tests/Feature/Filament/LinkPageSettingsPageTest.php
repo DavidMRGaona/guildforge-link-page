@@ -20,14 +20,14 @@ use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
 /**
- * The page settings open with link-page:manage (admins hold every permission), not with the
+ * The page settings open with link-page:settings.manage (admins hold every permission), not with the
  * core's modules.configure.
  */
 final class LinkPageSettingsPageTest extends ModuleTestCase
 {
     use InteractsWithModulePanel;
 
-    private const string MANAGE = 'link-page:manage';
+    private const string MANAGE = 'link-page:settings.manage';
 
     protected ?string $moduleName = 'link-page';
 
@@ -46,7 +46,7 @@ final class LinkPageSettingsPageTest extends ModuleTestCase
         $provider = new LinkPageServiceProvider(app());
 
         $this->assertContains(LinkPageSettingsPage::class, $provider->registerFilamentPages());
-        $this->assertContains('manage', array_map(fn ($permission): string => $permission->name, $provider->registerPermissions()));
+        $this->assertContains('settings.manage', array_map(fn ($permission): string => $permission->name, $provider->registerPermissions()));
     }
 
     public function test_only_page_managers_open_the_page(): void

@@ -18,7 +18,7 @@ use Tests\Support\Modules\ModuleTestCase;
 
 /**
  * The page only ticks which of the site's networks to show and where the row goes (it never
- * asks for an address), with the rest of the page settings (link-page:manage).
+ * asks for an address), with the rest of the page settings (link-page:settings.manage).
  */
 final class LinkPageSocialFormTest extends ModuleTestCase
 {

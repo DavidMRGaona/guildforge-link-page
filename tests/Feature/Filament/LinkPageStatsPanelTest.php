@@ -48,7 +48,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
             ->assertOk();
         $this->assertTrue(LinkPageStatsOverviewWidget::canView());
 
-        $this->actingAs($this->userWith(['link-page:manage']))
+        $this->actingAs($this->userWith(['link-page:settings.manage']))
             ->get(LinkPageStatsPage::getUrl())
             ->assertForbidden();
         $this->assertFalse(LinkPageStatsOverviewWidget::canView());
