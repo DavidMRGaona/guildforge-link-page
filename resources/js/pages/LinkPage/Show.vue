@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
 import ShareButton from '../../components/ShareButton.vue';
+import OwnLinkButton from '../../components/OwnLinkButton.vue';
+import SocialRow from '../../components/SocialRow.vue';
 import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/linkPage';
 
 /**
@@ -169,7 +171,20 @@ function formatStart(event: LinkPageEvent): string | null {
                 >
                     {{ intro }}
                 </p>
+                <SocialRow v-if="social.position === 'top'" :links="social.links" class="mt-1" />
             </header>
+
+            <section
+                v-if="links.before.length > 0"
+                :aria-label="t('linkPage.links')"
+                data-testid="link-page-links-before"
+            >
+                <ul class="flex list-none flex-col gap-3 p-0">
+                    <li v-for="link in links.before" :key="link.linkId">
+                        <OwnLinkButton :link="link" />
+                    </li>
+                </ul>
+            </section>
 
             <section aria-labelledby="link-page-events">
                 <h2 id="link-page-events" class="mb-3 text-lg font-semibold">
@@ -179,7 +194,8 @@ function formatStart(event: LinkPageEvent): string | null {
                     <li v-for="event in events" :key="event.id">
                         <a
                             :href="event.url"
-                            class="link-page-button flex min-h-14 flex-col justify-center px-4 py-3 focus:outline-none"
+                            :data-link-id="event.linkId"
+                            class="link-page-button flex min-h-14 flex-col justify-center px-4 py-3"
                             data-testid="link-page-event"
                         >
                             <span class="flex items-center gap-2 font-semibold">
@@ -208,6 +224,18 @@ function formatStart(event: LinkPageEvent): string | null {
                 </p>
             </section>
 
+            <section
+                v-if="links.after.length > 0"
+                :aria-label="t('linkPage.links')"
+                data-testid="link-page-links-after"
+            >
+                <ul class="flex list-none flex-col gap-3 p-0">
+                    <li v-for="link in links.after" :key="link.linkId">
+                        <OwnLinkButton :link="link" />
+                    </li>
+                </ul>
+            </section>
+
             <section aria-labelledby="link-page-calendar">
                 <h2 id="link-page-calendar" class="mb-3 text-lg font-semibold">
                     {{ t('linkPage.calendar') }}
@@ -220,10 +248,12 @@ function formatStart(event: LinkPageEvent): string | null {
                 </div>
             </section>
 
+            <SocialRow v-if="social.position === 'bottom'" :links="social.links" />
+
             <footer class="text-center">
                 <a
                     :href="homeUrl"
-                    class="link-page__link inline-flex min-h-11 items-center text-sm text-base-secondary underline underline-offset-2 hover:text-base-primary focus:outline-none"
+                    class="link-page__link inline-flex min-h-11 items-center text-sm text-base-secondary underline underline-offset-2 hover:text-base-primary"
                 >
                     {{ t('linkPage.visitSite', { name: site.name }) }}
                 </a>

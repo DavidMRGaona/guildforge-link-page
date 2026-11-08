@@ -105,7 +105,7 @@ async function onShare(): Promise<void> {
     <div class="absolute right-4 top-3 z-10 sm:right-6" data-testid="link-page-share">
         <button
             type="button"
-            class="link-page-button flex size-11 cursor-pointer items-center justify-center focus:outline-none"
+            class="link-page-button flex size-11 cursor-pointer items-center justify-center"
             :aria-label="t('linkPage.share')"
             :title="t('linkPage.share')"
             data-testid="link-page-share-button"
