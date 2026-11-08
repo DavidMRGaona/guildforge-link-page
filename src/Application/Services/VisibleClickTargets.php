@@ -37,7 +37,7 @@ final readonly class VisibleClickTargets
         }
 
         $target = ClickTarget::tryFrom($id);
-        if ($target === null) {
+        if (! $target instanceof ClickTarget) {
             return null;
         }
 

@@ -15,9 +15,15 @@ vi.mock('@/components/calendar/ModuleEventCalendar.vue', async () => {
             setup() {
                 return (): VNode =>
                     h('div', { class: 'fc' }, [
-                        h('a', { class: 'fc-event', href: '/eventos/board-games', 'data-testid': 'calendar-entry' }, [
-                            h('span', { 'data-testid': 'calendar-entry-title' }, 'Board games'),
-                        ]),
+                        h(
+                            'a',
+                            {
+                                class: 'fc-event',
+                                href: '/eventos/board-games',
+                                'data-testid': 'calendar-entry',
+                            },
+                            [h('span', { 'data-testid': 'calendar-entry-title' }, 'Board games')]
+                        ),
                         h('button', { type: 'button', 'data-testid': 'calendar-next' }, 'Next'),
                     ]);
             },
@@ -86,7 +92,9 @@ function sent(beacon: ReturnType<typeof vi.fn>): Record<string, string>[] {
 }
 
 function navigationType(type: NavigationTimingType): void {
-    vi.spyOn(performance, 'getEntriesByType').mockReturnValue([{ type } as PerformanceNavigationTiming]);
+    vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
+        { type } as PerformanceNavigationTiming,
+    ]);
 }
 
 describe('LinkPage statistics', () => {
@@ -120,7 +128,10 @@ describe('LinkPage statistics', () => {
     });
 
     it('sends nothing for people with panel access or automated browsers', async () => {
-        const staff = mount(Show, { props: props({ stats: { endpoint: ENDPOINT, enabled: false } }), attachTo: document.body });
+        const staff = mount(Show, {
+            props: props({ stats: { endpoint: ENDPOINT, enabled: false } }),
+            attachTo: document.body,
+        });
         await staff.find('[data-link-id="home"]').trigger('click');
         staff.unmount();
 

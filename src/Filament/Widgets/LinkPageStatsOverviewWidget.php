@@ -55,19 +55,19 @@ class LinkPageStatsOverviewWidget extends StatsOverviewWidget
             Stat::make(__('link-page::messages.stats.visits'), Number::format($totals->visits, locale: app()->getLocale()))
                 ->description(__('link-page::messages.stats.visits_help'))
                 ->icon('heroicon-o-eye')
-                ->chart(array_map(static fn (DailyStatsDTO $day): int => $day->visits, $daily))
+                ->chart(array_map(static fn (DailyStatsDTO $day): float => (float) $day->visits, $daily))
                 ->color('primary')
                 ->url($url),
             Stat::make(__('link-page::messages.stats.scans'), Number::format($totals->scans, locale: app()->getLocale()))
                 ->description(__('link-page::messages.stats.scans_help'))
                 ->icon('heroicon-o-qr-code')
-                ->chart(array_map(static fn (DailyStatsDTO $day): int => $day->scans, $daily))
+                ->chart(array_map(static fn (DailyStatsDTO $day): float => (float) $day->scans, $daily))
                 ->color('success')
                 ->url($url),
             Stat::make(__('link-page::messages.stats.clicks'), Number::format($totals->clicks, locale: app()->getLocale()))
                 ->description(__('link-page::messages.stats.clicks_help'))
                 ->icon('heroicon-o-cursor-arrow-rays')
-                ->chart(array_map(static fn (DailyStatsDTO $day): int => $day->clicks, $daily))
+                ->chart(array_map(static fn (DailyStatsDTO $day): float => (float) $day->clicks, $daily))
                 ->color('warning')
                 ->url($url),
         ];

@@ -67,7 +67,7 @@ final readonly class StatsLabels implements StatsLabelsInterface
     private function eventTitle(string $id): string
     {
         try {
-            return $this->events->findById($id)?->title ?? __('link-page::messages.stats.past_event');
+            return $this->events->findById($id)->title ?? __('link-page::messages.stats.past_event');
         } catch (Throwable) {
             return __('link-page::messages.stats.past_event');
         }
@@ -78,6 +78,6 @@ final readonly class StatsLabels implements StatsLabelsInterface
         [$source, $id] = $target->calendarEntry() ?? ['', ''];
 
         // The aggregator answers null for a source that fails or no longer shows the entry
-        return $this->calendar->findEntry($source, $id)?->title ?? __('link-page::messages.stats.calendar_entry');
+        return $this->calendar->findEntry($source, $id)->title ?? __('link-page::messages.stats.calendar_entry');
     }
 }

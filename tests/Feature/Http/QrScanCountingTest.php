@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Feature\Http;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Modules\LinkPage\Infrastructure\Stats\TrafficFilter;
@@ -104,6 +105,9 @@ final class QrScanCountingTest extends ModuleTestCase
         $this->assertSame(TrafficFilter::SCANS_PER_ADDRESS_MINUTE, $this->scansOf($qr->id));
     }
 
+    /**
+     * @return TestResponse<Response>
+     */
     private function scan(string $code, string $userAgent): TestResponse
     {
         return $this->withHeader('User-Agent', $userAgent)->get('/qr/'.$code);

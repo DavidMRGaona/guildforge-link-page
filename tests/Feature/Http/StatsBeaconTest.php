@@ -8,6 +8,7 @@ use App\Application\Services\SettingsServiceInterface;
 use App\Infrastructure\Persistence\Eloquent\Models\EventModel;
 use App\Infrastructure\Persistence\Eloquent\Models\UserModel;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Modules\LinkPage\Infrastructure\Stats\TrafficFilter;
@@ -191,6 +192,7 @@ final class StatsBeaconTest extends ModuleTestCase
 
     /**
      * @param  array<string, string>  $body
+     * @return TestResponse<Response>
      */
     private function beacon(array $body, string $userAgent = self::PHONE): TestResponse
     {

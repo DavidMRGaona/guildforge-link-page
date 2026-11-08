@@ -34,7 +34,7 @@ final readonly class CoreCalendarClickTargets implements CalendarClickTargetsInt
 
     public function forUrl(string $url): ?ClickTarget
     {
-        $path = self::sitePath($url);
+        $path = $this->sitePath($url);
         if ($path === null) {
             return null;
         }
@@ -83,11 +83,11 @@ final readonly class CoreCalendarClickTargets implements CalendarClickTargetsInt
      */
     private function add(array &$targets, CalendarEntryDTO $entry): void
     {
-        $path = self::sitePath($entry->url);
+        $path = $this->sitePath($entry->url);
         $target = ClickTarget::tryCalendar($entry->sourceType, $entry->id);
 
         // The first entry keeps an address several entries share (a repeating activity)
-        if ($path !== null && $target !== null && ! isset($targets[$path])) {
+        if ($path !== null && $target instanceof ClickTarget && ! isset($targets[$path])) {
             $targets[$path] = $target->value();
         }
     }
@@ -96,7 +96,7 @@ final readonly class CoreCalendarClickTargets implements CalendarClickTargetsInt
      * The path of an address of this site, without trailing slash, query or fragment; null
      * for another host or anything that is not a web address.
      */
-    private static function sitePath(string $url): ?string
+    private function sitePath(string $url): ?string
     {
         $parts = parse_url(trim($url));
         if ($parts === false || ! isset($parts['path'])) {

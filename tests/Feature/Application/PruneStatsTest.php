@@ -6,12 +6,12 @@ namespace Modules\LinkPage\Tests\Feature\Application;
 
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Console\Kernel;
-use Modules\LinkPage\Console\Commands\PruneStatsCommand;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Console\Commands\PruneStatsCommand;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
@@ -45,7 +45,7 @@ final class PruneStatsTest extends ModuleTestCase
     {
         $this->assertSame(365, app(LinkPageSettingsInterface::class)->statsRetentionDays());
 
-        $this->artisan('link-page:prune-stats')->expectsOutput('Pruned: 1')->assertSuccessful();
+        $this->artisanCommand('link-page:prune-stats')->expectsOutput('Pruned: 1')->assertSuccessful()->run();
 
         $this->assertSame(['2025-11-08', '2026-10-01', '2026-11-08'], $this->days());
     }
@@ -55,7 +55,7 @@ final class PruneStatsTest extends ModuleTestCase
         config()->set('modules.settings.link-page.stats.retention_days', 30);
         $this->assertSame(30, app(LinkPageSettingsInterface::class)->statsRetentionDays());
 
-        $this->artisan('link-page:prune-stats')->assertSuccessful();
+        $this->artisanCommand('link-page:prune-stats')->assertSuccessful()->run();
         $this->assertSame(['2026-11-08'], $this->days());
 
         config()->set('modules.settings.link-page.stats.retention_days', 5);
@@ -67,10 +67,10 @@ final class PruneStatsTest extends ModuleTestCase
 
     public function test_the_days_option_overrides_the_settings_and_must_be_a_number(): void
     {
-        $this->artisan('link-page:prune-stats', ['--days' => '0'])->assertSuccessful();
+        $this->artisanCommand('link-page:prune-stats', ['--days' => '0'])->assertSuccessful()->run();
         $this->assertSame(['2026-11-08'], $this->days());
 
-        $this->artisan('link-page:prune-stats', ['--days' => 'all'])->assertFailed();
+        $this->artisanCommand('link-page:prune-stats', ['--days' => 'all'])->assertFailed()->run();
     }
 
     public function test_it_runs_every_night(): void
@@ -79,7 +79,9 @@ final class PruneStatsTest extends ModuleTestCase
             ->filter(fn ($event): bool => str_contains((string) $event->command, 'link-page:prune-stats'));
 
         $this->assertCount(1, $events);
-        $this->assertSame('40 3 * * *', $events->first()->expression);
+        $event = $events->first();
+        $this->assertNotNull($event);
+        $this->assertSame('40 3 * * *', $event->expression);
     }
 
     public function test_the_page_settings_save_the_retention(): void
@@ -109,6 +111,6 @@ final class PruneStatsTest extends ModuleTestCase
      */
     private function days(): array
     {
-        return DB::table('link_page_stats')->orderBy('day')->pluck('day')->map(fn ($day): string => substr((string) $day, 0, 10))->all();
+        return array_values(DB::table('link_page_stats')->orderBy('day')->pluck('day')->map(fn ($day): string => substr((string) $day, 0, 10))->all());
     }
 }

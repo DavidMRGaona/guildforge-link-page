@@ -96,7 +96,7 @@ final readonly class DatabaseLinkPageStats implements LinkPageStatsInterface, Li
         $ranking = [];
         foreach ($this->top(StatKind::Click, $days, $limit) as $row) {
             $target = ClickTarget::tryFrom($row['subject']);
-            if ($target !== null) {
+            if ($target instanceof ClickTarget) {
                 $ranking[] = ['target' => $target, 'count' => $row['count']];
             }
         }

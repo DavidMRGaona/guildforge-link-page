@@ -77,7 +77,7 @@ final readonly class TrafficFilter
 
         // Browsers announce speculative loads; the page does too before its beacon, this is the
         // same rule for the scan redirect
-        $purpose = strtolower($request->header('Sec-Purpose', $request->header('Purpose', '')) ?? '');
+        $purpose = strtolower(implode(' ', array_filter([$request->headers->get('Sec-Purpose'), $request->headers->get('Purpose')])));
 
         return str_contains($purpose, 'prefetch') || str_contains($purpose, 'prerender');
     }

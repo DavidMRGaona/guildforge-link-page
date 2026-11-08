@@ -29,13 +29,14 @@ final class StatsPeriod
     }
 
     /**
-     * @return array<string, string>
+     * @return array<int, string> by days
      */
     public static function options(): array
     {
         $options = [];
         foreach (self::OPTIONS as $days) {
-            $options[(string) $days] = __('link-page::messages.stats.periods.'.$days);
+            $label = __('link-page::messages.stats.periods.'.$days);
+            $options[$days] = is_string($label) ? $label : (string) $days;
         }
 
         return $options;

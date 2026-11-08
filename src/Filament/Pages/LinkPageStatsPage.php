@@ -68,7 +68,7 @@ final class LinkPageStatsPage extends Page
             Select::make('days')
                 ->label(__('link-page::messages.stats.period'))
                 ->options(StatsPeriod::options())
-                ->default((string) StatsPeriod::DEFAULT)
+                ->default(StatsPeriod::DEFAULT)
                 ->selectablePlaceholder(false)
                 ->native(false),
         ]);

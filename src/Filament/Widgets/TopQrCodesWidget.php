@@ -38,9 +38,7 @@ class TopQrCodesWidget extends TableWidget
             ->columns([
                 TextColumn::make('name')
                     ->label(__('link-page::messages.stats.columns.qr_code'))
-                    ->description(fn (array $record): ?string => $record['state'] === 'active'
-                        ? null
-                        : __('link-page::messages.stats.qr_'.$record['state']))
+                    ->description(fn (array $record): ?string => $this->stateLabel($record['state']))
                     ->wrap(),
                 TextColumn::make('count')
                     ->label(__('link-page::messages.stats.columns.scans'))
@@ -50,6 +48,18 @@ class TopQrCodesWidget extends TableWidget
             ->emptyStateHeading(__('link-page::messages.stats.empty'))
             ->emptyStateIcon('heroicon-o-qr-code')
             ->paginated(false);
+    }
+
+    /** Nothing for a code that still counts; otherwise whether it is switched off or deleted. */
+    private function stateLabel(mixed $state): ?string
+    {
+        if (! in_array($state, ['inactive', 'deleted'], true)) {
+            return null;
+        }
+
+        $label = __('link-page::messages.stats.qr_'.$state);
+
+        return is_string($label) ? $label : null;
     }
 
     /**

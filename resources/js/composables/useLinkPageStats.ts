@@ -39,9 +39,12 @@ export function useLinkPageStats(stats: LinkPageStats): void {
                 navigator.sendBeacon(stats.endpoint, body);
                 return;
             }
-            void fetch(stats.endpoint, { method: 'POST', body, keepalive: true, credentials: 'omit' }).catch(
-                () => undefined,
-            );
+            void fetch(stats.endpoint, {
+                method: 'POST',
+                body,
+                keepalive: true,
+                credentials: 'omit',
+            }).catch(() => undefined);
         } catch {
             // Counting never gets in the way of the page
         }

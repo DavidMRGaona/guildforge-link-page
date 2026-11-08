@@ -47,7 +47,7 @@ final readonly class StatsBeaconController
         }
 
         $target = $this->targets->resolve((string) $data['id'], isset($data['url']) ? (string) $data['url'] : null);
-        if ($target === null) {
+        if (! $target instanceof ClickTarget) {
             throw ValidationException::withMessages(['id' => __('link-page::messages.stats.unknown_target')]);
         }
 

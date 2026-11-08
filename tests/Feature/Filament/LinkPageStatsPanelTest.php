@@ -7,6 +7,7 @@ namespace Modules\LinkPage\Tests\Feature\Filament;
 use App\Infrastructure\Persistence\Eloquent\Models\UserModel;
 use Carbon\CarbonImmutable;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Modules\LinkPage\Filament\Pages\LinkPageStatsPage;
@@ -18,6 +19,7 @@ use Modules\LinkPage\Filament\Widgets\TopQrCodesWidget;
 use Modules\LinkPage\LinkPageServiceProvider;
 use Modules\LinkPage\Tests\Support\CreatesLinks;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use ReflectionMethod;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -89,7 +91,9 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
         $this->actingAs($this->userWith(['link-page:view_stats']));
 
         $widget = Livewire::test(LinkPageDailyChartWidget::class, ['pageFilters' => ['days' => '7']])->instance();
-        $data = (fn (): array => $this->getData())->call($widget);
+        $this->assertInstanceOf(LinkPageDailyChartWidget::class, $widget);
+        /** @var array{labels: list<string>, datasets: list<array<string, mixed>>} $data */
+        $data = (new ReflectionMethod($widget, 'getData'))->invoke($widget);
 
         $this->assertCount(7, $data['labels']);
         $this->assertCount(3, $data['datasets']);
@@ -137,12 +141,16 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
     {
         $this->actingAs($this->userWith(['link-page:view_stats']));
 
-        $links = Livewire::test(TopLinksWidget::class)->instance()->getTable();
+        $linksWidget = Livewire::test(TopLinksWidget::class)->instance();
+        $this->assertInstanceOf(TopLinksWidget::class, $linksWidget);
+        $links = $linksWidget->getTable();
         $this->assertSame('sm', $this->column($links->getColumns(), 'type')->getVisibleFrom());
         $this->assertTrue($this->column($links->getColumns(), 'label')->canWrap());
         $this->assertSame([], $links->getRecordActions());
 
-        $qr = Livewire::test(TopQrCodesWidget::class)->instance()->getTable();
+        $qrWidget = Livewire::test(TopQrCodesWidget::class)->instance();
+        $this->assertInstanceOf(TopQrCodesWidget::class, $qrWidget);
+        $qr = $qrWidget->getTable();
         $this->assertTrue($this->column($qr->getColumns(), 'name')->canWrap());
         $this->assertSame([], $qr->getRecordActions());
     }
@@ -162,9 +170,10 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
     /**
      * @param  array<string, Column>  $columns
      */
-    private function column(array $columns, string $name): Column
+    private function column(array $columns, string $name): TextColumn
     {
         $this->assertArrayHasKey($name, $columns);
+        $this->assertInstanceOf(TextColumn::class, $columns[$name]);
 
         return $columns[$name];
     }
