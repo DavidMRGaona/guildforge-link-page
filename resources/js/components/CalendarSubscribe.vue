@@ -105,7 +105,7 @@ async function copyAddress(): Promise<void> {
                 ref="trigger"
                 type="button"
                 :class="[
-                    'link-page-button flex min-h-12 flex-1 basis-40 cursor-pointer items-center justify-center gap-2 px-4 py-2 font-semibold',
+                    'link-page-button flex min-h-12 grow basis-40 cursor-pointer items-center justify-center gap-2 px-4 py-2 font-semibold',
                 ]"
                 :aria-expanded="isOpen"
                 :aria-controls="isOpen ? optionsId : undefined"
