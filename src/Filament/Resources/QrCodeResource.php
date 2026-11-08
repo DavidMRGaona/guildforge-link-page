@@ -53,6 +53,13 @@ final class QrCodeResource extends BaseResource
 {
     private const string HEX_PATTERN = '/^#[0-9A-Fa-f]{6}$/';
 
+    /** The logos the core renderer takes, by MIME type, with the extension they are stored with. */
+    private const array LOGO_EXTENSIONS = [
+        'image/png' => 'png',
+        'image/jpeg' => 'jpg',
+        'image/webp' => 'webp',
+    ];
+
     /** For the preview while the code does not exist yet: same length, so the same density. */
     private const string PREVIEW_CODE = '222222';
 
@@ -158,12 +165,13 @@ final class QrCodeResource extends BaseResource
                             ->image()
                             ->disk('images')
                             ->directory(fn (): string => QrCodeModel::LOGO_DIRECTORY.'/'.now()->format('Y/m'))
+                            // The extension follows the checked content, never the name the browser sent
                             ->getUploadedFileNameForStorageUsing(
-                                fn (TemporaryUploadedFile $file): string => Str::uuid()->toString().'.'.$file->getClientOriginalExtension()
+                                fn (TemporaryUploadedFile $file): string => Str::uuid()->toString().'.'.self::LOGO_EXTENSIONS[$file->getMimeType()]
                             )
-                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
+                            ->acceptedFileTypes(array_keys(self::LOGO_EXTENSIONS))
                             ->maxSize(1024)
-                            ->rules(['dimensions:max_width=2048,max_height=2048'])
+                            ->rules(['mimes:png,jpg,jpeg,webp', 'dimensions:max_width=2048,max_height=2048'])
                             ->visible(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
                             ->required(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
                             ->columnSpanFull(),

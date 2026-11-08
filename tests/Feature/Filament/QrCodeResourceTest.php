@@ -9,7 +9,9 @@ use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Modules\LinkPage\Filament\Resources\QrCodeResource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\CreateQrCode;
@@ -21,6 +23,7 @@ use Modules\LinkPage\Tests\Support\CreatesQrCodes;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
+use Tests\Support\QrCodes\QrCodeTestImages;
 
 final class QrCodeResourceTest extends ModuleTestCase
 {
@@ -166,6 +169,38 @@ final class QrCodeResourceTest extends ModuleTestCase
             ])
             ->call('create')
             ->assertHasFormErrors(['logo_path']);
+    }
+
+    /**
+     * The stored name comes from the checked content, never from the name the browser sent.
+     */
+    public function test_an_uploaded_logo_is_stored_with_the_extension_of_its_content(): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        // Laravel's fake files take their MIME type from the name unless told; a real upload's
+        // comes from its content, a PNG here
+        $logo = UploadedFile::fake()->createWithContent('logo.html', QrCodeTestImages::png(120, 120))->mimeType('image/png');
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Poster',
+                'foreground_color' => '#000000',
+                'background_color' => '#FFFFFF',
+                'margin' => 8,
+                'logo_source' => 'custom',
+                'logo_path' => $logo,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $path = (string) QrCodeModel::query()->sole()->logo_path;
+        $this->assertMatchesRegularExpression('#^link-page/qr/\d{4}/\d{2}/[0-9a-f-]{36}\.png$#', $path);
+        Storage::disk('images')->assertExists($path);
+        $this->assertSame([], array_values(array_filter(
+            Storage::disk('images')->allFiles(),
+            fn (string $file): bool => str_ends_with($file, '.html'),
+        )));
     }
 
     public function test_it_edits_a_qr_code_without_changing_its_code(): void
