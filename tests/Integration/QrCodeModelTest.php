@@ -13,6 +13,7 @@ use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Modules\LinkPage\Infrastructure\Services\NullQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\ScanCodeGenerator;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use Tests\Support\Modules\ModuleTestCase;
@@ -104,6 +105,41 @@ final class QrCodeModelTest extends ModuleTestCase
         $qr->delete();
 
         Storage::disk('images')->assertMissing('link-page/qr/own.png');
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function foreignPaths(): array
+    {
+        return [
+            'the site logo' => ['branding/logo.png'],
+            'outside through dots' => ['link-page/qr/../../branding/logo.png'],
+            'the directory itself' => ['link-page/qr'],
+            'a look-alike directory' => ['link-page/qrx/logo.png'],
+            'an absolute path' => ['/link-page/qr/logo.png'],
+        ];
+    }
+
+    /**
+     * A forged form state must not point the QR at another file of the images disk, nor
+     * get it deleted when the logo changes or the QR goes.
+     */
+    #[DataProvider('foreignPaths')]
+    public function test_a_logo_path_outside_the_qr_logo_directory_is_never_kept_nor_deleted(string $path): void
+    {
+        Storage::fake('images');
+        Storage::disk('images')->put('branding/logo.png', 'site');
+
+        $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => $path]);
+        $this->assertNull($qr->refresh()->logo_path);
+
+        $qr->forceFill(['logo_path' => $path])->saveQuietly();
+        $qr->update(['logo_path' => null]);
+        $qr->forceFill(['logo_path' => $path])->saveQuietly();
+        $qr->delete();
+
+        Storage::disk('images')->assertExists('branding/logo.png');
     }
 
     public function test_scans_are_not_counted_until_the_statistics_arrive(): void

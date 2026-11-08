@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Modules\LinkPage\Application\DTOs\QrCodeDesignDTO;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
+use Modules\LinkPage\Domain\ValueObjects\QrLogoPath;
 use Modules\LinkPage\Infrastructure\Services\ScanCodeGenerator;
 use Throwable;
 
@@ -41,7 +42,7 @@ final class QrCodeModel extends Model
 
     public const int DEFAULT_MARGIN = 8;
 
-    public const string LOGO_DIRECTORY = 'link-page/qr';
+    public const string LOGO_DIRECTORY = QrLogoPath::DIRECTORY;
 
     protected $table = 'link_page_qr_codes';
 
@@ -73,8 +74,10 @@ final class QrCodeModel extends Model
             }
         });
 
+        // Only an uploaded logo of a custom source is kept, never a path to another file
         self::saving(function (self $qr): void {
-            if ($qr->logo_source !== QrLogoSource::Custom) {
+            if ($qr->logo_source !== QrLogoSource::Custom
+                || ! is_string($qr->logo_path) || ! QrLogoPath::isOwn($qr->logo_path)) {
                 $qr->logo_path = null;
             }
         });
@@ -120,6 +123,10 @@ final class QrCodeModel extends Model
 
     private static function deleteLogo(string $path): void
     {
+        if (! QrLogoPath::isOwn($path)) {
+            return;
+        }
+
         try {
             Storage::disk('images')->delete($path);
         } catch (Throwable $exception) {

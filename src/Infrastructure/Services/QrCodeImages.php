@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\DTOs\QrCodeDesignDTO;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
+use Modules\LinkPage\Domain\ValueObjects\QrLogoPath;
 use Throwable;
 
 final readonly class QrCodeImages implements QrCodeImagesInterface
@@ -50,7 +51,8 @@ final readonly class QrCodeImages implements QrCodeImagesInterface
         $path = match ($design->logoSource) {
             QrLogoSource::None => null,
             QrLogoSource::Site => $this->branding->customLogoPath(),
-            QrLogoSource::Custom => $design->logoPath,
+            // Uploaded logos only: never another file of the disk
+            QrLogoSource::Custom => $design->logoPath !== null && QrLogoPath::isOwn($design->logoPath) ? $design->logoPath : null,
         };
 
         if ($path === null || $path === '') {
