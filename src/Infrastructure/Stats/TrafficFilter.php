@@ -90,7 +90,7 @@ final readonly class TrafficFilter
     {
         return hash_hmac(
             'sha256',
-            ($request->ip() ?? '').'|'.($request->userAgent() ?? ''),
+            self::network($request->ip()).'|'.($request->userAgent() ?? ''),
             (string) config('app.key'),
         );
     }
@@ -98,7 +98,25 @@ final readonly class TrafficFilter
     /** A keyed hash of the address alone, for the per-address limits. */
     public static function address(Request $request): string
     {
-        return hash_hmac('sha256', $request->ip() ?? '', (string) config('app.key'));
+        return hash_hmac('sha256', self::network($request->ip()), (string) config('app.key'));
+    }
+
+    /**
+     * The address as one subscriber holds it: an IPv4 address whole, an IPv6 address by its /64
+     * prefix (a home or a phone gets a whole /64 and may pick a new address in it every time).
+     */
+    public static function network(?string $ip): string
+    {
+        $packed = $ip === null ? false : @inet_pton($ip);
+        if ($packed === false) {
+            return (string) $ip;
+        }
+
+        if (strlen($packed) === 16 && ! str_starts_with($packed, str_repeat("\0", 10)."\xff\xff")) {
+            $packed = substr($packed, 0, 8).str_repeat("\0", 8);
+        }
+
+        return (string) inet_ntop($packed);
     }
 
     private function underScanLimits(string $device, string $address): bool
