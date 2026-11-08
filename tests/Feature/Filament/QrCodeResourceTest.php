@@ -1,0 +1,293 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\LinkPage\Tests\Feature\Filament;
+
+use App\Application\Modules\DTOs\PermissionDTO;
+use Filament\Actions\ActionGroup;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Livewire;
+use Modules\LinkPage\Filament\Resources\QrCodeResource;
+use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\CreateQrCode;
+use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\EditQrCode;
+use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\ListQrCodes;
+use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
+use Modules\LinkPage\LinkPageServiceProvider;
+use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\Modules\InteractsWithModulePanel;
+use Tests\Support\Modules\ModuleTestCase;
+
+final class QrCodeResourceTest extends ModuleTestCase
+{
+    use CreatesQrCodes;
+    use InteractsWithModulePanel;
+
+    private const string MANAGE = 'link-page:qr_codes.manage';
+
+    protected ?string $moduleName = 'link-page';
+
+    protected bool $autoEnableModule = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->registerOnAdminPanel([QrCodeResource::class]);
+    }
+
+    public function test_the_provider_registers_the_resource_the_policy_and_the_permission(): void
+    {
+        $provider = new LinkPageServiceProvider(app());
+        $permissions = array_map(fn (PermissionDTO $permission): string => $permission->name, $provider->registerPermissions());
+
+        $this->assertContains(QrCodeResource::class, $provider->registerFilamentResources());
+        $this->assertArrayHasKey(QrCodeModel::class, $provider->registerPolicies());
+        $this->assertContains('qr_codes.manage', $permissions);
+    }
+
+    public function test_only_qr_code_managers_open_the_list(): void
+    {
+        $this->actingAs($this->userWith(['link-page:manage']));
+        $this->assertFalse(QrCodeResource::canViewAny());
+        Livewire::test(ListQrCodes::class)->assertForbidden();
+
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $this->assertTrue(QrCodeResource::canViewAny());
+        Livewire::test(ListQrCodes::class)->assertOk();
+    }
+
+    public function test_nobody_can_restore_or_destroy_a_deleted_code_so_it_stays_reserved(): void
+    {
+        $admin = $this->actingAsPanelAdmin();
+        $qr = $this->qrCode();
+        $qr->delete();
+
+        $this->assertFalse(Gate::forUser($admin)->allows('restore', $qr));
+        $this->assertFalse(Gate::forUser($admin)->allows('forceDelete', $qr));
+    }
+
+    public function test_it_creates_a_qr_code_with_its_own_code(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Table cards',
+                'tagline' => 'Scan for the next games',
+                'foreground_color' => '#1F2937',
+                'background_color' => '#FFFFFF',
+                'margin' => 6,
+                'logo_source' => 'none',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $qr = QrCodeModel::query()->sole();
+        $this->assertSame('Table cards', $qr->name);
+        $this->assertSame('Scan for the next games', $qr->tagline);
+        $this->assertSame(6, $qr->margin);
+        $this->assertSame(6, strlen($qr->code));
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function unreadableColours(): array
+    {
+        return [
+            'too little contrast' => ['#666666', '#888888'],
+            'light on dark' => ['#FFFFFF', '#000000'],
+        ];
+    }
+
+    #[DataProvider('unreadableColours')]
+    public function test_colours_a_phone_could_not_read_are_not_saved(string $foreground, string $background): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Poster',
+                'foreground_color' => $foreground,
+                'background_color' => $background,
+                'margin' => 8,
+                'logo_source' => 'none',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['background_color']);
+
+        $this->assertSame(0, QrCodeModel::query()->count());
+    }
+
+    public function test_the_preview_draws_the_code_or_says_why_it_cannot(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->assertSee('data:image/svg+xml', false)
+            ->assertDontSee(__('link-page::messages.qr_codes.preview_unavailable'))
+            ->fillForm(['background_color' => '#444444'])
+            ->assertSee(__('link-page::messages.qr_codes.preview_unavailable'))
+            ->assertDontSee('data:image/svg+xml', false);
+    }
+
+    public function test_a_colour_must_be_a_hex_value(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Poster',
+                'foreground_color' => 'black',
+                'background_color' => '#FFFFFF',
+                'margin' => 8,
+                'logo_source' => 'none',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['foreground_color']);
+    }
+
+    public function test_an_uploaded_logo_is_required_when_chosen(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Poster',
+                'foreground_color' => '#000000',
+                'background_color' => '#FFFFFF',
+                'margin' => 8,
+                'logo_source' => 'custom',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['logo_path']);
+    }
+
+    public function test_it_edits_a_qr_code_without_changing_its_code(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $qr = $this->qrCode();
+        $code = $qr->code;
+
+        Livewire::test(EditQrCode::class, ['record' => $qr->getRouteKey()])
+            ->fillForm(['name' => 'Window poster'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('Window poster', $qr->refresh()->name);
+        $this->assertSame($code, $qr->code);
+    }
+
+    public function test_a_qr_code_can_be_disabled_and_enabled_again(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $qr = $this->qrCode();
+
+        Livewire::test(ListQrCodes::class)->callTableAction('deactivate', $qr);
+        $this->assertFalse($qr->refresh()->is_active);
+
+        Livewire::test(ListQrCodes::class)->callTableAction('activate', $qr);
+        $this->assertTrue($qr->refresh()->is_active);
+    }
+
+    public function test_deleting_needs_the_confirmation_box(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $qr = $this->qrCode();
+
+        Livewire::test(ListQrCodes::class)
+            ->callTableAction('delete', $qr, ['confirmation' => false])
+            ->assertHasTableActionErrors(['confirmation']);
+        $this->assertFalse($qr->refresh()->trashed());
+
+        Livewire::test(ListQrCodes::class)
+            ->callTableAction('delete', $qr, ['confirmation' => true])
+            ->assertHasNoTableActionErrors();
+        $this->assertTrue($qr->refresh()->trashed());
+    }
+
+    /**
+     * @return array<string, array{string, string, string}>
+     */
+    public static function downloads(): array
+    {
+        return [
+            'svg' => ['svg', '.svg', 'image/svg+xml'],
+            'png 256' => ['png-256', '-256.png', 'image/png'],
+            'png 2048' => ['png-2048', '-2048.png', 'image/png'],
+        ];
+    }
+
+    #[DataProvider('downloads')]
+    public function test_it_downloads_the_image(string $format, string $suffix, string $mimeType): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $qr = $this->qrCode();
+
+        Livewire::test(ListQrCodes::class)
+            ->callTableAction('download', $qr, ['format' => $format])
+            ->assertFileDownloaded('qr-'.$qr->code.$suffix, contentType: $mimeType);
+    }
+
+    public function test_the_print_actions_open_the_sheets(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $qr = $this->qrCode();
+        $table = $this->table();
+
+        $this->assertSame(route('link_page.qr_codes.print', [$qr, 'a4']), $table->getAction('print_a4')?->record($qr)->getUrl());
+        $this->assertSame(route('link_page.qr_codes.print', [$qr, 'a5']), $table->getAction('print_a5')?->record($qr)->getUrl());
+    }
+
+    public function test_the_row_actions_sit_in_one_menu(): void
+    {
+        $this->actingAsPanelAdmin();
+        $actions = $this->table()->getRecordActions();
+
+        $this->assertCount(1, $actions);
+        $this->assertInstanceOf(ActionGroup::class, $actions[0]);
+    }
+
+    /**
+     * @return array<string, array{string, ?string}>
+     */
+    public static function columnBreakpoints(): array
+    {
+        return [
+            'name always shown' => ['name', null],
+            'code always shown' => ['code', null],
+            'active' => ['is_active', 'sm'],
+            'updated' => ['updated_at', 'md'],
+        ];
+    }
+
+    #[DataProvider('columnBreakpoints')]
+    public function test_secondary_columns_appear_from_the_width_where_they_fit(string $column, ?string $breakpoint): void
+    {
+        $this->actingAsPanelAdmin();
+
+        $this->assertSame($breakpoint, $this->table()->getColumn($column)?->getVisibleFrom());
+    }
+
+    public function test_a_long_name_wraps_instead_of_widening_the_table(): void
+    {
+        $this->actingAsPanelAdmin();
+        $column = $this->table()->getColumn('name');
+
+        $this->assertInstanceOf(TextColumn::class, $column);
+        $this->assertTrue($column->canWrap());
+    }
+
+    private function table(): Table
+    {
+        $instance = Livewire::test(ListQrCodes::class)->instance();
+        $this->assertInstanceOf(HasTable::class, $instance);
+
+        return $instance->getTable();
+    }
+}

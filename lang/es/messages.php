@@ -7,6 +7,7 @@ return [
 
     'permissions' => [
         'manage' => 'Configurar la página de enlaces',
+        'qr_codes_manage' => 'Gestionar e imprimir los códigos QR',
     ],
 
     'calendar_views' => [
@@ -167,5 +168,82 @@ return [
         'events_hidden_help' => 'No se muestran nunca, aunque estén fijados.',
         'calendar_initial_view' => 'Vista inicial',
         'calendar_initial_view_help' => 'La lista se lee mejor en el móvil; desde la página se puede pasar a la otra vista.',
+    ],
+
+    'qr_codes' => [
+        'navigation' => 'Códigos QR',
+        'model' => [
+            'singular' => 'código QR',
+            'plural' => 'Códigos QR',
+        ],
+        'list_help' => 'Cada QR lleva siempre a la página de enlaces por su propia dirección, aunque la página cambie. Uno desactivado o borrado sigue llevando a ella: un cartel impreso nunca da error.',
+        'default_tagline' => 'Escanea para ver los próximos eventos',
+        'preview_alt' => 'Vista previa del código QR',
+        'preview_unavailable' => 'Con estos colores no se puede dibujar un QR que los móviles lean.',
+        'address_copied' => 'Dirección copiada',
+        'sections' => [
+            'origin' => 'Origen',
+            'origin_help' => 'Dónde va impreso este QR: cartel del local, mesas, tarjetas, jornadas… Así se comparan sus escaneos.',
+            'design' => 'Diseño',
+            'design_help' => 'Si el contraste no permite leerlo con el móvil, no se guarda.',
+            'preview' => 'Vista previa',
+            'preview_help' => 'Se actualiza al cambiar los colores, el margen o el logo. Un logo recién subido aparece al guardar.',
+        ],
+        'fields' => [
+            'name' => 'Nombre',
+            'name_help' => 'Solo se ve en el panel, p. ej. «Cartel del local».',
+            'code' => 'Código',
+            'tagline' => 'Frase del cartel',
+            'tagline_help' => 'Debajo del QR en la versión para imprimir. Vacía, se usa la frase por defecto.',
+            'is_active' => 'Activo',
+            'is_active_help' => 'Desactivado sigue llevando a la página, pero sus escaneos no se cuentan.',
+            'foreground_color' => 'Color del código',
+            'background_color' => 'Color del fondo',
+            'margin' => 'Margen',
+            'margin_help' => 'Espacio en blanco alrededor, en porcentaje del tamaño. Los lectores necesitan algo de margen.',
+            'logo_source' => 'Logo en el centro',
+            'logo_source_help' => 'Con logo, el código se dibuja con la máxima corrección de errores para que se siga leyendo.',
+            'logo_source_no_site_logo' => 'El sitio aún no tiene logo: con «Logo del sitio» el QR sale sin logo hasta que se suba uno en la configuración.',
+            'logo' => 'Imagen del logo',
+            'logo_help' => 'PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px.',
+            'format' => 'Formato',
+            'updated_at' => 'Modificado',
+        ],
+        'logo_sources' => [
+            'none' => 'Sin logo',
+            'site' => 'Logo del sitio',
+            'custom' => 'Imagen propia',
+        ],
+        'formats' => [
+            'svg' => 'SVG (vectorial, para imprenta)',
+            'png' => 'PNG de :size px',
+        ],
+        'actions' => [
+            'download' => 'Descargar',
+            'download_heading' => 'Descargar «:name»',
+            'print' => 'Imprimir en :paper',
+            'deactivate' => 'Desactivar',
+            'deactivate_description' => 'El QR seguirá llevando a la página, pero sus escaneos dejarán de contarse.',
+            'activate' => 'Activar',
+            'delete_description' => 'El QR sale del panel y no se puede recuperar. Su código queda reservado para siempre: los carteles ya impresos seguirán llevando a la página, pero sus escaneos no se contarán.',
+            'delete_confirmation' => 'Entiendo que este QR no se puede recuperar y que no se podrá volver a descargar ni imprimir',
+        ],
+        'notifications' => [
+            'activated' => 'Código QR activado',
+            'deactivated' => 'Código QR desactivado',
+            'render_failed' => 'No se ha podido dibujar el código QR. Prueba otro tamaño o quita el logo.',
+        ],
+        'validation' => [
+            'foreground_darker' => 'El color del código tiene que ser más oscuro que el del fondo: muchos móviles no leen un QR claro sobre oscuro.',
+            'contrast' => 'El contraste entre los colores es de :ratio:1 y hace falta al menos :minimum:1 para que los móviles lo lean.',
+        ],
+        'print' => [
+            'title' => ':name · :paper',
+            'help' => 'Comprueba la vista y pulsa «Imprimir». Para un PDF, elige «Guardar como PDF» como impresora. Sin márgenes de página y a escala 100 %.',
+            'paper' => 'Tamaño de papel',
+            'print' => 'Imprimir',
+            'sheet' => 'Hoja :paper',
+            'code_alt' => 'Código QR que lleva a :address',
+        ],
     ],
 ];
