@@ -11,6 +11,7 @@ use App\Modules\ModuleServiceProvider;
 use Filament\Pages\Page;
 use Modules\LinkPage\Application\Contracts\ClockInterface;
 use Modules\LinkPage\Application\Contracts\HighlightsSettingsInterface;
+use Filament\Widgets\Widget;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
@@ -26,7 +27,10 @@ use Modules\LinkPage\Application\Contracts\LinkPageStatsRecorderInterface;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\Contracts\QrScanRecorderInterface;
 use Modules\LinkPage\Application\Contracts\SiteSocialProfilesInterface;
+use Modules\LinkPage\Application\Contracts\StatsLabelsInterface;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
+use Modules\LinkPage\Filament\Pages\LinkPageStatsPage;
+use Modules\LinkPage\Filament\Widgets\LinkPageStatsOverviewWidget;
 use Modules\LinkPage\Filament\Resources\LinkResource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\LinkModel;
@@ -39,6 +43,7 @@ use Modules\LinkPage\Infrastructure\Services\CountingQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\DatabaseLinkPageStats;
 use Modules\LinkPage\Infrastructure\Services\QrCodeImages;
 use Modules\LinkPage\Infrastructure\Services\SystemClock;
+use Modules\LinkPage\Infrastructure\Services\StatsLabels;
 use Modules\LinkPage\Policies\LinkPolicy;
 use Modules\LinkPage\Policies\QrCodePolicy;
 
@@ -65,6 +70,7 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
         $this->app->bind(LinkPageStatsInterface::class, DatabaseLinkPageStats::class);
         $this->app->bind(QrScanRecorderInterface::class, CountingQrScanRecorder::class);
         $this->app->bind(CalendarClickTargetsInterface::class, CoreCalendarClickTargets::class);
+        $this->app->bind(StatsLabelsInterface::class, StatsLabels::class);
     }
 
     public function boot(): void
@@ -161,7 +167,18 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
      */
     public function registerFilamentPages(): array
     {
-        return [LinkPageSettingsPage::class];
+        return [LinkPageSettingsPage::class, LinkPageStatsPage::class];
+    }
+
+    /**
+     * The dashboard gets the overview of the last 30 days; the chart and the rankings stay on the
+     * statistics page.
+     *
+     * @return array<class-string<Widget>>
+     */
+    public function registerFilamentWidgets(): array
+    {
+        return [LinkPageStatsOverviewWidget::class];
     }
 
     /**

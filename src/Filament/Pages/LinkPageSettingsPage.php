@@ -43,6 +43,7 @@ use Modules\LinkPage\Filament\Schemas\AppearanceSection;
 use Modules\LinkPage\Filament\Schemas\HighlightsSection;
 use Modules\LinkPage\Filament\Schemas\ShareSection;
 use Modules\LinkPage\Filament\Schemas\SocialSection;
+use Modules\LinkPage\Filament\Schemas\StatsSection;
 use Modules\LinkPage\Filament\Support\AppearanceFormState;
 use Modules\LinkPage\Filament\Support\AppearancePreview;
 use Modules\LinkPage\Filament\Support\HighlightsFormState;
@@ -132,6 +133,9 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 'shown' => SocialSection::formState($settings->shownNetworks()),
             ],
             'appearance' => $settings->appearance()->toArray(),
+            'stats' => [
+                'retention_days' => $settings->statsRetentionDays(),
+            ],
         ]);
     }
 
@@ -211,6 +215,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 ShareSection::make(),
                 SocialSection::make(),
                 AppearanceSection::make(),
+                StatsSection::make(),
             ])
             ->statePath('data');
     }
@@ -264,6 +269,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'share' => $share,
             'social' => $social,
             'appearance' => $appearance->toArray(),
+            'stats' => StatsSection::toSettings(is_array($state['stats'] ?? null) ? $state['stats'] : []),
         ]));
 
         AppearanceFormState::deleteReplacedImages($storedAppearance, $appearance);
