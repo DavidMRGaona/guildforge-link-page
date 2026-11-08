@@ -16,6 +16,12 @@ Página de enlaces para el móvil, con los próximos eventos y el calendario
 
   El servidor exige contraste AA en cada tema que se usa: 4,5:1 para el texto sobre el fondo (con un degradado, sobre los dos colores; con una imagen, sobre el píxel más claro y el más oscuro bajo el oscurecido) y para el texto del botón; 3:1 para el botón contra el fondo, o 4,5:1 si el botón es de contorno. Si no llega, no se guarda y el campo dice qué par falla. El formulario tiene una vista previa en directo. Las imágenes van al disco `images` (`link-page/AAAA/MM`), y la anterior se borra al cambiarla o quitarla. No hay CSS libre: todo sale de listas cerradas y colores `#RRGGBB`.
 - **Panel**: *Contenido → Página de enlaces*, con el permiso «Configurar la página de enlaces» (`link-page:manage`). Los ajustes se guardan en la tabla `settings` del core y sobreviven a las actualizaciones.
+- **Códigos QR** (*Contenido → Códigos QR*, permiso «Gestionar e imprimir los códigos QR», `link-page:qr_codes.manage`): uno por cada sitio donde va impreso (cartel del local, mesas, tarjetas, jornadas…), con su nombre y un código fijo de seis caracteres.
+  - El QR lleva a **`/qr/{código}`**, que redirige a `/enlaces` (a la portada si la página está apagada). Ese destino es fijo, nunca sale de la petición. Un código desactivado o borrado sigue llevando a la página, así que un cartel impreso no da error nunca; solo un código desconocido responde 404.
+  - **Borrar un QR** pide doble confirmación y no tiene vuelta atrás, pero su código queda reservado para siempre: nunca se reutiliza.
+  - **Diseño**: colores del código y del fondo, margen y logo en el centro (ninguno, el del sitio o una imagen propia), con vista previa en directo. Se dibuja con el generador de QR del core: si el contraste no permite leerlo con el móvil, no se guarda.
+  - **Descarga** en SVG o PNG de 256, 512, 1024 o 2048 px, y una **hoja para imprimir** en A4 o A5 con el nombre del sitio, el QR, su frase («Escanea para ver los próximos eventos» por defecto) y la dirección corta. El navegador la imprime o la guarda como PDF.
+  - Los escaneos de los QR activos pasan por `QrScanRecorderInterface`; por ahora no se cuentan.
 
 ## Requisitos
 
