@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Http\Controllers;
 
-use App\Application\Seo\DTOs\SeoPageDTO;
-use App\Application\Seo\Services\SeoMetadataFactoryInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use Inertia\Inertia;
@@ -15,6 +13,7 @@ use Modules\LinkPage\Application\DTOs\LinkPageEventDTO;
 use Modules\LinkPage\Application\Services\LinkPageEventsService;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Http\Presenters\AppearancePresenter;
+use Modules\LinkPage\Http\Presenters\ShareCardPresenter;
 
 /**
  * /enlaces: the page a printed QR code leads to, apart from the site layout.
@@ -26,8 +25,8 @@ final readonly class LinkPageController
         private LinkPageEventsService $events,
         private SiteBrandingServiceInterface $branding,
         private TimezoneServiceInterface $timezone,
-        private SeoMetadataFactoryInterface $seo,
         private AppearancePresenter $appearance,
+        private ShareCardPresenter $shareCard,
     ) {}
 
     public function __invoke(): Response
@@ -37,6 +36,7 @@ final readonly class LinkPageController
         $siteName = $this->branding->siteName();
         $intro = $this->settings->intro();
         $appearance = $this->settings->appearance();
+        $card = $this->shareCard->present($intro);
         $logo = $this->appearance->logo($appearance, $this->branding->customLogoUrl(), $this->branding->customLogoIsDark());
 
         return Inertia::render('LinkPage/Show', [
@@ -53,11 +53,8 @@ final readonly class LinkPageController
                 'views' => array_map(fn (CalendarView $view): string => $view->value, CalendarView::cases()),
             ],
             'homeUrl' => url('/'),
-            'seo' => $this->seo->forPage(new SeoPageDTO(
-                title: $siteName,
-                description: $intro,
-                imagePublicId: $this->branding->customLogoPath(),
-            ))->toArray(),
+            'seo' => $card['seo'],
+            'share' => $card['share'],
         ]);
     }
 

@@ -23,6 +23,12 @@ interface LinkPageSettingsInterface
 
     public const int MAX_INTRO_LENGTH = 500;
 
+    /** What a link preview shows as the title; link previews cut anything longer. */
+    public const int MAX_SHARE_TITLE_LENGTH = 70;
+
+    /** The core cuts every description at 160 characters. */
+    public const int MAX_SHARE_DESCRIPTION_LENGTH = 160;
+
     /** Whether /enlaces answers; it is a 404 otherwise. */
     public function isEnabled(): bool;
 
@@ -57,6 +63,21 @@ interface LinkPageSettingsInterface
     public function hiddenEventIds(): array;
 
     public function calendarInitialView(): CalendarView;
+
+    /** The title of the share card, or null for the site name. */
+    public function shareTitle(): ?string;
+
+    /** The description of the share card, or null for the intro (and then the site's description). */
+    public function shareDescription(): ?string;
+
+    /**
+     * The image of the share card, a file the share form stored on the images disk, or null for
+     * the site logo. Any other stored path is ignored.
+     */
+    public function shareImage(): ?string;
+
+    /** Whether search engines are asked not to index the page. Off unless saved as true. */
+    public function noindex(): bool;
 
     /**
      * How the page looks. A malformed stored value gives the defaults; stored colours below

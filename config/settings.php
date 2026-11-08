@@ -25,6 +25,14 @@ return [
     'calendar' => [
         'initial_view' => 'list',
     ],
+    // The card apps build when the page is shared; empty values use the site name, the intro and
+    // the site logo
+    'share' => [
+        'title' => null,
+        'description' => null,
+        'image' => null,
+        'noindex' => false,
+    ],
     // The page as the site paints it; the colour sets are the Minimal template, used once a
     // template other than the site one is picked. Same values as Appearance::defaults().
     'appearance' => [

@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
+use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 
 /**
  * Reads config('modules.settings.link-page'), where the core loads the release defaults
@@ -65,6 +66,28 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
         return (is_string($view) ? CalendarView::tryFrom($view) : null) ?? CalendarView::List;
     }
 
+    public function shareTitle(): ?string
+    {
+        return $this->shareText('title', self::MAX_SHARE_TITLE_LENGTH);
+    }
+
+    public function shareDescription(): ?string
+    {
+        return $this->shareText('description', self::MAX_SHARE_DESCRIPTION_LENGTH);
+    }
+
+    public function shareImage(): ?string
+    {
+        $image = $this->shareValue('image');
+
+        return is_string($image) && ShareImagePath::isOwn($image) ? $image : null;
+    }
+
+    public function noindex(): bool
+    {
+        return $this->shareValue('noindex') === true;
+    }
+
     public function appearance(): Appearance
     {
         $stored = config(self::KEY.'.appearance');
@@ -81,6 +104,25 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
         }
 
         return $appearance->contrastFailures() === [] ? $appearance : $appearance->withSiteColors();
+    }
+
+    private function shareValue(string $key): mixed
+    {
+        $share = config(self::KEY.'.share');
+
+        return is_array($share) ? ($share[$key] ?? null) : null;
+    }
+
+    /** A trimmed text of at most $max characters, or null when there is none. */
+    private function shareText(string $key, int $max): ?string
+    {
+        $text = $this->shareValue($key);
+
+        if (! is_string($text) || trim($text) === '') {
+            return null;
+        }
+
+        return mb_substr(trim($text), 0, $max);
     }
 
     /**
