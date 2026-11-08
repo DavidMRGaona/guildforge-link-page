@@ -7,6 +7,7 @@ namespace Modules\LinkPage\Tests\Feature\Filament;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use App\Application\Services\SettingsServiceInterface;
 use Filament\Forms\Components\CheckboxList;
+use Illuminate\Contracts\Support\Htmlable;
 use Livewire\Livewire;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\SocialNetwork;
@@ -113,12 +114,15 @@ final class LinkPageSocialFormTest extends ModuleTestCase
         $this->site(['social_instagram' => 'www.instagram.com/example', 'contact_phone' => '+34 600 123 456']);
 
         $field = $this->shownField();
-        $descriptions = $field->getDescriptions();
+        $descriptions = array_map(
+            static fn (Htmlable|string $description): string => $description instanceof Htmlable ? $description->toHtml() : $description,
+            $field->getDescriptions(),
+        );
 
-        $this->assertStringContainsString('instagram.com/example', (string) $descriptions['instagram']);
-        $this->assertStringContainsString('+34600123456', (string) $descriptions['phone']);
-        $this->assertSame(__('link-page::messages.social.no_address'), (string) $descriptions['whatsapp']);
-        $this->assertSame(__('link-page::messages.social.no_address'), (string) $descriptions['discord']);
+        $this->assertStringContainsString('instagram.com/example', $descriptions['instagram']);
+        $this->assertStringContainsString('+34600123456', $descriptions['phone']);
+        $this->assertSame(__('link-page::messages.social.no_address'), $descriptions['whatsapp']);
+        $this->assertSame(__('link-page::messages.social.no_address'), $descriptions['discord']);
     }
 
     public function test_a_network_without_an_address_cannot_be_ticked(): void
