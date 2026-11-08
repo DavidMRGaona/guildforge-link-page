@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Tests\Feature\Http;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Modules\LinkPage\Infrastructure\Stats\TrafficFilter;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
 use Tests\Support\Modules\ModuleTestCase;
@@ -92,7 +93,18 @@ final class QrScanCountingTest extends ModuleTestCase
         $this->assertSame(TrafficFilter::SCANS_PER_MINUTE, (int) DB::table('link_page_stats')->where('kind', 'scan')->sum('count'));
     }
 
-    private function scan(string $code, string $userAgent): \Illuminate\Testing\TestResponse
+    public function test_changing_the_agent_on_every_scan_does_not_get_round_the_limit(): void
+    {
+        $qr = $this->qrCode();
+
+        for ($i = 0; $i <= TrafficFilter::SCANS_PER_ADDRESS_MINUTE; $i++) {
+            $this->scan($qr->code, self::PHONE.' '.$i)->assertRedirect(route('link_page.show'));
+        }
+
+        $this->assertSame(TrafficFilter::SCANS_PER_ADDRESS_MINUTE, $this->scansOf($qr->id));
+    }
+
+    private function scan(string $code, string $userAgent): TestResponse
     {
         return $this->withHeader('User-Agent', $userAgent)->get('/qr/'.$code);
     }

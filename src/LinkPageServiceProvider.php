@@ -71,9 +71,13 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        // The beacon endpoint, per device (keyed hash of address and agent, never stored)
-        RateLimiter::for('link-page-stats', static fn (Request $request): Limit => Limit::perMinute(TrafficFilter::BEACONS_PER_MINUTE)
-            ->by('link-page-stats:'.TrafficFilter::device($request)));
+        // The beacon endpoint, per device (keyed hash of address and agent) and, looser, per
+        // address alone, so changing the agent on every request does not get round it.
+        // Neither key is ever stored with the statistics
+        RateLimiter::for('link-page-stats', static fn (Request $request): array => [
+            Limit::perMinute(TrafficFilter::BEACONS_PER_MINUTE)->by('link-page-stats:'.TrafficFilter::device($request)),
+            Limit::perMinute(TrafficFilter::BEACONS_PER_ADDRESS_MINUTE)->by('link-page-stats-address:'.TrafficFilter::address($request)),
+        ]);
 
         if ($this->app->runningInConsole()) {
             $this->commands([PruneStatsCommand::class]);

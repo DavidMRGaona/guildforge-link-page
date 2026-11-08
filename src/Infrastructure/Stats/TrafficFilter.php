@@ -26,6 +26,14 @@ final readonly class TrafficFilter
     /** Requests to the beacon endpoint per device and minute; more answer 429. */
     public const int BEACONS_PER_MINUTE = 30;
 
+    /**
+     * The same limits per address alone, whatever agent it claims (an agent is easy to change
+     * on every request). Looser, because a venue's Wi-Fi puts many phones behind one address.
+     */
+    public const int SCANS_PER_ADDRESS_MINUTE = 60;
+
+    public const int BEACONS_PER_ADDRESS_MINUTE = 120;
+
     /** Seconds in which the same thing from the same device counts once. */
     public const array REPEAT_WINDOW = [
         'visit' => 30,
@@ -48,7 +56,7 @@ final readonly class TrafficFilter
 
         $device = self::device($request);
 
-        if ($kind === StatKind::Scan && ! $this->limiter->attempt(self::KEY_PREFIX.'scans:'.$device, self::SCANS_PER_MINUTE, static fn (): bool => true, 60)) {
+        if ($kind === StatKind::Scan && ! $this->underScanLimits($device, self::address($request))) {
             return false;
         }
 
@@ -85,5 +93,20 @@ final readonly class TrafficFilter
             ($request->ip() ?? '').'|'.($request->userAgent() ?? ''),
             (string) config('app.key'),
         );
+    }
+
+    /** A keyed hash of the address alone, for the per-address limits. */
+    public static function address(Request $request): string
+    {
+        return hash_hmac('sha256', $request->ip() ?? '', (string) config('app.key'));
+    }
+
+    private function underScanLimits(string $device, string $address): bool
+    {
+        // Both are spent on every counted scan; a scan over either limit is not counted
+        $underDevice = $this->limiter->attempt(self::KEY_PREFIX.'scans:'.$device, self::SCANS_PER_MINUTE, static fn (): bool => true, 60);
+        $underAddress = $this->limiter->attempt(self::KEY_PREFIX.'scans-address:'.$address, self::SCANS_PER_ADDRESS_MINUTE, static fn (): bool => true, 60);
+
+        return $underDevice && $underAddress;
     }
 }

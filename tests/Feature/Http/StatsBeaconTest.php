@@ -151,6 +151,15 @@ final class StatsBeaconTest extends ModuleTestCase
         $this->beacon(['type' => 'visit'], userAgent: self::PHONE.' other')->assertNoContent();
     }
 
+    public function test_changing_the_agent_on_every_request_does_not_get_round_the_limit(): void
+    {
+        for ($i = 0; $i < TrafficFilter::BEACONS_PER_ADDRESS_MINUTE; $i++) {
+            $this->beacon(['type' => 'visit'], userAgent: self::PHONE.' '.$i)->assertNoContent();
+        }
+
+        $this->beacon(['type' => 'visit'], userAgent: self::PHONE.' one more')->assertTooManyRequests();
+    }
+
     public function test_nothing_answers_while_the_page_is_off(): void
     {
         config()->set('modules.settings.link-page.enabled', false);
