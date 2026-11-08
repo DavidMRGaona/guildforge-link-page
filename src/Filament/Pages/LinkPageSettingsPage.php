@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Filament\Pages;
 
 use App\Application\Modules\Services\ModuleManagerServiceInterface;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
+use App\Application\Seo\Services\SeoMetadataFactoryInterface;
 use App\Application\Services\EventQueryServiceInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TagQueryServiceInterface;
@@ -35,9 +36,12 @@ use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\BackgroundType;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LogoSource;
+use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Filament\Schemas\AppearanceSection;
+use Modules\LinkPage\Filament\Schemas\ShareSection;
 use Modules\LinkPage\Filament\Support\AppearanceFormState;
 use Modules\LinkPage\Filament\Support\AppearancePreview;
+use Modules\LinkPage\Filament\Support\ShareFormState;
 use Modules\LinkPage\Http\Presenters\AppearancePresenter;
 use Throwable;
 
@@ -109,6 +113,12 @@ final class LinkPageSettingsPage extends Page implements HasForms
             ],
             'calendar' => [
                 'initial_view' => $settings->calendarInitialView()->value,
+            ],
+            'share' => [
+                'title' => $settings->shareTitle(),
+                'description' => $settings->shareDescription(),
+                'image' => $settings->shareImage(),
+                'noindex' => $settings->noindex(),
             ],
             'appearance' => $settings->appearance()->toArray(),
         ]);
@@ -186,6 +196,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                             ->selectablePlaceholder(false)
                             ->required(),
                     ]),
+                ShareSection::make(),
                 AppearanceSection::make(),
             ])
             ->statePath('data');
@@ -214,6 +225,10 @@ final class LinkPageSettingsPage extends Page implements HasForms
             throw ValidationException::withMessages($contrastErrors);
         }
 
+        $share = ShareFormState::toStored(is_array($state['share'] ?? null) ? $state['share'] : []);
+        // Read before saving: the effective settings are the new ones right after
+        $storedShareImage = $settings->shareImage();
+
         // Keys this form does not show (other releases or pages) keep their stored values
         $moduleManager->updateSettings(new ModuleName(self::MODULE), array_replace($settingsStore->stored(self::MODULE), [
             'enabled' => (bool) ($state['enabled'] ?? false),
@@ -228,10 +243,12 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'calendar' => [
                 'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
             ],
+            'share' => $share,
             'appearance' => $appearance->toArray(),
         ]));
 
         AppearanceFormState::deleteReplacedImages($storedAppearance, $appearance);
+        ShareFormState::deleteReplacedImage($storedShareImage, $share['image']);
 
         Notification::make()
             ->title(__('link-page::messages.settings.saved'))
@@ -293,6 +310,42 @@ final class LinkPageSettingsPage extends Page implements HasForms
     }
 
     /**
+     * The card apps will build, from the form as it is now: what is typed, else the intro (as
+     * typed too) and the site's description; the image uploaded (not saved yet), the saved one or
+     * the site logo.
+     *
+     * @return array{host: string, title: string, description: string, imageUrl: string|null, initial: string, custom: bool}
+     */
+    public function sharePreview(): array
+    {
+        $branding = app(SiteBrandingServiceInterface::class);
+        $share = is_array($this->data['share'] ?? null) ? $this->data['share'] : [];
+        $name = $branding->siteName();
+
+        $title = $this->trimmed($share['title'] ?? null) ?? $name;
+        $description = $this->trimmed($share['description'] ?? null)
+            ?? $this->trimmed($this->data['intro'] ?? null)
+            ?? $this->trimmed(strip_tags((string) config('app.description', '')))
+            ?? '';
+
+        $upload = $this->previewUpload($share['image'] ?? null);
+        $custom = $upload['url'] !== null || ($upload['path'] !== null && ShareImagePath::isOwn($upload['path']));
+        $imageUrl = $upload['url']
+            ?? ($custom && $upload['path'] !== null ? Storage::disk('images')->url($upload['path']) : null)
+            // What the card falls back to: the site logo, or the core's default one
+            ?? app(SeoMetadataFactoryInterface::class)->forSite()->image?->url;
+
+        return [
+            'host' => (string) (parse_url(url('/'), PHP_URL_HOST) ?: url('/')),
+            'title' => mb_substr($title, 0, LinkPageSettingsInterface::MAX_SHARE_TITLE_LENGTH),
+            'description' => mb_substr($description, 0, LinkPageSettingsInterface::MAX_SHARE_DESCRIPTION_LENGTH),
+            'imageUrl' => $imageUrl,
+            'initial' => mb_strtoupper(mb_substr(trim($name), 0, 1)),
+            'custom' => $custom,
+        ];
+    }
+
+    /**
      * @return array<Action>
      */
     protected function getFormActions(): array
@@ -349,6 +402,11 @@ final class LinkPageSettingsPage extends Page implements HasForms
         }
 
         return $this->tagOptions = $options;
+    }
+
+    private function trimmed(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
     }
 
     /**

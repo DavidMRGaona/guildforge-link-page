@@ -170,6 +170,25 @@ return [
         'calendar_initial_view_help' => 'La lista se lee mejor en el móvil; desde la página se puede pasar a la otra vista.',
     ],
 
+    'share' => [
+        'section' => 'Compartir',
+        'section_help' => 'La tarjeta que WhatsApp, Telegram y las redes sociales enseñan al compartir la página, y el botón «Compartir» de la propia página. Lo que dejes vacío se toma del sitio.',
+        'title' => 'Título de la tarjeta',
+        'title_help' => 'Vacío, el nombre del sitio. Se recorta a 70 caracteres.',
+        'description' => 'Descripción de la tarjeta',
+        'description_help' => 'Vacío, el texto de presentación y, si tampoco hay, la descripción del sitio. Se recorta a 160 caracteres.',
+        'image' => 'Imagen de la tarjeta',
+        'image_help' => 'Recomendada: 1200 × 630 px (proporción 1,91:1), JPG o PNG, de hasta 1 MB. Se recorta desde el centro a ese tamaño: deja los textos y logos en la zona central. Sin imagen, se usa el logo del sitio.',
+        'noindex' => 'No indexar en buscadores',
+        'noindex_help' => 'Pide a Google y otros buscadores que no muestren esta página en sus resultados. Las personas que tengan el enlace o el QR siguen entrando. Desactivado, la página se indexa con normalidad.',
+        'preview' => [
+            'title' => 'Vista previa de la tarjeta',
+            'help' => 'Se actualiza al escribir. Cada aplicación la recorta y la dibuja a su manera. Una imagen recién subida se prepara al guardar.',
+            'image_alt' => 'Imagen de la tarjeta',
+            'site_logo' => 'Sin imagen propia se usa el logo del sitio, en una tarjeta pequeña.',
+        ],
+    ],
+
     'qr_codes' => [
         'navigation' => 'Códigos QR',
         'model' => [
