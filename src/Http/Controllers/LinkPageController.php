@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Http\Controllers;
 
-use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Authorization\Services\AuthorizationServiceInterface;
+use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use Illuminate\Http\Request;

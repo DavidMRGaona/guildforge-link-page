@@ -449,13 +449,16 @@ return [
         'past_event' => 'Evento que ya no está',
         'calendar_entry' => 'Entrada del calendario',
         'home' => 'Ir a la web',
+        'notice_link' => 'Enlace del aviso',
         'empty' => 'Todavía no hay datos en este periodo',
         'target_types' => [
             'link' => 'Enlace',
             'social' => 'Red social',
             'event' => 'Evento',
+            'featured' => 'Evento destacado',
             'calendar' => 'Calendario',
             'home' => 'Web',
+            'notice' => 'Aviso',
         ],
         'settings' => [
             'section' => 'Estadísticas',

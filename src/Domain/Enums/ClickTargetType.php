@@ -16,8 +16,10 @@ enum ClickTargetType: string
     case Link = 'link';
     case Social = 'social';
     case Event = 'event';
+    case Featured = 'featured';
     case Calendar = 'calendar';
     case Home = 'home';
+    case Notice = 'notice';
 
     protected static function translationGroup(): string
     {

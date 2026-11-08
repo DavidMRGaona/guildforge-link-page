@@ -10,9 +10,10 @@ use Modules\LinkPage\Domain\Enums\SocialNetwork;
 
 /**
  * Something on the page whose clicks are counted, by the id that never changes:
- * `link:<uuid>` (own link), `social:<network>`, `event:<uuid>` (event button), `home` (the
- * link to the site) and `calendar:<source>:<id>` (an entry opened from the calendar). It
- * names what was clicked, never who clicked it.
+ * `link:<uuid>` (own link), `social:<network>`, `event:<uuid>` (event button),
+ * `featured:<uuid>` (the featured event), `home` (the link to the site), `notice` (the link of
+ * the notice) and `calendar:<source>:<id>` (an entry opened from the calendar). It names what
+ * was clicked, never who clicked it.
  */
 final readonly class ClickTarget
 {
@@ -34,11 +35,11 @@ final readonly class ClickTarget
             return null;
         }
 
-        if ($value === ClickTargetType::Home->value) {
-            return self::home();
+        if ($value === ClickTargetType::Home->value || $value === ClickTargetType::Notice->value) {
+            return new self(ClickTargetType::from($value), '');
         }
 
-        if (preg_match('/^(link|event):('.self::UUID.')$/', strtolower($value), $matches) === 1) {
+        if (preg_match('/^(link|event|featured):('.self::UUID.')$/', strtolower($value), $matches) === 1) {
             return new self(ClickTargetType::from($matches[1]), $matches[2]);
         }
 
@@ -77,7 +78,7 @@ final readonly class ClickTarget
     /** What the statistics store: the same id the page marks the element with. */
     public function value(): string
     {
-        return $this->type === ClickTargetType::Home
+        return $this->reference === ''
             ? $this->type->value
             : $this->type->value.':'.$this->reference;
     }

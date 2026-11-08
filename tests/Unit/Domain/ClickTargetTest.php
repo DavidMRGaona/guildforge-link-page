@@ -33,10 +33,16 @@ final class ClickTargetTest extends TestCase
         $this->assertSame(SocialNetwork::Instagram, $target->network());
     }
 
-    public function test_an_event_button_and_the_site_link_are_read(): void
+    public function test_the_event_buttons_and_the_links_without_reference_are_read(): void
     {
         $this->assertSame(ClickTargetType::Event, ClickTarget::tryFrom('event:'.self::UUID)?->type);
-        $this->assertSame(ClickTargetType::Home, ClickTarget::tryFrom('home')?->type);
+        $this->assertSame(ClickTargetType::Featured, ClickTarget::tryFrom('featured:'.self::UUID)?->type);
+        $this->assertSame('home', ClickTarget::tryFrom('home')?->value());
+
+        $notice = ClickTarget::tryFrom('notice');
+        $this->assertNotNull($notice);
+        $this->assertSame('notice', $notice->value());
+        $this->assertSame(ClickTargetType::Notice, $notice->type);
     }
 
     public function test_a_calendar_entry_keeps_its_source_and_id(): void
@@ -70,6 +76,8 @@ final class ClickTargetTest extends TestCase
         yield 'event without uuid' => ['event:'];
         yield 'unknown network' => ['social:myspace'];
         yield 'home with a reference' => ['home:x'];
+        yield 'notice with a reference' => ['notice:x'];
+        yield 'featured without uuid' => ['featured:next'];
         yield 'calendar without id' => ['calendar:event'];
         yield 'calendar with odd characters' => ['calendar:event:<script>'];
         yield 'too long' => ['calendar:event:'.str_repeat('a', 200)];

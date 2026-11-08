@@ -55,9 +55,10 @@ final readonly class StatsLabels implements StatsLabelsInterface
             $labels[$target->value()] = match ($target->type) {
                 ClickTargetType::Link => (string) ($links[$target->reference] ?? __('link-page::messages.stats.deleted_link')),
                 ClickTargetType::Social => $target->network()?->label() ?? $target->reference,
-                ClickTargetType::Event => $this->eventTitle($target->reference),
+                ClickTargetType::Event, ClickTargetType::Featured => $this->eventTitle($target->reference),
                 ClickTargetType::Calendar => $this->calendarTitle($target),
                 ClickTargetType::Home => __('link-page::messages.stats.home'),
+                ClickTargetType::Notice => __('link-page::messages.stats.notice_link'),
             };
         }
 

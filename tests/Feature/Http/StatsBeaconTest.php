@@ -101,6 +101,40 @@ final class StatsBeaconTest extends ModuleTestCase
         $this->assertSame(1, $this->storedCount('click', 'event:'.$listed->id));
     }
 
+    public function test_the_featured_event_counts_apart_and_only_while_it_is_featured(): void
+    {
+        $featured = $this->event('Spring tournament', '2026-06-16 18:00:00');
+        $other = $this->event('Board games', '2026-06-18 18:00:00');
+        config()->set('modules.settings.link-page.featured', ['mode' => 'auto']);
+
+        $this->beacon(['type' => 'click', 'id' => 'featured:'.$featured->id])->assertNoContent();
+        $this->beacon(['type' => 'click', 'id' => 'featured:'.$other->id])->assertUnprocessable();
+        // Out of the list while it has its own block
+        $this->beacon(['type' => 'click', 'id' => 'event:'.$featured->id])->assertUnprocessable();
+        $this->beacon(['type' => 'click', 'id' => 'event:'.$other->id])->assertNoContent();
+
+        $this->assertSame(1, $this->storedCount('click', 'featured:'.$featured->id));
+        $this->assertSame(1, $this->storedCount('click', 'event:'.$other->id));
+    }
+
+    public function test_the_notice_link_counts_only_while_a_notice_with_a_link_is_shown(): void
+    {
+        $this->beacon(['type' => 'click', 'id' => 'notice'])->assertUnprocessable();
+
+        config()->set('modules.settings.link-page.notice', ['enabled' => true, 'text' => 'Closed on Saturday.', 'tone' => 'info']);
+        $this->beacon(['type' => 'click', 'id' => 'notice'])->assertUnprocessable();
+
+        config()->set('modules.settings.link-page.notice', [
+            'enabled' => true,
+            'text' => 'Closed on Saturday.',
+            'tone' => 'info',
+            'link_url' => '/eventos',
+        ]);
+        $this->beacon(['type' => 'click', 'id' => 'notice'])->assertNoContent();
+
+        $this->assertSame(1, $this->storedCount('click', 'notice'));
+    }
+
     public function test_a_click_on_the_site_link_counts(): void
     {
         $this->beacon(['type' => 'click', 'id' => 'home'])->assertNoContent();

@@ -33,6 +33,8 @@ vi.mock('@/components/calendar/ModuleEventCalendar.vue', async () => {
 
 vi.mock('@/utils/datetime', () => ({ VENUE_TIMEZONE: 'Europe/Madrid' }));
 
+vi.mock('@/utils/cloudinary', () => ({ buildCardImageUrl: (): null => null }));
+
 const ENDPOINT = '/api/link-page/stats';
 
 function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
@@ -47,6 +49,23 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             logo: { shape: 'circle', custom: false },
         },
         intro: null,
+        serverNow: '2026-11-14T11:00:00+01:00',
+        notice: {
+            text: 'Closed on Saturday.',
+            tone: 'info',
+            link: { url: 'https://example.test/eventos', label: null },
+        },
+        featured: {
+            id: 'event-9',
+            title: 'Spring tournament',
+            url: 'https://example.test/eventos/spring-tournament',
+            startsAt: '2026-11-20T18:00:00+01:00',
+            endsAt: '2026-11-20T22:00:00+01:00',
+            dayStartsAt: '2026-11-20T00:00:00+01:00',
+            spansDays: false,
+            location: null,
+            imagePublicId: null,
+        },
         links: {
             before: [
                 {
@@ -75,6 +94,12 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             },
         ],
         calendar: { initialView: 'list', views: ['list'] },
+        calendarFeed: {
+            feedUrl: 'https://example.test/calendario.ics',
+            webcalUrl: 'webcal://example.test/calendario.ics',
+            googleUrl: 'https://calendar.google.com/calendar/r?cid=example',
+            outlookUrl: 'https://outlook.live.com/calendar/0/addfromweb?url=example',
+        },
         homeUrl: 'https://example.test',
         share: { url: 'https://example.test/enlaces', title: 'Example guild', text: '' },
         stats: { endpoint: ENDPOINT, enabled: true },
@@ -153,6 +178,19 @@ describe('LinkPage statistics', () => {
             { type: 'click', id: 'link:0199f3a2-7b1c-7d4e-9a10-3c5b2e8f6d43' },
             { type: 'click', id: 'event:event-1' },
             { type: 'click', id: 'home' },
+        ]);
+    });
+
+    it('counts the featured event and the notice link by their own ids', async () => {
+        const wrapper = mount(Show, { props: props(), attachTo: document.body });
+        beacon.mockClear();
+
+        await wrapper.find('[data-testid="link-page-featured-link"]').trigger('click');
+        await wrapper.find('[data-link-id="notice"]').trigger('click');
+
+        expect(sent(beacon)).toEqual([
+            { type: 'click', id: 'featured:event-9' },
+            { type: 'click', id: 'notice' },
         ]);
     });
 

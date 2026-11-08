@@ -125,6 +125,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
         $this->seedRow('click', 'home', '2026-11-08', 6);
         $this->seedRow('click', 'event:0199f3a2-7b1c-7d4e-9a10-3c5b2e8f6d98', '2026-11-08', 5);
         $this->seedRow('click', 'calendar:game-tables:42', '2026-11-08', 4);
+        $this->seedRow('click', 'notice', '2026-11-08', 3);
 
         Livewire::test(TopLinksWidget::class)
             ->assertSeeInOrder([
@@ -134,6 +135,7 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
                 'Ir a la web', 'Web', '6',
                 'Evento que ya no está', 'Evento', '5',
                 'Entrada del calendario', 'Calendario', '4',
+                'Enlace del aviso', 'Aviso', '3',
             ]);
     }
 

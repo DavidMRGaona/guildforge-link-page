@@ -23,7 +23,7 @@ Los días se cuentan con la hora de la web: lo que pasa a las 23:30 cuenta en es
 
 - **Visitas**: las veces que alguien abre la página de enlaces en su navegador, llegue por un QR, por un enlace compartido o escribiendo la dirección.
 - **Escaneos**: las veces que se abre la dirección de un código QR impreso. Cada código cuenta por separado, así que un código por cartel te dice qué cartel funciona mejor. Un escaneo que acaba en la página cuenta también como visita.
-- **Clics**: las pulsaciones en los enlaces propios, los iconos de redes sociales, los botones de los próximos eventos, las entradas del calendario y el enlace para ir a la web. En el ranking, debajo de cada nombre se ve de cuál se trata (*Enlace*, *Red social*, *Evento*, *Calendario* o *Web*): un evento puede salir dos veces, como botón y como entrada del calendario.
+- **Clics**: las pulsaciones en los enlaces propios, los iconos de redes sociales, los botones de los próximos eventos, el evento destacado, el enlace del aviso, las entradas del calendario y el enlace para ir a la web. En el ranking, debajo de cada nombre se ve de cuál se trata (*Enlace*, *Red social*, *Evento*, *Evento destacado*, *Aviso*, *Calendario* o *Web*): un mismo evento puede salir varias veces, como botón, como destacado y como entrada del calendario.
 
 ## Qué no se cuenta
 
