@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Application\Contracts;
 
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Domain\ValueObjects\Appearance;
 
 /**
  * The page settings: release defaults (config/settings.php) with what the panel saved on top,
@@ -56,4 +57,10 @@ interface LinkPageSettingsInterface
     public function hiddenEventIds(): array;
 
     public function calendarInitialView(): CalendarView;
+
+    /**
+     * How the page looks. A malformed stored value gives the defaults; stored colours below
+     * WCAG AA give the site colours, keeping the rest.
+     */
+    public function appearance(): Appearance;
 }

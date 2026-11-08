@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Infrastructure\Services;
 
+use InvalidArgumentException;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Domain\ValueObjects\Appearance;
 
 /**
  * Reads config('modules.settings.link-page'), where the core loads the release defaults
@@ -61,6 +63,24 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
         $view = config(self::KEY.'.calendar.initial_view');
 
         return (is_string($view) ? CalendarView::tryFrom($view) : null) ?? CalendarView::List;
+    }
+
+    public function appearance(): Appearance
+    {
+        $stored = config(self::KEY.'.appearance');
+        $defaults = Appearance::defaults();
+
+        if (! is_array($stored)) {
+            return $defaults;
+        }
+
+        try {
+            $appearance = Appearance::fromArray(array_replace_recursive($defaults->toArray(), $stored));
+        } catch (InvalidArgumentException) {
+            return $defaults;
+        }
+
+        return $appearance->contrastFailures() === [] ? $appearance : $appearance->withSiteColors();
     }
 
     /**
