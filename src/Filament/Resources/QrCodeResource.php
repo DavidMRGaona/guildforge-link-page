@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Resources;
 
+use App\Application\QrCodes\DTOs\QrCodeLogoDTO;
 use App\Application\QrCodes\DTOs\QrCodeOptionsDTO;
 use App\Application\QrCodes\Enums\QrCodeFormat;
 use App\Application\QrCodes\HexColor;
@@ -16,6 +17,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
@@ -34,6 +36,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\DTOs\QrCodeDesignDTO;
@@ -45,6 +48,7 @@ use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\ListQrCodes;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
+use WeakMap;
 
 /**
  * The printed origins of the link page. Each one has its stable /qr/{code}; disabling or
@@ -59,6 +63,7 @@ final class QrCodeResource extends BaseResource
         'image/png' => 'png',
         'image/jpeg' => 'jpg',
         'image/webp' => 'webp',
+        QrCodeLogoDTO::SVG_MIME_TYPE => 'svg',
     ];
 
     private const int LOGO_MAX_KILOBYTES = 1024;
@@ -70,8 +75,13 @@ final class QrCodeResource extends BaseResource
 
     private const int PREVIEW_SIZE = 256;
 
-    /** @var array{key: string, uri: string|null}|null */
-    private static ?array $preview = null;
+    /**
+     * What the preview drew, per form instance: Livewire builds a new one on each request, so
+     * nothing outlives the request (the site logo may change between two).
+     *
+     * @var WeakMap<Component, array{preview?: array{key: string, uri: string|null}, siteLogoUnusable?: bool}>|null
+     */
+    private static ?WeakMap $drawn = null;
 
     protected static ?string $model = QrCodeModel::class;
 
@@ -174,9 +184,16 @@ final class QrCodeResource extends BaseResource
                             ->getUploadedFileNameForStorageUsing(
                                 fn (TemporaryUploadedFile $file): string => Str::uuid()->toString().'.'.self::LOGO_EXTENSIONS[$file->getMimeType()]
                             )
+                            // An SVG is kept sanitized: the images disk is public
+                            ->saveUploadedFileUsing(self::storeLogo(...))
                             ->acceptedFileTypes(array_keys(self::LOGO_EXTENSIONS))
                             ->maxSize(self::LOGO_MAX_KILOBYTES)
-                            ->rules(['mimes:png,jpg,jpeg,webp', 'dimensions:max_width='.self::LOGO_MAX_PIXELS.',max_height='.self::LOGO_MAX_PIXELS])
+                            // Laravel's dimensions rule lets an SVG through: the core checks its markup
+                            ->rules([
+                                'mimes:png,jpg,jpeg,webp,svg',
+                                'dimensions:max_width='.self::LOGO_MAX_PIXELS.',max_height='.self::LOGO_MAX_PIXELS,
+                                self::usableSvgLogo(...),
+                            ])
                             ->visible(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
                             ->required(fn (Get $get): bool => self::logoSource($get) === QrLogoSource::Custom)
                             // The preview draws an upload as soon as it arrives, before saving
@@ -187,17 +204,21 @@ final class QrCodeResource extends BaseResource
                     ->description(__('link-page::messages.qr_codes.sections.preview_help'))
                     ->schema([
                         Image::make(
-                            fn (Get $get, ?QrCodeModel $record): string => self::previewUri($get, $record) ?? '',
+                            fn (Get $get, ?QrCodeModel $record, Component $livewire): string => self::previewUri($get, $record, $livewire) ?? '',
                             __('link-page::messages.qr_codes.preview_alt'),
                         )
                             ->imageSize(200)
-                            ->visible(fn (Get $get, ?QrCodeModel $record): bool => self::previewUri($get, $record) !== null),
+                            ->visible(fn (Get $get, ?QrCodeModel $record, Component $livewire): bool => self::previewUri($get, $record, $livewire) !== null),
                         Text::make(__('link-page::messages.qr_codes.preview_unavailable'))
                             ->color('danger')
-                            ->visible(fn (Get $get, ?QrCodeModel $record): bool => self::previewUri($get, $record) === null),
+                            ->visible(fn (Get $get, ?QrCodeModel $record, Component $livewire): bool => self::previewUri($get, $record, $livewire) === null),
                         Text::make(__('link-page::messages.qr_codes.preview_logo_unusable'))
                             ->color('warning')
                             ->visible(fn (Get $get): bool => self::pendingLogoIsUnusable($get)),
+                        Text::make(__('link-page::messages.qr_codes.preview_site_logo_unusable'))
+                            ->color('warning')
+                            ->visible(fn (Get $get, Component $livewire): bool => self::logoSource($get) === QrLogoSource::Site
+                                && self::siteLogoIsUnusable($livewire)),
                     ]),
             ]);
     }
@@ -415,7 +436,7 @@ final class QrCodeResource extends BaseResource
      * could not read: the field error says why). A logo just uploaded is drawn from the
      * upload itself, before anything is stored.
      */
-    private static function previewUri(Get $get, ?QrCodeModel $record): ?string
+    private static function previewUri(Get $get, ?QrCodeModel $record, Component $livewire): ?string
     {
         $margin = $get('margin');
         $pending = self::pendingLogo($get);
@@ -428,22 +449,52 @@ final class QrCodeResource extends BaseResource
             logoSource: self::logoSource($get) ?? QrLogoSource::None,
             // A new upload replaces the stored logo, even when it cannot be used (then: none)
             logoPath: $pending instanceof TemporaryUploadedFile ? null : (self::storedLogos($get)[0] ?? $record?->logo_path),
-            logoContents: $pending instanceof TemporaryUploadedFile ? self::usableLogoContents($pending) : null,
+            logoContents: $pending instanceof TemporaryUploadedFile ? self::usableLogo($pending)?->contents : null,
         );
 
         // The image and the notice both ask: draw once per form state
+        $drawn = self::drawn($livewire);
         $key = serialize($design);
-        if (self::$preview === null || self::$preview['key'] !== $key) {
+        if (! isset($drawn['preview']) || $drawn['preview']['key'] !== $key) {
             try {
                 $uri = app(QrCodeImagesInterface::class)->render($design, self::PREVIEW_SIZE, QrCodeFormat::Svg)->dataUri();
             } catch (Throwable) {
                 $uri = null;
             }
 
-            self::$preview = ['key' => $key, 'uri' => $uri];
+            $drawn['preview'] = ['key' => $key, 'uri' => $uri];
+            self::remember($livewire, $drawn);
         }
 
-        return self::$preview['uri'];
+        return $drawn['preview']['uri'];
+    }
+
+    private static function siteLogoIsUnusable(Component $livewire): bool
+    {
+        $drawn = self::drawn($livewire);
+        if (! isset($drawn['siteLogoUnusable'])) {
+            $drawn['siteLogoUnusable'] = app(QrCodeImagesInterface::class)->siteLogoIsUnusable();
+            self::remember($livewire, $drawn);
+        }
+
+        return $drawn['siteLogoUnusable'];
+    }
+
+    /**
+     * @return array{preview?: array{key: string, uri: string|null}, siteLogoUnusable?: bool}
+     */
+    private static function drawn(Component $livewire): array
+    {
+        return self::$drawn[$livewire] ?? [];
+    }
+
+    /**
+     * @param  array{preview?: array{key: string, uri: string|null}, siteLogoUnusable?: bool}  $drawn
+     */
+    private static function remember(Component $livewire, array $drawn): void
+    {
+        self::$drawn ??= new WeakMap;
+        self::$drawn[$livewire] = $drawn;
     }
 
     /**
@@ -484,32 +535,72 @@ final class QrCodeResource extends BaseResource
     {
         $pending = self::pendingLogo($get);
 
-        return $pending instanceof TemporaryUploadedFile && self::usableLogoContents($pending) === null;
+        return $pending instanceof TemporaryUploadedFile && ! self::usableLogo($pending) instanceof QrCodeLogoDTO;
     }
 
     /**
-     * The upload's bytes when saving would accept it: the field's own rules (type from the
-     * content, 1 MB, 2048 × 2048 px). Null for anything else, so the preview never draws a
-     * logo the form would then reject.
+     * The upload as the core renderer takes it, when saving would accept it: a type the field
+     * takes (from the content), 1 MB, and what the core checks (2048 × 2048 px for a raster
+     * image, the markup of an SVG, which it sanitizes). Null for anything else, so the
+     * preview never draws a logo the form would then reject.
      */
-    private static function usableLogoContents(TemporaryUploadedFile $file): ?string
+    private static function usableLogo(TemporaryUploadedFile $file): ?QrCodeLogoDTO
     {
         try {
-            if (! array_key_exists($file->getMimeType(), self::LOGO_EXTENSIONS) || $file->getSize() > self::LOGO_MAX_KILOBYTES * 1024) {
+            $mimeType = $file->getMimeType();
+            if (! array_key_exists($mimeType, self::LOGO_EXTENSIONS) || $file->getSize() > self::LOGO_MAX_KILOBYTES * 1024) {
                 return null;
             }
 
             $contents = $file->get();
-            $dimensions = is_string($contents) ? getimagesizefromstring($contents) : false;
+            $logo = is_string($contents) ? new QrCodeLogoDTO($contents) : null;
         } catch (Throwable) {
-            // The temporary file is gone or unreadable
+            // The temporary file is gone or unreadable, or the core rejects it
             return null;
         }
 
-        if ($dimensions === false || $dimensions[0] > self::LOGO_MAX_PIXELS || $dimensions[1] > self::LOGO_MAX_PIXELS) {
+        // The stored extension follows the detected type: the core must read the same one
+        return $logo?->mimeType === $mimeType ? $logo : null;
+    }
+
+    /**
+     * Rejects, on saving, an SVG the core would not draw. Other types and sizes have their
+     * own rules, so each problem is said once.
+     */
+    private static function usableSvgLogo(): Closure
+    {
+        return static function (string $attribute, mixed $value, Closure $fail): void {
+            try {
+                $isSvg = $value instanceof TemporaryUploadedFile
+                    && $value->getMimeType() === QrCodeLogoDTO::SVG_MIME_TYPE
+                    && $value->getSize() <= self::LOGO_MAX_KILOBYTES * 1024;
+            } catch (Throwable) {
+                return;
+            }
+
+            if ($isSvg && ! self::usableLogo($value) instanceof QrCodeLogoDTO) {
+                $fail(__('link-page::messages.qr_codes.validation.logo_unusable'));
+            }
+        };
+    }
+
+    /**
+     * Stores what the core read: the bytes of a raster image as uploaded, an SVG sanitized.
+     */
+    private static function storeLogo(BaseFileUpload $component, TemporaryUploadedFile $file): ?string
+    {
+        $logo = self::usableLogo($file);
+        if (! $logo instanceof QrCodeLogoDTO) {
+            // The field's rules rejected it: nothing is kept
             return null;
         }
 
-        return $contents;
+        $path = trim($component->getDirectory().'/'.$component->getUploadedFileNameForStorage($file), '/');
+        $component->getDisk()->put($path, $logo->contents, [
+            'visibility' => $component->getVisibility(),
+            'mimetype' => $logo->mimeType,
+        ]);
+
+        return $path;
     }
 }

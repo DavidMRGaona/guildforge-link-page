@@ -32,4 +32,10 @@ interface QrCodeImagesInterface
 
     /** The address a code encodes. */
     public function url(string $code): string;
+
+    /**
+     * True when the site has a logo that QR codes would leave out: missing, unreadable or
+     * an SVG the core rejects. False without a site logo.
+     */
+    public function siteLogoIsUnusable(): bool;
 }

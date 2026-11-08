@@ -28,11 +28,17 @@ En el menú lateral, abre **Contenido** → **Códigos QR** y pulsa **Crear cód
 1. **Nombre**: solo se ve en el panel, por ejemplo «Cartel del local».
 2. **Frase del cartel**: sale debajo del QR en la versión para imprimir. Vacía, se usa «Escanea para ver los próximos eventos».
 3. **Activo**: déjalo encendido para contar los escaneos.
-4. En **Diseño**, elige el **Color del código** y el **Color del fondo**, el **Margen** (el espacio en blanco alrededor, en porcentaje; los lectores necesitan algo) y, si quieres, un **Logo en el centro**: **Sin logo**, el **Logo del sitio** o una **Imagen propia** (PNG, JPEG o WebP de hasta 1 MB). Con logo, el código se dibuja con la máxima corrección de errores para que se siga leyendo.
-5. Mira la **Vista previa**, que se actualiza al cambiar cualquier cosa, también en cuanto termina de subirse un logo, antes de guardar. Si la imagen no sirve como logo (no es PNG, JPEG o WebP, o pasa de 1 MB o de 2048 × 2048 px), la vista previa lo avisa y sale sin logo.
+4. En **Diseño**, elige el **Color del código** y el **Color del fondo**, el **Margen** (el espacio en blanco alrededor, en porcentaje; los lectores necesitan algo) y, si quieres, un **Logo en el centro**: **Sin logo**, el **Logo del sitio** o una **Imagen propia** (PNG, JPEG, WebP o SVG de hasta 1 MB). Con logo, el código se dibuja con la máxima corrección de errores para que se siga leyendo.
+5. Mira la **Vista previa**, que se actualiza al cambiar cualquier cosa, también en cuanto termina de subirse un logo, antes de guardar. Si la imagen no sirve como logo, la vista previa lo avisa y sale sin logo, y al guardar el campo explica por qué. Lo mismo con el **Logo del sitio**: si no se puede usar, la vista previa lo dice.
 6. Pulsa **Crear**.
 
 Para que los móviles lo lean, el color del código debe ser **más oscuro** que el del fondo y el contraste debe ser de al menos 4,5:1. Si no se cumple, el campo lo explica y no se guarda.
+
+### Qué imagen sirve como logo
+
+- **PNG, JPEG o WebP** de hasta 1 MB y 2048 × 2048 píxeles.
+- **SVG** de hasta 1 MB, como el que se suele poner de logo del sitio. Tiene que estar bien formado, sin DOCTYPE ni entidades, y tener `viewBox` o un ancho y un alto en unidades fijas (no en porcentaje). Del SVG solo se guarda el dibujo: se quitan los scripts, los enlaces y lo que cargaría algo de fuera.
+- Si el SVG lleva **textos**, conviértelos a trazados en el programa de diseño antes de exportarlo: el QR no lleva las fuentes y el texto podría salir con otra letra.
 
 ## Descargarlo
 
@@ -68,4 +74,5 @@ Cada QR cuenta por separado. Las cifras están en **Contenido** → **Estadísti
 - **El móvil no lee el QR**: usa un color del código muy oscuro sobre un fondo claro, deja algo de margen, y si pusiste un logo prueba a quitarlo o a hacerlo más pequeño. Imprime en SVG o en el PNG más grande.
 - **«Con estos colores no se puede dibujar un QR que los móviles lean»**: el contraste es demasiado bajo; oscurece el color del código.
 - **No se ha podido dibujar el código**: prueba otro tamaño o quita el logo.
+- **El logo del sitio no sale en el QR**: si la vista previa avisa de que no se puede usar, suele ser un SVG exportado con DOCTYPE o con el tamaño en porcentaje. Expórtalo de nuevo como SVG simple, súbelo en **Configuración del sitio** → **Apariencia**, o elige **Imagen propia** en el QR.
 - **El QR cuenta pocos escaneos**: los escaneos en ráfaga desde un mismo móvil o una misma conexión no se cuentan; en las estadísticas se explica con detalle.

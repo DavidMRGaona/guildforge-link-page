@@ -348,7 +348,8 @@ return [
         'default_tagline' => 'Escanea para ver los próximos eventos',
         'preview_alt' => 'Vista previa del código QR',
         'preview_unavailable' => 'Con estos colores no se puede dibujar un QR que los móviles lean.',
-        'preview_logo_unusable' => 'La imagen subida no se puede usar como logo: tiene que ser PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px. La vista previa sale sin logo.',
+        'preview_logo_unusable' => 'La imagen subida no se puede usar como logo: tiene que ser PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px, o un SVG de hasta 1 MB bien formado, sin DOCTYPE y con viewBox o con ancho y alto. La vista previa sale sin logo.',
+        'preview_site_logo_unusable' => 'El logo del sitio no se puede poner en el QR: no se puede leer o es un SVG mal formado, con DOCTYPE o sin viewBox ni tamaño. El QR sale sin logo: elige «Imagen propia» o cambia el logo en «Configuración del sitio → Apariencia».',
         'address_copied' => 'Dirección copiada',
         'sections' => [
             'origin' => 'Origen',
@@ -374,7 +375,7 @@ return [
             'logo_source_help' => 'Con logo, el código se dibuja con la máxima corrección de errores para que se siga leyendo.',
             'logo_source_no_site_logo' => 'El sitio aún no tiene logo: con «Logo del sitio» el QR sale sin logo hasta que se suba uno en la configuración.',
             'logo' => 'Imagen del logo',
-            'logo_help' => 'PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px.',
+            'logo_help' => 'PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px, o SVG de hasta 1 MB. Del SVG se guarda solo el dibujo (sin scripts ni enlaces); los textos, mejor convertidos a trazados.',
             'format' => 'Formato',
             'updated_at' => 'Modificado',
         ],
@@ -405,6 +406,7 @@ return [
         'validation' => [
             'foreground_darker' => 'El color del código tiene que ser más oscuro que el del fondo: muchos móviles no leen un QR claro sobre oscuro.',
             'contrast' => 'El contraste entre los colores es de :ratio:1 y hace falta al menos :minimum:1 para que los móviles lo lean.',
+            'logo_unusable' => 'Este SVG no se puede usar como logo: tiene que estar bien formado, sin DOCTYPE ni entidades, y con viewBox o con ancho y alto que no sean porcentajes.',
         ],
         'print' => [
             'title' => ':name · :paper',

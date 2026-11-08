@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Feature\Http;
 
 use App\Application\Services\SettingsServiceInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\LinkPage\Domain\Enums\QrLogoSource;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
 use Tests\Support\Modules\ModuleTestCase;
+use Tests\Support\QrCodes\QrCodeTestImages;
 
 /**
  * The printable A4 and A5 sheets: the browser prints them or saves them as PDF.
@@ -54,6 +57,19 @@ final class QrPrintTest extends ModuleTestCase
         $response->assertSee(Str::after(route('link_page.qr', $qr->code), '://'));
         $response->assertSee('size: A4 portrait', false);
         $response->assertSee('<svg', false);
+    }
+
+    public function test_the_sheet_draws_an_svg_site_logo(): void
+    {
+        Storage::fake('images');
+        Storage::disk('images')->put('branding/logo.svg', QrCodeTestImages::svg(200, 100));
+        app(SettingsServiceInterface::class)->set('site_logo_light', 'branding/logo.svg');
+        $qr = $this->qrCode(['logo_source' => QrLogoSource::Site]);
+
+        $this->actingAs($this->userWith([self::MANAGE]))
+            ->get(route('link_page.qr_codes.print', [$qr, 'a4']))
+            ->assertOk()
+            ->assertSee('href="data:image/svg+xml;base64,', false);
     }
 
     public function test_the_a5_sheet_uses_the_tagline_of_the_qr_code(): void

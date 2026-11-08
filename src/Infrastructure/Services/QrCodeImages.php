@@ -46,11 +46,30 @@ final readonly class QrCodeImages implements QrCodeImagesInterface
         return route('link_page.qr', ['code' => $code]);
     }
 
+    public function siteLogoIsUnusable(): bool
+    {
+        $path = $this->branding->customLogoPath();
+
+        if ($path === null || $path === '') {
+            return false;
+        }
+
+        try {
+            $contents = $this->read($path);
+            $logo = $contents === null ? null : new QrCodeLogoDTO($contents);
+        } catch (Throwable) {
+            $logo = null;
+        }
+
+        return ! $logo instanceof QrCodeLogoDTO;
+    }
+
     private function logo(QrCodeDesignDTO $design): ?QrCodeLogoDTO
     {
         try {
             $contents = $this->logoContents($design);
 
+            // PNG, JPEG, WebP or SVG; an SVG is sanitized by the DTO itself
             return $contents === null ? null : new QrCodeLogoDTO($contents);
         } catch (Throwable $exception) {
             // Missing file, unreachable disk or not a usable image (InvalidQrCodeOptionsException)
@@ -78,10 +97,11 @@ final readonly class QrCodeImages implements QrCodeImagesInterface
             QrLogoSource::Custom => $design->logoPath !== null && QrLogoPath::isOwn($design->logoPath) ? $design->logoPath : null,
         };
 
-        if ($path === null || $path === '') {
-            return null;
-        }
+        return $path === null || $path === '' ? null : $this->read($path);
+    }
 
+    private function read(string $path): ?string
+    {
         $contents = Storage::disk('images')->get($path);
 
         return is_string($contents) ? $contents : null;
