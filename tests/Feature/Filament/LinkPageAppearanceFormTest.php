@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
+use App\Application\Services\SettingsServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
@@ -193,6 +194,33 @@ final class LinkPageAppearanceFormTest extends ModuleTestCase
             ->fillForm(['appearance.theme' => 'dark'])
             ->assertDontSeeHtml('data-preview="light"')
             ->assertSeeHtml('data-preview="dark"');
+    }
+
+    public function test_each_preview_phone_shows_the_site_logo_of_its_theme(): void
+    {
+        app(SettingsServiceInterface::class)->set('site_logo_light', 'branding/light.png');
+        app(SettingsServiceInterface::class)->set('site_logo_dark', 'branding/dark.png');
+
+        $logos = $this->page()->instance()->appearancePreview()['logos'];
+
+        $this->assertSame(['url' => Storage::disk('images')->url('branding/light.png'), 'isDark' => false], $logos['light']);
+        $this->assertSame(['url' => Storage::disk('images')->url('branding/dark.png'), 'isDark' => true], $logos['dark']);
+    }
+
+    public function test_an_own_logo_not_saved_yet_shows_in_both_preview_phones(): void
+    {
+        app(SettingsServiceInterface::class)->set('site_logo_dark', 'branding/dark.png');
+
+        $page = $this->page()->fillForm([
+            'appearance.logo.source' => 'custom',
+            'appearance.logo.image' => UploadedFile::fake()->image('logo.png', 256, 256),
+        ]);
+        $logos = $page->instance()->appearancePreview()['logos'];
+
+        $this->assertNotNull($logos['light']['url']);
+        $this->assertStringNotContainsString('branding/dark.png', $logos['light']['url']);
+        $this->assertSame($logos['light'], $logos['dark']);
+        $this->assertFalse($logos['dark']['isDark']);
     }
 
     /**

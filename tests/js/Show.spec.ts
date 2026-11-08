@@ -77,7 +77,10 @@ function colors(overrides: Partial<LinkPageColors> = {}): LinkPageColors {
 
 function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
     return {
-        site: { name: 'Example guild', logoUrl: null, logoIsDark: false },
+        site: {
+            name: 'Example guild',
+            logo: { light: { url: null, isDark: false }, dark: { url: null, isDark: false } },
+        },
         appearance: appearance(),
         intro: null,
         serverNow: null,
@@ -116,20 +119,41 @@ describe('LinkPage/Show', () => {
     });
 
     it('shows the logo when the site has one', () => {
+        const logo = { url: 'https://example.test/logo.png', isDark: false };
+        const wrapper = mount(Show, {
+            props: props({ site: { name: 'Example guild', logo: { light: logo, dark: logo } } }),
+        });
+
+        const logos = wrapper.findAll('[data-testid="link-page-logo"]');
+        expect(logos).toHaveLength(1);
+        expect(logos[0]?.attributes('src')).toBe('https://example.test/logo.png');
+        expect(logos[0]?.attributes('alt')).toBe('Logo de Example guild');
+        expect(logos[0]?.classes()).not.toContain('dark:hidden');
+        expect(wrapper.find('[data-testid="link-page-initial"]').exists()).toBe(false);
+    });
+
+    it('swaps to the dark logo with the dark theme, each on its own plate', () => {
         const wrapper = mount(Show, {
             props: props({
                 site: {
                     name: 'Example guild',
-                    logoUrl: 'https://example.test/logo.png',
-                    logoIsDark: false,
+                    logo: {
+                        light: { url: 'https://example.test/light.png', isDark: false },
+                        dark: { url: 'https://example.test/dark.png', isDark: true },
+                    },
                 },
             }),
         });
 
-        const logo = wrapper.find('img');
-        expect(logo.attributes('src')).toBe('https://example.test/logo.png');
-        expect(logo.attributes('alt')).toBe('Logo de Example guild');
-        expect(wrapper.find('[data-testid="link-page-initial"]').exists()).toBe(false);
+        const [light, dark] = wrapper.findAll('[data-testid="link-page-logo"]');
+        expect(light?.attributes('src')).toBe('https://example.test/light.png');
+        expect(light?.classes()).toEqual(expect.arrayContaining(['dark:hidden', 'bg-surface']));
+        expect(dark?.attributes('src')).toBe('https://example.test/dark.png');
+        expect(dark?.classes()).toEqual(
+            expect.arrayContaining(['hidden', 'dark:block', 'bg-neutral-900'])
+        );
+        // The one not shown is display: none, so assistive technology reads only one
+        expect(dark?.attributes('alt')).toBe('Logo de Example guild');
     });
 
     it('shows no notice and no featured event unless the server sends them', () => {
@@ -346,8 +370,10 @@ describe('LinkPage/Show appearance', () => {
             props: props({
                 site: {
                     name: 'Example guild',
-                    logoUrl: 'https://example.test/own.png',
-                    logoIsDark: false,
+                    logo: {
+                        light: { url: 'https://example.test/own.png', isDark: false },
+                        dark: { url: 'https://example.test/own.png', isDark: false },
+                    },
                 },
                 appearance: appearance({ logo: { shape: 'rounded', custom: true } }),
             }),

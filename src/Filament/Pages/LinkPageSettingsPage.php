@@ -11,6 +11,7 @@ use App\Application\Services\EventQueryServiceInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TagQueryServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
+use App\Domain\Enums\ColorScheme as SiteColorScheme;
 use App\Domain\Modules\ValueObjects\ModuleName;
 use App\Filament\Clusters\SettingsCluster;
 use App\Filament\Concerns\ChecksPermissions;
@@ -295,7 +296,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
      * What the appearance preview shows, from the form as it is now. A value that is not valid
      * yet (a half-typed colour) shows the saved appearance instead.
      *
-     * @return array{valid: bool, siteColors: bool, name: string, intro: string|null, initial: string, logoUrl: string|null, logoIsDark: bool, logoCustom: bool, phones: list<array<string, mixed>>}
+     * @return array{valid: bool, siteColors: bool, name: string, intro: string|null, initial: string, logos: array{light: array{url: string|null, isDark: bool}, dark: array{url: string|null, isDark: bool}}, logoCustom: bool, phones: list<array<string, mixed>>}
      */
     public function appearancePreview(): array
     {
@@ -323,8 +324,11 @@ final class LinkPageSettingsPage extends Page implements HasForms
         }
 
         $presenter = app(AppearancePresenter::class);
-        $logo = $presenter->logo($appearance, $branding->customLogoUrl(), $branding->customLogoIsDark());
-        $logoUrl = $valid && $appearance->effectiveLogoSource() === LogoSource::Custom ? ($uploads['logo'] ?? $logo['url']) : $logo['url'];
+        $logos = $presenter->logos($appearance, $branding->customLogoFor(SiteColorScheme::Light), $branding->customLogoFor(SiteColorScheme::Dark));
+        // Each phone shows the logo of its theme; an own image not saved yet, in both
+        if ($valid && $appearance->effectiveLogoSource() === LogoSource::Custom && $uploads['logo'] !== null) {
+            $logos = ['light' => ['url' => $uploads['logo'], 'isDark' => false], 'dark' => ['url' => $uploads['logo'], 'isDark' => false]];
+        }
         $backgroundUrl = $appearance->effectiveBackgroundType() === BackgroundType::Image
             ? ($valid ? $uploads['background'] : null) ?? ($appearance->backgroundImage !== null ? Storage::disk('images')->url($appearance->backgroundImage) : null)
             : null;
@@ -337,8 +341,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'name' => $name,
             'intro' => $intro,
             'initial' => mb_strtoupper(mb_substr(trim($name), 0, 1)),
-            'logoUrl' => $logoUrl,
-            'logoIsDark' => $logo['isDark'],
+            'logos' => $logos,
             'logoCustom' => $appearance->effectiveLogoSource() === LogoSource::Custom,
             'phones' => app(AppearancePreview::class)->phones($appearance, $backgroundUrl),
         ];

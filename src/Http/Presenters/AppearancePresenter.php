@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Http\Presenters;
 
+use App\Application\DTOs\Response\SiteLogoDTO;
 use Illuminate\Support\Facades\Storage;
 use Modules\LinkPage\Domain\Enums\BackgroundType;
 use Modules\LinkPage\Domain\Enums\LogoSource;
@@ -52,17 +53,28 @@ final readonly class AppearancePresenter
     }
 
     /**
-     * The picture at the top: the module's own image, the site logo, or none for the initial.
+     * The picture at the top for each theme: the module's own image (the same in both), the
+     * site logo made for that theme (the core falls back to the other one), or none for the
+     * initial. isDark says whether the image is the site's dark-theme logo, which wants a
+     * dark plate behind it.
      *
-     * @param  string|null  $siteLogoUrl  the site logo, as SiteBrandingServiceInterface gives it
-     * @return array{url: string|null, isDark: bool}
+     * @return array{light: array{url: string|null, isDark: bool}, dark: array{url: string|null, isDark: bool}}
      */
-    public function logo(Appearance $appearance, ?string $siteLogoUrl, bool $siteLogoIsDark): array
+    public function logos(Appearance $appearance, ?SiteLogoDTO $siteLight, ?SiteLogoDTO $siteDark): array
     {
         return match ($appearance->effectiveLogoSource()) {
-            LogoSource::Custom => ['url' => $this->url($appearance->logoImage), 'isDark' => false],
-            LogoSource::Initial => ['url' => null, 'isDark' => false],
-            LogoSource::Site => ['url' => $siteLogoUrl, 'isDark' => $siteLogoUrl !== null && $siteLogoIsDark],
+            LogoSource::Custom => [
+                'light' => ['url' => $this->url($appearance->logoImage), 'isDark' => false],
+                'dark' => ['url' => $this->url($appearance->logoImage), 'isDark' => false],
+            ],
+            LogoSource::Initial => [
+                'light' => ['url' => null, 'isDark' => false],
+                'dark' => ['url' => null, 'isDark' => false],
+            ],
+            LogoSource::Site => [
+                'light' => $this->siteLogo($siteLight),
+                'dark' => $this->siteLogo($siteDark),
+            ],
         };
     }
 
@@ -81,6 +93,14 @@ final readonly class AppearancePresenter
             'muted' => $scheme->muted()->value,
             'overlay' => round($scheme->overlay / 100, 2),
         ];
+    }
+
+    /**
+     * @return array{url: string|null, isDark: bool}
+     */
+    private function siteLogo(?SiteLogoDTO $logo): array
+    {
+        return ['url' => $logo?->url, 'isDark' => $logo instanceof SiteLogoDTO && $logo->isDark];
     }
 
     private function url(?string $path): ?string
