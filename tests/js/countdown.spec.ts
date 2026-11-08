@@ -40,7 +40,11 @@ describe('phaseAt', () => {
     });
 
     it('goes straight to live for an event that started on an earlier day', () => {
-        const longRunning = { ...instants, dayStartsAt: instants.dayStartsAt - 2 * DAY, startsAt: instants.startsAt - 2 * DAY };
+        const longRunning = {
+            ...instants,
+            dayStartsAt: instants.dayStartsAt - 2 * DAY,
+            startsAt: instants.startsAt - 2 * DAY,
+        };
 
         expect(phaseAt(instants.startsAt - DAY, longRunning)).toBe('live');
     });

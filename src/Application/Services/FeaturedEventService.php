@@ -52,7 +52,7 @@ final readonly class FeaturedEventService
             FeaturedMode::Auto => $this->next($featured, $now),
         };
 
-        return $event === null ? null : $this->toFeatured($event);
+        return $event instanceof EventResponseDTO ? $this->toFeatured($event) : null;
     }
 
     private function chosen(FeaturedSettings $featured, DateTimeImmutable $now): ?EventResponseDTO

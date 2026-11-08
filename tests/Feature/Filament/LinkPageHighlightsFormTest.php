@@ -81,8 +81,10 @@ final class LinkPageHighlightsFormTest extends ModuleTestCase
         $this->assertNotNull($notice);
         $this->assertSame('Closed on Saturday.', $notice->text);
         $this->assertSame(NoticeTone::Warning, $notice->tone);
-        $this->assertSame('https://example.com/news', $notice->link?->url);
-        $this->assertSame('Read more', $notice->link?->label);
+        $link = $notice->link;
+        $this->assertNotNull($link);
+        $this->assertSame('https://example.com/news', $link->url);
+        $this->assertSame('Read more', $link->label);
         $this->assertEquals(new DateTimeImmutable('2026-11-10T09:00:00Z'), $notice->startsAt);
         $this->assertEquals(new DateTimeImmutable('2026-11-12T09:00:00Z'), $notice->endsAt);
         // Stored in the display zone, so what is read in the database matches what is typed

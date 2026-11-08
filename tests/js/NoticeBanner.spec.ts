@@ -4,9 +4,15 @@ import NoticeBanner from '../../resources/js/components/NoticeBanner.vue';
 import es from '../../resources/js/locales/es';
 import type { LinkPageNotice } from '../../resources/js/types/linkPage';
 
-const notice: LinkPageNotice = { text: 'Este sábado el local está cerrado.', tone: 'warning', link: null };
+const notice: LinkPageNotice = {
+    text: 'Este sábado el local está cerrado.',
+    tone: 'warning',
+    link: null,
+};
 
-function mountNotice(overrides: Partial<LinkPageNotice> = {}): ReturnType<typeof mount<typeof NoticeBanner>> {
+function mountNotice(
+    overrides: Partial<LinkPageNotice> = {}
+): ReturnType<typeof mount<typeof NoticeBanner>> {
     return mount(NoticeBanner, { props: { notice: { ...notice, ...overrides } } });
 }
 
@@ -47,7 +53,9 @@ describe('NoticeBanner', () => {
     });
 
     it('links with its own label', () => {
-        const link = mountNotice({ link: { url: 'https://example.test/news', label: 'Ver novedades' } }).get('a');
+        const link = mountNotice({
+            link: { url: 'https://example.test/news', label: 'Ver novedades' },
+        }).get('a');
 
         expect(link.attributes('href')).toBe('https://example.test/news');
         expect(link.text()).toBe('Ver novedades');

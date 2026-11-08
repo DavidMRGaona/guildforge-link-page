@@ -143,8 +143,14 @@ describe('LinkPage/Show', () => {
         });
 
         const root = wrapper.get('[data-testid="link-page"]').element;
-        expect(root.firstElementChild).toBe(wrapper.get('[data-testid="link-page-notice"]').element);
-        expect(wrapper.get('main').element.contains(wrapper.get('[data-testid="link-page-notice"]').element)).toBe(false);
+        expect(root.firstElementChild).toBe(
+            wrapper.get('[data-testid="link-page-notice"]').element
+        );
+        expect(
+            wrapper
+                .get('main')
+                .element.contains(wrapper.get('[data-testid="link-page-notice"]').element)
+        ).toBe(false);
     });
 
     it('puts the featured event between the presentation and the list of events', () => {
@@ -168,8 +174,12 @@ describe('LinkPage/Show', () => {
         const featured = wrapper.get('[data-testid="link-page-featured"]').element;
         const header = wrapper.get('header').element;
         const events = wrapper.get('#link-page-events').element;
-        expect(header.compareDocumentPosition(featured) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        expect(featured.compareDocumentPosition(events) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(
+            header.compareDocumentPosition(featured) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        expect(
+            featured.compareDocumentPosition(events) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
     });
 
     it('offers a share button, first in the page for keyboards and screen readers', () => {

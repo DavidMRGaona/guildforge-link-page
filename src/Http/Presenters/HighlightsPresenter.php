@@ -8,6 +8,8 @@ use App\Application\Services\TimezoneServiceInterface;
 use Modules\LinkPage\Application\Contracts\ClockInterface;
 use Modules\LinkPage\Application\DTOs\FeaturedEventDTO;
 use Modules\LinkPage\Application\Services\NoticeService;
+use Modules\LinkPage\Domain\ValueObjects\Notice;
+use Modules\LinkPage\Domain\ValueObjects\NoticeLink;
 
 /**
  * The props of the notice and the featured event. Every instant leaves in the display zone as
@@ -35,12 +37,12 @@ final readonly class HighlightsPresenter
 
         return [
             'serverNow' => $this->timezone->iso($this->clock->now()),
-            'notice' => $notice === null ? null : [
+            'notice' => $notice instanceof Notice ? [
                 'text' => $notice->text,
                 'tone' => $notice->tone->value,
-                'link' => $notice->link === null ? null : ['url' => $notice->link->url, 'label' => $notice->link->label],
-            ],
-            'featured' => $featured === null ? null : [
+                'link' => $notice->link instanceof NoticeLink ? ['url' => $notice->link->url, 'label' => $notice->link->label] : null,
+            ] : null,
+            'featured' => $featured instanceof FeaturedEventDTO ? [
                 'id' => $featured->id,
                 'title' => $featured->title,
                 'url' => $featured->url,
@@ -50,7 +52,7 @@ final readonly class HighlightsPresenter
                 'spansDays' => $featured->spansDays,
                 'location' => $featured->location,
                 'imagePublicId' => $featured->imagePublicId,
-            ],
+            ] : null,
         ];
     }
 }

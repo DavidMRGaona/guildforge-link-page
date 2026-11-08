@@ -44,7 +44,9 @@ const icon = computed(() => ICONS[props.notice.tone]);
                 <path :d="icon" />
             </svg>
             <p class="min-w-0 break-words text-sm leading-snug">
-                <strong class="font-semibold">{{ t(`linkPage.noticeTones.${notice.tone}`) }}:</strong>
+                <strong class="font-semibold"
+                    >{{ t(`linkPage.noticeTones.${notice.tone}`) }}:</strong
+                >
                 {{ ' ' }}{{ notice.text }}
                 <template v-if="notice.link">
                     {{ ' ' }}

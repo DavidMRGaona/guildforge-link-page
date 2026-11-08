@@ -42,8 +42,10 @@ final class LinkPageHighlightsSettingsTest extends ModuleTestCase
         $this->assertNotNull($notice);
         $this->assertSame('Closed on Saturday.', $notice->text);
         $this->assertSame(NoticeTone::Warning, $notice->tone);
-        $this->assertSame('/eventos', $notice->link?->url);
-        $this->assertSame('See events', $notice->link?->label);
+        $link = $notice->link;
+        $this->assertNotNull($link);
+        $this->assertSame('/eventos', $link->url);
+        $this->assertSame('See events', $link->label);
     }
 
     public function test_a_disabled_notice_reads_as_none(): void

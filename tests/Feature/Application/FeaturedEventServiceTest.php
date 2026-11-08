@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Modules\LinkPage\Application\Contracts\ClockInterface;
 use Modules\LinkPage\Application\DTOs\FeaturedEventDTO;
 use Modules\LinkPage\Application\Services\FeaturedEventService;
+use Modules\LinkPage\Application\Services\LinkPageEventsService;
 use Modules\LinkPage\Tests\Support\FixedClock;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -53,7 +54,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Draft', '2026-11-14 17:00:00', published: false);
         $this->event('Past', '2026-11-10 17:00:00');
 
-        $this->assertSame('Sooner', $this->service()->current()?->title);
+        $this->assertSame('Sooner', $this->featuredTitle());
     }
 
     public function test_automatic_mode_features_nothing_without_events(): void
@@ -70,7 +71,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('In progress', '2026-11-14 09:00:00', '2026-11-14 12:00:00');
         $this->event('Next', '2026-11-14 15:00:00');
 
-        $this->assertSame('In progress', $this->service()->current()?->title);
+        $this->assertSame('In progress', $this->featuredTitle());
     }
 
     public function test_a_multi_day_event_that_started_days_ago_is_featured_until_it_ends(): void
@@ -79,7 +80,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Long convention', '2026-11-12 09:00:00', '2026-11-16 20:00:00');
         $this->event('Next', '2026-11-15 15:00:00');
 
-        $this->assertSame('Long convention', $this->service()->current()?->title);
+        $this->assertSame('Long convention', $this->featuredTitle());
     }
 
     public function test_the_featured_event_changes_on_the_second_the_current_one_ends(): void
@@ -89,10 +90,10 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Second', '2026-11-14 15:00:00');
 
         $this->clock->set('2026-11-14T11:59:59Z');
-        $this->assertSame('First', $this->service()->current()?->title);
+        $this->assertSame('First', $this->featuredTitle());
 
         $this->clock->set('2026-11-14T12:00:00Z');
-        $this->assertSame('Second', $this->service()->current()?->title);
+        $this->assertSame('Second', $this->featuredTitle());
     }
 
     public function test_the_next_event_beyond_a_week_is_found_too(): void
@@ -100,7 +101,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->auto();
         $this->event('In three months', '2027-02-10 17:00:00');
 
-        $this->assertSame('In three months', $this->service()->current()?->title);
+        $this->assertSame('In three months', $this->featuredTitle());
     }
 
     public function test_automatic_mode_keeps_to_the_chosen_tag(): void
@@ -110,7 +111,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Untagged', '2026-11-15 17:00:00');
         $this->event('Tagged', '2026-11-18 17:00:00')->tags()->attach($jornadas);
 
-        $this->assertSame('Tagged', $this->service()->current()?->title);
+        $this->assertSame('Tagged', $this->featuredTitle());
     }
 
     public function test_a_tag_without_matching_events_features_nothing(): void
@@ -128,7 +129,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Shown', '2026-11-16 17:00:00');
         config()->set('modules.settings.link-page.events.hidden', [$hidden->id]);
 
-        $this->assertSame('Shown', $this->service()->current()?->title);
+        $this->assertSame('Shown', $this->featuredTitle());
     }
 
     public function test_manual_mode_features_the_chosen_event_even_if_it_is_not_the_next(): void
@@ -137,7 +138,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         $this->event('Sooner', '2026-11-15 17:00:00');
         config()->set('modules.settings.link-page.featured', ['mode' => 'manual', 'event' => $chosen->id]);
 
-        $this->assertSame('Chosen', $this->service()->current()?->title);
+        $this->assertSame('Chosen', $this->featuredTitle());
     }
 
     public function test_manual_mode_disappears_when_the_event_ends(): void
@@ -147,7 +148,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         config()->set('modules.settings.link-page.featured', ['mode' => 'manual', 'event' => $chosen->id]);
 
         $this->clock->set('2026-11-14T11:59:59Z');
-        $this->assertSame('Chosen', $this->service()->current()?->title);
+        $this->assertSame('Chosen', $this->featuredTitle());
 
         $this->clock->set('2026-11-14T12:00:00Z');
         $this->assertNull($this->service()->current());
@@ -218,7 +219,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         // Ends at 00:30 in Madrid on the 16th (23:30 UTC on the 15th)
         $this->event('Overnight', '2026-11-15 17:00:00', '2026-11-15 23:30:00');
 
-        $this->assertTrue($this->service()->current()?->spansDays ?? false);
+        $this->assertTrue($this->featured()->spansDays);
     }
 
     public function test_an_event_ending_exactly_at_midnight_does_not_span_days(): void
@@ -227,7 +228,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
         // Ends at 00:00 in Madrid on the 16th (23:00 UTC on the 15th): still the 15th's event
         $this->event('Until midnight', '2026-11-15 17:00:00', '2026-11-15 23:00:00');
 
-        $this->assertFalse($this->service()->current()?->spansDays ?? true);
+        $this->assertFalse($this->featured()->spansDays);
     }
 
     public function test_it_carries_the_image_of_the_event(): void
@@ -246,7 +247,7 @@ final class FeaturedEventServiceTest extends ModuleTestCase
 
         $titles = array_map(
             fn ($event): string => $event->title,
-            $this->app->make(\Modules\LinkPage\Application\Services\LinkPageEventsService::class)->upcoming([$featured->id]),
+            $this->app->make(LinkPageEventsService::class)->upcoming([$featured->id]),
         );
 
         $this->assertSame(['Other'], $titles);
@@ -255,6 +256,19 @@ final class FeaturedEventServiceTest extends ModuleTestCase
     private function auto(?string $tag = null): void
     {
         config()->set('modules.settings.link-page.featured', ['mode' => 'auto', 'tag' => $tag]);
+    }
+
+    private function featuredTitle(): ?string
+    {
+        return $this->service()->current()?->title;
+    }
+
+    private function featured(): FeaturedEventDTO
+    {
+        $featured = $this->service()->current();
+        $this->assertNotNull($featured);
+
+        return $featured;
     }
 
     private function service(): FeaturedEventService

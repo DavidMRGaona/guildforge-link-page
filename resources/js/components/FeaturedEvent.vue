@@ -97,9 +97,13 @@ const dateText = computed(() => {
         return `${days}, ${hour}`;
     }
 
-    return formatter({ weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(
-        start
-    );
+    return formatter({
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(start);
 });
 
 const untilText = computed(() => {
@@ -115,7 +119,11 @@ const untilText = computed(() => {
 </script>
 
 <template>
-    <section class="link-page-featured" aria-labelledby="link-page-featured-title" data-testid="link-page-featured">
+    <section
+        class="link-page-featured"
+        aria-labelledby="link-page-featured-title"
+        data-testid="link-page-featured"
+    >
         <img
             v-if="imageUrl"
             :src="imageUrl"
@@ -145,7 +153,9 @@ const untilText = computed(() => {
                     {{ statusLabel }}
                 </span>
             </div>
-            <p v-if="untilText" class="text-sm" data-testid="link-page-featured-until">{{ untilText }}</p>
+            <p v-if="untilText" class="text-sm" data-testid="link-page-featured-until">
+                {{ untilText }}
+            </p>
 
             <p
                 v-if="countdownText"
@@ -154,9 +164,11 @@ const untilText = computed(() => {
                 data-testid="link-page-featured-countdown"
             >
                 <span class="text-sm">{{ t('linkPage.featuredStartsIn') }}</span>
-                <span class="text-xl font-bold tabular-nums" data-testid="link-page-featured-countdown-value">{{
-                    countdownText
-                }}</span>
+                <span
+                    class="text-xl font-bold tabular-nums"
+                    data-testid="link-page-featured-countdown-value"
+                    >{{ countdownText }}</span
+                >
             </p>
 
             <a

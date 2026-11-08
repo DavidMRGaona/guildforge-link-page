@@ -41,7 +41,10 @@ function parse(value: string | null): number {
  * boundary (the venue day begins, the event starts, the event ends). `onEnded` runs once per
  * event, the moment it ends.
  */
-export function useFeaturedCountdown(source: () => CountdownSource, onEnded: () => void): FeaturedCountdown {
+export function useFeaturedCountdown(
+    source: () => CountdownSource,
+    onEnded: () => void
+): FeaturedCountdown {
     const reduceMotion = ref(false);
     const now = ref(Date.now());
     let offset = 0;
@@ -62,7 +65,9 @@ export function useFeaturedCountdown(source: () => CountdownSource, onEnded: () 
             : { dayStartsAt: values.dayStartsAt, startsAt: values.startsAt, endsAt: values.endsAt };
     });
 
-    const phase = computed(() => (instants.value === null ? null : phaseAt(now.value, instants.value)));
+    const phase = computed(() =>
+        instants.value === null ? null : phaseAt(now.value, instants.value)
+    );
 
     const parts = computed(() =>
         instants.value !== null && (phase.value === 'upcoming' || phase.value === 'today')
@@ -71,7 +76,11 @@ export function useFeaturedCountdown(source: () => CountdownSource, onEnded: () 
     );
 
     const showSeconds = computed(
-        () => !reduceMotion.value && parts.value !== null && parts.value.days === 0 && parts.value.hours === 0
+        () =>
+            !reduceMotion.value &&
+            parts.value !== null &&
+            parts.value.days === 0 &&
+            parts.value.hours === 0
     );
 
     function schedule(): void {
@@ -96,7 +105,9 @@ export function useFeaturedCountdown(source: () => CountdownSource, onEnded: () 
         }
 
         const counting = at < current.startsAt;
-        const delay = counting ? Math.min(tickDelay(current.startsAt - at, reduceMotion.value), change - at) : change - at;
+        const delay = counting
+            ? Math.min(tickDelay(current.startsAt - at, reduceMotion.value), change - at)
+            : change - at;
 
         timer = setTimeout(tick, Math.max(delay, 0));
     }

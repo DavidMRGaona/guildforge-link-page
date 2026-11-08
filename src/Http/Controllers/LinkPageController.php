@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\LinkPage\Application\Contracts\LinkPageLinksInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Application\DTOs\FeaturedEventDTO;
 use Modules\LinkPage\Application\DTOs\LinkPageEventDTO;
 use Modules\LinkPage\Application\DTOs\LinkPageLinkDTO;
 use Modules\LinkPage\Application\Services\FeaturedEventService;
@@ -65,7 +66,7 @@ final readonly class LinkPageController
                 'position' => $this->settings->socialPosition()->value,
                 'links' => array_map($this->socialProps(...), $this->settings->socialLinks()),
             ],
-            'events' => array_map($this->eventProps(...), $this->events->upcoming($featured === null ? [] : [$featured->id])),
+            'events' => array_map($this->eventProps(...), $this->events->upcoming($featured instanceof FeaturedEventDTO ? [$featured->id] : [])),
             'calendar' => [
                 'initialView' => $this->settings->calendarInitialView()->value,
                 'views' => array_map(fn (CalendarView $view): string => $view->value, CalendarView::cases()),

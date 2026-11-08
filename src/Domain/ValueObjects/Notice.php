@@ -37,7 +37,7 @@ final readonly class Notice
             throw new InvalidArgumentException('A notice text has between 1 and '.self::MAX_TEXT_LENGTH.' characters.');
         }
 
-        if ($startsAt !== null && $endsAt !== null && $endsAt <= $startsAt) {
+        if ($startsAt instanceof DateTimeImmutable && $endsAt instanceof DateTimeImmutable && $endsAt <= $startsAt) {
             throw new InvalidArgumentException('A notice must end after it starts.');
         }
 
@@ -46,8 +46,8 @@ final readonly class Notice
 
     public function isVisibleAt(DateTimeInterface $instant): bool
     {
-        return ($this->startsAt === null || $this->startsAt <= $instant)
-            && ($this->endsAt === null || $instant < $this->endsAt);
+        return (! $this->startsAt instanceof DateTimeImmutable || $this->startsAt <= $instant)
+            && (! $this->endsAt instanceof DateTimeImmutable || $instant < $this->endsAt);
     }
 
     /**

@@ -102,7 +102,9 @@ describe('FeaturedEvent', () => {
     it('hides the ticking numbers from screen readers, which get the date as text', () => {
         const wrapper = mountBlock('2026-11-13T10:00:00+01:00');
 
-        expect(wrapper.get('[data-testid="link-page-featured-countdown"]').attributes('aria-hidden')).toBe('true');
+        expect(
+            wrapper.get('[data-testid="link-page-featured-countdown"]').attributes('aria-hidden')
+        ).toBe('true');
         expect(wrapper.get('time').attributes('aria-hidden')).toBeUndefined();
     });
 

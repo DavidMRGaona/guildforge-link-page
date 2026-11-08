@@ -22,6 +22,6 @@ final readonly class NoticeService
     {
         $notice = $this->settings->notice();
 
-        return $notice !== null && $notice->isVisibleAt($this->clock->now()) ? $notice : null;
+        return $notice instanceof Notice && $notice->isVisibleAt($this->clock->now()) ? $notice : null;
     }
 }
