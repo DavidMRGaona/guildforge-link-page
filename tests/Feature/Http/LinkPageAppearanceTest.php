@@ -31,8 +31,9 @@ final class LinkPageAppearanceTest extends ModuleTestCase
         $this->get('/enlaces')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('site.logoUrl', Storage::disk('images')->url('branding/logo.png'))
-                ->where('site.logoIsDark', false)
+                ->where('site.logo.light', ['url' => Storage::disk('images')->url('branding/logo.png'), 'isDark' => false])
+                // With a single site logo, the dark theme shows it too
+                ->where('site.logo.dark', ['url' => Storage::disk('images')->url('branding/logo.png'), 'isDark' => false])
                 ->where('appearance.theme', 'device')
                 ->where('appearance.colors', null)
                 ->where('appearance.background.type', 'solid')
@@ -75,8 +76,8 @@ final class LinkPageAppearanceTest extends ModuleTestCase
         $this->get('/enlaces')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('site.logoUrl', Storage::disk('images')->url('link-page/2026/06/logo.png'))
-                ->where('site.logoIsDark', false)
+                ->where('site.logo.light', ['url' => Storage::disk('images')->url('link-page/2026/06/logo.png'), 'isDark' => false])
+                ->where('site.logo.dark', ['url' => Storage::disk('images')->url('link-page/2026/06/logo.png'), 'isDark' => false])
                 ->where('appearance.logo', ['shape' => 'rounded', 'custom' => true])
                 ->where('appearance.background.type', 'image')
                 ->where('appearance.background.imageUrl', Storage::disk('images')->url('link-page/2026/06/back.jpg'))
@@ -90,6 +91,34 @@ final class LinkPageAppearanceTest extends ModuleTestCase
 
         $this->get('/enlaces')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('site.logoUrl', null));
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('site.logo.light', ['url' => null, 'isDark' => false])
+                ->where('site.logo.dark', ['url' => null, 'isDark' => false])
+            );
+    }
+
+    public function test_each_theme_gets_the_site_logo_made_for_it(): void
+    {
+        app(SettingsServiceInterface::class)->set('site_logo_light', 'branding/light.png');
+        app(SettingsServiceInterface::class)->set('site_logo_dark', 'branding/dark.png');
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('site.logo.light', ['url' => Storage::disk('images')->url('branding/light.png'), 'isDark' => false])
+                ->where('site.logo.dark', ['url' => Storage::disk('images')->url('branding/dark.png'), 'isDark' => true])
+            );
+    }
+
+    public function test_a_site_with_only_the_dark_logo_shows_it_in_both_themes(): void
+    {
+        app(SettingsServiceInterface::class)->set('site_logo_dark', 'branding/dark.png');
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('site.logo.light', ['url' => Storage::disk('images')->url('branding/dark.png'), 'isDark' => true])
+                ->where('site.logo.dark', ['url' => Storage::disk('images')->url('branding/dark.png'), 'isDark' => true])
+            );
     }
 }

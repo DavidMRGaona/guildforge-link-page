@@ -1,13 +1,19 @@
 /** The views the core's ModuleEventCalendar takes. */
 export type CalendarView = 'list' | 'month';
 
+/** The picture at the top for one theme. */
+export interface LinkPageLogo {
+    /** The site logo or the page's own image; null shows the initial. */
+    url: string | null;
+    /** Whether it is the site's dark-theme logo, which takes a dark plate. */
+    isDark: boolean;
+}
+
 /** The site as the page shows it at the top. */
 export interface LinkPageSite {
     name: string;
-    /** The picture at the top (the site logo or the page's own image); null shows the initial. */
-    logoUrl: string | null;
-    /** Whether the logo is the site's dark-theme one (the site has no light logo). */
-    logoIsDark: boolean;
+    /** One picture per theme (the same one when the site or the page has a single image). */
+    logo: { light: LinkPageLogo; dark: LinkPageLogo };
 }
 
 /** The pictograms the module draws as inline SVG (resources/js/utils/linkIcons.ts). */

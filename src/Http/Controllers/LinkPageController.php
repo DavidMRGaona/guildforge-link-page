@@ -9,6 +9,7 @@ use App\Application\Calendar\Services\PersonalCalendarServiceInterface;
 use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
+use App\Domain\Enums\ColorScheme as SiteColorScheme;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -54,15 +55,19 @@ final readonly class LinkPageController
         $intro = $this->settings->intro();
         $appearance = $this->settings->appearance();
         $card = $this->shareCard->present($intro);
-        $logo = $this->appearance->logo($appearance, $this->branding->customLogoUrl(), $this->branding->customLogoIsDark());
+        $logos = $this->appearance->logos(
+            $appearance,
+            $this->branding->customLogoFor(SiteColorScheme::Light),
+            $this->branding->customLogoFor(SiteColorScheme::Dark),
+        );
         $featured = $this->featuredEvent->current();
 
         return Inertia::render('LinkPage/Show', [
             ...$this->highlights->props($featured),
             'site' => [
                 'name' => $siteName,
-                'logoUrl' => $logo['url'],
-                'logoIsDark' => $logo['isDark'],
+                // Show.vue swaps them with the theme: forced in the appearance or the device's
+                'logo' => $logos,
             ],
             'appearance' => $this->appearance->props($appearance),
             'intro' => $intro,
