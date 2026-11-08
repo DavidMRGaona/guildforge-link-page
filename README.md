@@ -2,6 +2,12 @@
 
 Página de enlaces para el móvil, con los próximos eventos y el calendario
 
+## Qué hace
+
+- **`/enlaces`**: una sola página por sitio, aparte del diseño de la web (sin cabecera, menú ni pie) y pensada para el móvil, a la que lleva un QR impreso. Muestra el logo y el nombre del sitio, un texto de presentación, botones con los próximos eventos del core y el calendario completo del sitio (lista o mes). Al final, un enlace a la web completa. Desactivada, responde 404.
+- **Próximos eventos**: solo eventos del core publicados, del más cercano al más lejano, con un máximo (5), un horizonte en días (60) y etiquetas opcionales. Los eventos fijados van arriba mientras no hayan terminado y cuentan dentro del máximo; los escondidos no salen nunca.
+- **Panel**: *Contenido → Página de enlaces*, con el permiso «Configurar la página de enlaces» (`link-page:manage`). Los ajustes se guardan en la tabla `settings` del core y sobreviven a las actualizaciones.
+
 ## Requisitos
 
 - GuildForge core `^3.39`
