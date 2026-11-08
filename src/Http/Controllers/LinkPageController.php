@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Http\Controllers;
 
+use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
 use Inertia\Inertia;
@@ -32,6 +33,7 @@ final readonly class LinkPageController
         private TimezoneServiceInterface $timezone,
         private AppearancePresenter $appearance,
         private ShareCardPresenter $shareCard,
+        private PublicCalendarFeedInterface $calendarFeed,
     ) {}
 
     public function __invoke(): Response
@@ -62,6 +64,8 @@ final readonly class LinkPageController
                 'initialView' => $this->settings->calendarInitialView()->value,
                 'views' => array_map(fn (CalendarView $view): string => $view->value, CalendarView::cases()),
             ],
+            // The core builds the addresses (feed, webcal, Google, Outlook): the module never does
+            'calendarFeed' => $this->calendarFeed->subscriptionLinks()->toArray(),
             'homeUrl' => url('/'),
             'seo' => $card['seo'],
             'share' => $card['share'],

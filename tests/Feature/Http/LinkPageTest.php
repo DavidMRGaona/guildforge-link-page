@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Tests\Feature\Http;
 
+use App\Application\Calendar\DTOs\CalendarSubscriptionLinksDTO;
+use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Services\SettingsServiceInterface;
 use App\Infrastructure\Persistence\Eloquent\Models\EventModel;
 use Carbon\CarbonImmutable;
@@ -70,6 +72,54 @@ final class LinkPageTest extends ModuleTestCase
         $this->get('/enlaces')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('calendar.initialView', 'month'));
+    }
+
+    public function test_the_page_carries_the_subscription_links_of_the_public_feed(): void
+    {
+        $links = app(PublicCalendarFeedInterface::class)->subscriptionLinks();
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('calendarFeed', $links->toArray())
+                ->where('calendarFeed.feedUrl', route('calendar.public.ics'))
+                ->where('calendarFeed.webcalUrl', fn (string $url): bool => str_starts_with($url, 'webcal://') && str_ends_with($url, '/calendario.ics'))
+            );
+    }
+
+    public function test_the_subscription_links_come_from_the_core_contract_not_from_the_module(): void
+    {
+        $this->app->instance(PublicCalendarFeedInterface::class, new class implements PublicCalendarFeedInterface
+        {
+            public function feedUrl(): string
+            {
+                return 'https://feed.example.test/all.ics';
+            }
+
+            public function calendarName(): string
+            {
+                return 'Example calendar';
+            }
+
+            public function subscriptionLinks(): CalendarSubscriptionLinksDTO
+            {
+                return new CalendarSubscriptionLinksDTO(
+                    feedUrl: 'https://feed.example.test/all.ics',
+                    webcalUrl: 'webcal://feed.example.test/all.ics',
+                    googleUrl: 'https://google.example.test/add',
+                    outlookUrl: 'https://outlook.example.test/add',
+                );
+            }
+        });
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('calendarFeed.feedUrl', 'https://feed.example.test/all.ics')
+                ->where('calendarFeed.webcalUrl', 'webcal://feed.example.test/all.ics')
+                ->where('calendarFeed.googleUrl', 'https://google.example.test/add')
+                ->where('calendarFeed.outlookUrl', 'https://outlook.example.test/add')
+            );
     }
 
     public function test_a_disabled_page_is_not_found(): void
