@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\Modules\DTOs\PermissionDTO;
+use App\Application\Services\SettingsServiceInterface;
 use App\Filament\Actions\RowDetailsAction;
 use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
@@ -195,6 +196,105 @@ final class QrCodeResourceTest extends ModuleTestCase
         Livewire::test(CreateQrCode::class)
             ->fillForm(['logo_source' => 'custom', 'logo_path' => $logo])
             ->assertSee(__('link-page::messages.qr_codes.preview_logo_unusable'));
+    }
+
+    public function test_an_svg_site_logo_shows_in_the_preview(): void
+    {
+        Storage::fake('images');
+        Storage::disk('images')->put('branding/logo.svg', QrCodeTestImages::svg(200, 100));
+        app(SettingsServiceInterface::class)->set('site_logo_light', 'branding/logo.svg');
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        $page = Livewire::test(CreateQrCode::class)
+            ->fillForm(['logo_source' => 'site']);
+
+        $this->assertStringContainsString('href="data:image/svg+xml;base64,', $this->previewSvg($page->html()));
+        $page->assertDontSee(__('link-page::messages.qr_codes.preview_site_logo_unusable'));
+    }
+
+    public function test_a_site_logo_the_qr_codes_cannot_use_is_reported_in_the_preview(): void
+    {
+        Storage::fake('images');
+        Storage::disk('images')->put('branding/logo.svg', '<!DOCTYPE svg>'.QrCodeTestImages::svg(200, 100));
+        app(SettingsServiceInterface::class)->set('site_logo_light', 'branding/logo.svg');
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        $page = Livewire::test(CreateQrCode::class)
+            ->assertDontSee(__('link-page::messages.qr_codes.preview_site_logo_unusable'))
+            ->fillForm(['logo_source' => 'site'])
+            ->assertSee(__('link-page::messages.qr_codes.preview_site_logo_unusable'));
+
+        $this->assertStringNotContainsString('<image', $this->previewSvg($page->html()));
+    }
+
+    public function test_an_svg_just_uploaded_shows_in_the_preview_sanitized(): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $logo = UploadedFile::fake()
+            ->createWithContent('logo.svg', QrCodeTestImages::svg(120, 120, '<script>alert(1)</script>'))
+            ->mimeType('image/svg+xml');
+
+        $page = Livewire::test(CreateQrCode::class)
+            ->fillForm(['logo_source' => 'custom', 'logo_path' => $logo]);
+
+        $preview = $this->previewSvg($page->html());
+        $this->assertSame(1, preg_match('#<image[^>]+href="data:image/svg\+xml;base64,([A-Za-z0-9+/=]+)"#', $preview, $match));
+        $this->assertStringNotContainsString('script', (string) base64_decode($match[1], true));
+        $page->assertDontSee(__('link-page::messages.qr_codes.preview_logo_unusable'));
+    }
+
+    /**
+     * Uploaded logos sit on the public images disk: only the sanitized markup is kept.
+     */
+    public function test_an_uploaded_svg_is_stored_sanitized_with_its_extension(): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $logo = UploadedFile::fake()
+            ->createWithContent('logo.html', QrCodeTestImages::svg(120, 80, '<script>alert(1)</script><a href="https://example.com"><rect width="1" height="1"/></a>'))
+            ->mimeType('image/svg+xml');
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm($this->validForm(['logo_source' => 'custom', 'logo_path' => $logo]))
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $path = (string) QrCodeModel::query()->sole()->logo_path;
+        $this->assertMatchesRegularExpression('#^link-page/qr/\d{4}/\d{2}/[0-9a-f-]{36}\.svg$#', $path);
+        $stored = (string) Storage::disk('images')->get($path);
+        $this->assertStringContainsString('#C81E1E', $stored);
+        $this->assertStringNotContainsString('script', $stored);
+        $this->assertStringNotContainsString('example.com', $stored);
+        $this->assertSame([$path], Storage::disk('images')->allFiles());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unusableSvgs(): iterable
+    {
+        yield 'with a DOCTYPE' => ['<!DOCTYPE svg>'.QrCodeTestImages::svg(120, 120)];
+        yield 'with entities' => ['<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY a "b">]><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">&a;</svg>'];
+        yield 'badly formed' => ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect></svg>'];
+        yield 'without a size' => ['<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="1" height="1"/></svg>'];
+    }
+
+    #[DataProvider('unusableSvgs')]
+    public function test_an_svg_the_logo_cannot_use_is_reported_and_not_saved(string $svg): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $logo = UploadedFile::fake()->createWithContent('logo.svg', $svg)->mimeType('image/svg+xml');
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm($this->validForm(['logo_source' => 'custom', 'logo_path' => $logo]))
+            ->assertSee(__('link-page::messages.qr_codes.preview_logo_unusable'))
+            ->call('create')
+            ->assertHasFormErrors(['logo_path'])
+            ->assertSee(__('link-page::messages.qr_codes.validation.logo_unusable'));
+
+        $this->assertSame(0, QrCodeModel::query()->count());
     }
 
     public function test_a_colour_must_be_a_hex_value(): void
@@ -393,6 +493,21 @@ final class QrCodeResourceTest extends ModuleTestCase
         $this->assertInstanceOf(HasTable::class, $instance);
 
         return $instance->getTable();
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function validForm(array $overrides = []): array
+    {
+        return array_merge([
+            'name' => 'Poster',
+            'foreground_color' => '#000000',
+            'background_color' => '#FFFFFF',
+            'margin' => 8,
+            'logo_source' => 'none',
+        ], $overrides);
     }
 
     /**

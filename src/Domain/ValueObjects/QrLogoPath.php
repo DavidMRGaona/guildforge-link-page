@@ -14,7 +14,7 @@ final class QrLogoPath
     public const string DIRECTORY = 'link-page/qr';
 
     /** Sub-directories and a file name of letters, digits, "-" and "_": no dots to climb out. */
-    private const string PATTERN = '#^link-page/qr/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:png|jpe?g|webp)$#Di';
+    private const string PATTERN = '#^link-page/qr/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:png|jpe?g|webp|svg)$#Di';
 
     public static function isOwn(string $path): bool
     {
