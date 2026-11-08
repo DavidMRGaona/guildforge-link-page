@@ -164,6 +164,15 @@ export interface LinkPageFeatured {
     imagePublicId: string | null;
 }
 
+/**
+ * Where the page sends its anonymous counts with navigator.sendBeacon, and whether it sends
+ * them: not for people with panel access.
+ */
+export interface LinkPageStats {
+    endpoint: string;
+    enabled: boolean;
+}
+
 export interface LinkPageProps {
     site: LinkPageSite;
     appearance: LinkPageAppearance;
@@ -180,4 +189,5 @@ export interface LinkPageProps {
     calendarFeed: LinkPageCalendarFeed;
     homeUrl: string;
     share: LinkPageShare;
+    stats: LinkPageStats;
 }

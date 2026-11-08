@@ -9,6 +9,7 @@ import NoticeBanner from '../../components/NoticeBanner.vue';
 import ShareButton from '../../components/ShareButton.vue';
 import OwnLinkButton from '../../components/OwnLinkButton.vue';
 import SocialRow from '../../components/SocialRow.vue';
+import { useLinkPageStats } from '../../composables/useLinkPageStats';
 import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/linkPage';
 
 /**
@@ -19,6 +20,8 @@ import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/l
  * server; they only become CSS variables here, and module.css turns them into styles.
  */
 const props = defineProps<LinkPageProps>();
+
+useLinkPageStats(props.stats);
 
 const { t, locale } = useI18n();
 
@@ -263,6 +266,7 @@ function formatStart(event: LinkPageEvent): string | null {
             <footer class="text-center">
                 <a
                     :href="homeUrl"
+                    data-link-id="home"
                     class="link-page__link inline-flex min-h-11 items-center text-sm text-base-secondary underline underline-offset-2 hover:text-base-primary"
                 >
                     {{ t('linkPage.visitSite', { name: site.name }) }}

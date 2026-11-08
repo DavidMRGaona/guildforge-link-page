@@ -51,6 +51,17 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
         return $this->boundedInt(self::KEY.'.events.within_days', self::DEFAULT_WITHIN_DAYS, self::MAX_WITHIN_DAYS);
     }
 
+    public function statsRetentionDays(): int
+    {
+        $value = config(self::KEY.'.stats.retention_days');
+
+        if (! is_numeric($value) || (int) $value < self::MIN_STATS_RETENTION_DAYS) {
+            return self::DEFAULT_STATS_RETENTION_DAYS;
+        }
+
+        return min((int) $value, self::MAX_STATS_RETENTION_DAYS);
+    }
+
     public function eventTagSlugs(): array
     {
         return $this->strings(self::KEY.'.events.tags');

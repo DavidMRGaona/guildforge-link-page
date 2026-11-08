@@ -32,6 +32,12 @@ interface LinkPageSettingsInterface
     /** The core cuts every description at 160 characters. */
     public const int MAX_SHARE_DESCRIPTION_LENGTH = 160;
 
+    public const int DEFAULT_STATS_RETENTION_DAYS = 365;
+
+    public const int MIN_STATS_RETENTION_DAYS = 30;
+
+    public const int MAX_STATS_RETENTION_DAYS = 3650;
+
     /** Whether /enlaces answers; it is a 404 otherwise. */
     public function isEnabled(): bool;
 
@@ -66,6 +72,12 @@ interface LinkPageSettingsInterface
     public function hiddenEventIds(): array;
 
     public function calendarInitialView(): CalendarView;
+
+    /**
+     * Days of statistics kept; older days are deleted every night. Between the minimum and the
+     * maximum, the default for anything else.
+     */
+    public function statsRetentionDays(): int;
 
     /** The title of the share card, or null for the site name. */
     public function shareTitle(): ?string;

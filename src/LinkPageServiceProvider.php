@@ -11,8 +11,18 @@ use App\Modules\ModuleServiceProvider;
 use Filament\Pages\Page;
 use Modules\LinkPage\Application\Contracts\ClockInterface;
 use Modules\LinkPage\Application\Contracts\HighlightsSettingsInterface;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Modules\LinkPage\Application\Contracts\CalendarClickTargetsInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageLinksInterface;
+use Modules\LinkPage\Console\Commands\PruneStatsCommand;
+use Modules\LinkPage\Infrastructure\Services\CoreCalendarClickTargets;
+use Modules\LinkPage\Infrastructure\Stats\TrafficFilter;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Application\Contracts\LinkPageStatsInterface;
+use Modules\LinkPage\Application\Contracts\LinkPageStatsRecorderInterface;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\Contracts\QrScanRecorderInterface;
 use Modules\LinkPage\Application\Contracts\SiteSocialProfilesInterface;
@@ -25,7 +35,8 @@ use Modules\LinkPage\Infrastructure\Services\CoreSiteSocialProfiles;
 use Modules\LinkPage\Infrastructure\Services\EloquentLinkPageLinks;
 use Modules\LinkPage\Infrastructure\Services\HighlightsSettings;
 use Modules\LinkPage\Infrastructure\Services\LinkPageSettings;
-use Modules\LinkPage\Infrastructure\Services\NullQrScanRecorder;
+use Modules\LinkPage\Infrastructure\Services\CountingQrScanRecorder;
+use Modules\LinkPage\Infrastructure\Services\DatabaseLinkPageStats;
 use Modules\LinkPage\Infrastructure\Services\QrCodeImages;
 use Modules\LinkPage\Infrastructure\Services\SystemClock;
 use Modules\LinkPage\Policies\LinkPolicy;
@@ -50,14 +61,34 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
         $this->app->bind(HighlightsSettingsInterface::class, HighlightsSettings::class);
         $this->app->bind(ClockInterface::class, SystemClock::class);
         $this->app->bind(QrCodeImagesInterface::class, QrCodeImages::class);
-        // Scans are counted by the statistics; until then, nothing is stored
-        $this->app->bindIf(QrScanRecorderInterface::class, NullQrScanRecorder::class);
+        $this->app->bind(LinkPageStatsRecorderInterface::class, DatabaseLinkPageStats::class);
+        $this->app->bind(LinkPageStatsInterface::class, DatabaseLinkPageStats::class);
+        $this->app->bind(QrScanRecorderInterface::class, CountingQrScanRecorder::class);
+        $this->app->bind(CalendarClickTargetsInterface::class, CoreCalendarClickTargets::class);
+    }
+
+    public function boot(): void
+    {
+        parent::boot();
+
+        // The beacon endpoint, per device (keyed hash of address and agent, never stored)
+        RateLimiter::for('link-page-stats', static fn (Request $request): Limit => Limit::perMinute(TrafficFilter::BEACONS_PER_MINUTE)
+            ->by('link-page-stats:'.TrafficFilter::device($request)));
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([PruneStatsCommand::class]);
+        }
+
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+            $schedule->command('link-page:prune-stats')->dailyAt('03:40')->withoutOverlapping(10);
+        });
     }
 
     /**
-     * Stored as "link-page:manage", "link-page:qr_codes.manage" and "link-page:links.manage".
-     * Admins pass every check; other roles only get them when an admin ticks them in the role
-     * editor (none is suggested, see PermissionSuggestionsTest).
+     * Stored as "link-page:manage", "link-page:qr_codes.manage", "link-page:links.manage" and
+     * "link-page:view_stats". Admins pass every check; other roles only get them when an admin
+     * ticks them in the role editor. Only view_stats is suggested for editor (see
+     * PermissionSuggestionsTest).
      *
      * @return array<PermissionDTO>
      */
@@ -81,6 +112,14 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
                 label: __('link-page::messages.permissions.links_manage'),
                 group: __('link-page::messages.title'),
                 module: $this->moduleName(),
+            ),
+            // Read only, like the core's search.view_stats: suggested for editor, never granted
+            new PermissionDTO(
+                name: 'view_stats',
+                label: __('link-page::messages.permissions.view_stats'),
+                group: __('link-page::messages.title'),
+                module: $this->moduleName(),
+                roles: ['editor'],
             ),
         ];
     }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Http\Controllers;
 
 use App\Application\Calendar\Services\PublicCalendarFeedInterface;
+use App\Application\Authorization\Services\AuthorizationServiceInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
+use Illuminate\Http\Request;
 use App\Application\Services\TimezoneServiceInterface;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,9 +41,10 @@ final readonly class LinkPageController
         private PublicCalendarFeedInterface $calendarFeed,
         private FeaturedEventService $featuredEvent,
         private HighlightsPresenter $highlights,
+        private AuthorizationServiceInterface $authorization,
     ) {}
 
-    public function __invoke(): Response
+    public function __invoke(Request $request): Response
     {
         abort_unless($this->settings->isEnabled(), 404);
 
@@ -76,7 +79,19 @@ final readonly class LinkPageController
             'homeUrl' => url('/'),
             'seo' => $card['seo'],
             'share' => $card['share'],
+            'stats' => [
+                'endpoint' => route('link_page.api.stats'),
+                // Whoever runs the panel checks the page often: their visits are not counted
+                'enabled' => ! $this->hasPanelAccess($request),
+            ],
         ]);
+    }
+
+    private function hasPanelAccess(Request $request): bool
+    {
+        $user = $request->user();
+
+        return $user !== null && $this->authorization->can($user, 'admin.access');
     }
 
     /**

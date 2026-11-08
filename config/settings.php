@@ -41,6 +41,10 @@ return [
         'tag' => null,
         'event' => null,
     ],
+    // Days of anonymous statistics kept (30 to 3650); link-page:prune-stats deletes older days
+    'stats' => [
+        'retention_days' => 365,
+    ],
     // The card apps build when the page is shared; empty values use the site name, the intro and
     // the site logo
     'share' => [
