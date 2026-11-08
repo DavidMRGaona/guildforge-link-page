@@ -14,6 +14,7 @@ use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Application\DTOs\LinkPageEventDTO;
 use Modules\LinkPage\Application\Services\LinkPageEventsService;
 use Modules\LinkPage\Domain\Enums\CalendarView;
+use Modules\LinkPage\Http\Presenters\AppearancePresenter;
 
 /**
  * /enlaces: the page a printed QR code leads to, apart from the site layout.
@@ -26,6 +27,7 @@ final readonly class LinkPageController
         private SiteBrandingServiceInterface $branding,
         private TimezoneServiceInterface $timezone,
         private SeoMetadataFactoryInterface $seo,
+        private AppearancePresenter $appearance,
     ) {}
 
     public function __invoke(): Response
@@ -34,13 +36,16 @@ final readonly class LinkPageController
 
         $siteName = $this->branding->siteName();
         $intro = $this->settings->intro();
+        $appearance = $this->settings->appearance();
+        $logo = $this->appearance->logo($appearance, $this->branding->customLogoUrl(), $this->branding->customLogoIsDark());
 
         return Inertia::render('LinkPage/Show', [
             'site' => [
                 'name' => $siteName,
-                'logoUrl' => $this->branding->customLogoUrl(),
-                'logoIsDark' => $this->branding->customLogoIsDark(),
+                'logoUrl' => $logo['url'],
+                'logoIsDark' => $logo['isDark'],
             ],
+            'appearance' => $this->appearance->props($appearance),
             'intro' => $intro,
             'events' => array_map($this->eventProps(...), $this->events->upcoming()),
             'calendar' => [

@@ -76,3 +76,219 @@
 
 @source '../js/**/*.vue';
 @source '../js/**/*.ts';
+
+/* ------------------------------------------------------------------------
+ * Link page appearance (Show.vue)
+ *
+ * Show.vue only sets variables: --lp-font, --lp-angle and, with colours of
+ * its own, --lp-{light,dark}-{bg,bg-to,text,button,button-text,button-strong,
+ * overlay}. Every value is from a closed list or a #RRGGBB colour checked for
+ * WCAG AA on the server; no stored text ever becomes CSS.
+ * ------------------------------------------------------------------------ */
+
+.link-page {
+    font-family: var(--lp-font);
+    --lp-radius: 0.75rem;
+    --lp-focus: var(--color-primary-500);
+
+    /* Buttons with the site colours: the bordered card the page always had */
+    --lp-btn-bg: var(--color-bg-surface);
+    --lp-btn-fg: var(--color-text-primary);
+    --lp-btn-meta: var(--color-text-secondary);
+    --lp-btn-border: var(--color-border);
+    --lp-btn-border-width: 1px;
+    --lp-btn-hover-bg: var(--lp-btn-bg);
+    --lp-btn-hover-border: var(--color-primary);
+    --lp-btn-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --lp-badge-bg: var(--color-primary-light);
+    --lp-badge-fg: var(--color-text-primary);
+    --lp-initial-bg: var(--color-primary);
+    --lp-initial-fg: #ffffff;
+}
+
+/* The core keeps white text at 4.5:1 on --color-primary in both themes */
+.link-page--buttons-filled,
+.link-page--buttons-shadow {
+    --lp-btn-bg: var(--color-primary);
+    --lp-btn-fg: #ffffff;
+    --lp-btn-meta: #ffffff;
+    --lp-btn-border: transparent;
+    --lp-btn-hover-bg: var(--color-primary-hover);
+    --lp-btn-hover-border: transparent;
+    --lp-btn-shadow: none;
+    --lp-badge-bg: #ffffff;
+    --lp-badge-fg: var(--color-primary);
+}
+
+.link-page--buttons-shadow {
+    --lp-btn-shadow: 4px 4px 0 0 var(--color-text-primary);
+}
+
+.link-page--shape-square {
+    --lp-radius: 0;
+}
+
+.link-page--shape-pill {
+    --lp-radius: 9999px;
+}
+
+/* Colours of its own: the set in use, then the site tokens the page and the
+   core's calendar read, so both follow it */
+.link-page--custom {
+    --lp-bg: var(--lp-light-bg);
+    --lp-bg-to: var(--lp-light-bg-to);
+    --lp-text: var(--lp-light-text);
+    --lp-button: var(--lp-light-button);
+    --lp-button-text: var(--lp-light-button-text);
+    --lp-button-strong: var(--lp-light-button-strong);
+    --lp-muted: var(--lp-light-muted);
+    --lp-overlay: var(--lp-light-overlay);
+}
+
+.dark .link-page--custom {
+    --lp-bg: var(--lp-dark-bg);
+    --lp-bg-to: var(--lp-dark-bg-to);
+    --lp-text: var(--lp-dark-text);
+    --lp-button: var(--lp-dark-button);
+    --lp-button-text: var(--lp-dark-button-text);
+    --lp-button-strong: var(--lp-dark-button-strong);
+    --lp-muted: var(--lp-dark-muted);
+    --lp-overlay: var(--lp-dark-overlay);
+}
+
+.link-page--custom {
+    --lp-focus: var(--lp-text);
+
+    /* Site tokens (app.css) and their Tailwind aliases: aliases declared on
+       :root resolve there, so both are set here */
+    --color-bg-page: var(--lp-bg);
+    --color-bg-surface: var(--lp-bg);
+    --color-bg-muted: var(--lp-muted);
+    --color-bg-elevated: var(--lp-bg);
+    --color-text-primary: var(--lp-text);
+    --color-text-secondary: var(--lp-text);
+    --color-text-muted: var(--lp-text);
+    --color-border: color-mix(in srgb, var(--lp-text) 25%, var(--lp-bg));
+    --color-border-strong: color-mix(in srgb, var(--lp-text) 45%, var(--lp-bg));
+    --color-primary: var(--lp-button);
+    --color-primary-hover: var(--lp-button-strong);
+    --color-primary-light: var(--lp-muted);
+    --color-primary-500: var(--lp-text);
+    --color-primary-700: var(--lp-button-strong);
+    --color-primary-800: var(--lp-button-strong);
+    --color-primary-action: var(--lp-button);
+    --color-primary-link: var(--lp-text);
+    --color-calendar-primary: var(--lp-button);
+    --color-neutral-700: var(--lp-muted);
+    --color-page: var(--lp-bg);
+    --color-surface: var(--lp-bg);
+    --color-muted: var(--lp-muted);
+    --color-elevated: var(--lp-bg);
+    --color-base-primary: var(--lp-text);
+    --color-base-secondary: var(--lp-text);
+    --color-base-muted: var(--lp-text);
+
+    --lp-initial-bg: var(--lp-button);
+    --lp-initial-fg: var(--lp-button-text);
+    --lp-badge-bg: var(--lp-button);
+    --lp-badge-fg: var(--lp-button-text);
+
+    /* An outline button: its text and border in the button colour (4.5:1 on the page) */
+    --lp-btn-bg: transparent;
+    --lp-btn-fg: var(--lp-button);
+    --lp-btn-meta: var(--lp-button);
+    --lp-btn-border: var(--lp-button);
+    --lp-btn-border-width: 2px;
+    --lp-btn-hover-bg: transparent;
+    --lp-btn-hover-border: var(--lp-button);
+    --lp-btn-shadow: none;
+}
+
+.link-page--custom.link-page--buttons-filled,
+.link-page--custom.link-page--buttons-shadow {
+    --lp-btn-bg: var(--lp-button);
+    --lp-btn-fg: var(--lp-button-text);
+    --lp-btn-meta: var(--lp-button-text);
+    --lp-btn-border: transparent;
+    --lp-btn-hover-bg: var(--lp-button-strong);
+    --lp-btn-hover-border: transparent;
+    --lp-badge-bg: var(--lp-button-text);
+    --lp-badge-fg: var(--lp-button);
+}
+
+.link-page--custom.link-page--buttons-shadow {
+    --lp-btn-shadow: 4px 4px 0 0 var(--lp-text);
+}
+
+.link-page--custom.link-page--background-gradient {
+    background-image: linear-gradient(var(--lp-angle), var(--lp-bg), var(--lp-bg-to));
+}
+
+.link-page__overlay {
+    background-color: var(--lp-bg);
+    opacity: var(--lp-overlay);
+}
+
+/* On a gradient or an image the calendar gets a solid panel of the background colour */
+.link-page--custom:not(.link-page--background-solid) .link-page__calendar {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background-color: var(--lp-bg);
+}
+
+.link-page__initial {
+    background-color: var(--lp-initial-bg);
+    color: var(--lp-initial-fg);
+}
+
+.link-page-button {
+    border: var(--lp-btn-border-width) solid var(--lp-btn-border);
+    border-radius: var(--lp-radius);
+    background-color: var(--lp-btn-bg);
+    color: var(--lp-btn-fg);
+    box-shadow: var(--lp-btn-shadow);
+    transition:
+        background-color 150ms,
+        border-color 150ms,
+        transform 150ms;
+}
+
+.link-page-button:hover {
+    background-color: var(--lp-btn-hover-bg);
+    border-color: var(--lp-btn-hover-border);
+}
+
+.link-page--custom.link-page--buttons-outline .link-page-button:hover {
+    box-shadow: inset 0 0 0 1px var(--lp-button);
+}
+
+.link-page--buttons-shadow .link-page-button:hover {
+    transform: translate(-1px, -1px);
+}
+
+.link-page-button__meta {
+    color: var(--lp-btn-meta);
+}
+
+.link-page-button__badge {
+    background-color: var(--lp-badge-bg);
+    color: var(--lp-badge-fg);
+}
+
+.link-page-button:focus-visible,
+.link-page__link:focus-visible {
+    outline: 2px solid var(--lp-focus);
+    outline-offset: 2px;
+}
+
+/* The core's calendar, painted with the page colours. This sheet is imported
+   into a cascade layer and app.css styles .event-calendar unlayered, so a rule
+   here never wins on the same element: the variables are set on everything
+   inside the calendar instead, where app.css declares none, and the tokens its
+   .dark rules read (neutral-700) are set on the page above. */
+.link-page--custom .event-calendar * {
+    --fc-classic-button-foreground: var(--lp-button-text);
+    --fc-classic-primary-foreground: var(--lp-button-text);
+    --calendar-entry-primary-text: var(--lp-button-text);
+    --fc-classic-event-contrast: var(--lp-button-text);
+}
