@@ -25,6 +25,22 @@ return [
     'calendar' => [
         'initial_view' => 'list',
     ],
+    // A temporary notice at the top; the dates are ISO 8601 instants, empty meaning "no limit"
+    'notice' => [
+        'enabled' => false,
+        'text' => null,
+        'tone' => 'info',
+        'link_url' => null,
+        'link_label' => null,
+        'starts_at' => null,
+        'ends_at' => null,
+    ],
+    // The big event block: mode off, auto (the next event, with the tag when there is one) or manual
+    'featured' => [
+        'mode' => 'off',
+        'tag' => null,
+        'event' => null,
+    ],
     // The card apps build when the page is shared; empty values use the site name, the intro and
     // the site logo
     'share' => [

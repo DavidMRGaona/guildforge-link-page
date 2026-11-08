@@ -29,5 +29,22 @@ export default {
             iosOtherBrowserHint:
                 'En iPhone, este navegador no abre la app Calendario: abre esta página en Safari o copia la dirección.',
         },
+        noticeMoreInfo: 'Más información',
+        noticeTones: {
+            info: 'Información',
+            warning: 'Aviso',
+            important: 'Importante',
+        },
+        featuredEyebrow: 'Evento destacado',
+        featuredToday: 'Hoy',
+        featuredLive: 'Ahora mismo',
+        featuredStartsIn: 'Empieza en',
+        featuredUntil: 'Hasta el {date}',
+        featuredCta: 'Ver el evento',
+        countdownDays: '{n} d',
+        countdownHours: '{n} h',
+        countdownMinutes: '{n} min',
+        countdownSeconds: '{n} s',
+        countdownLessThanMinute: 'Menos de 1 min',
     },
 };

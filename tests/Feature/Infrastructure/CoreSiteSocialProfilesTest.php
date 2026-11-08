@@ -72,6 +72,14 @@ final class CoreSiteSocialProfilesTest extends ModuleTestCase
         $this->assertSame('https://discord.gg/example', $this->profiles()->for(SocialNetwork::Discord)?->value);
     }
 
+    public function test_an_address_saved_with_plain_http_is_upgraded_to_https_by_the_core(): void
+    {
+        // The core normalises the address (core#397): the page only ever gets https
+        $this->site(['social_instagram' => 'http://www.instagram.com/example']);
+
+        $this->assertSame('https://www.instagram.com/example', $this->profiles()->for(SocialNetwork::Instagram)?->value);
+    }
+
     public function test_only_the_networks_the_site_has_give_an_address(): void
     {
         $this->site(['social_instagram' => 'www.instagram.com/example']);
@@ -89,7 +97,6 @@ final class CoreSiteSocialProfilesTest extends ModuleTestCase
     {
         return [
             'blank' => ['   '],
-            'plain http' => ['http://www.instagram.com/example'],
             'a script' => ['javascript:alert(1)'],
             'a script in capitals' => ['JAVASCRIPT:alert(1)'],
             'with a space inside' => ['www.instagram.com/exa mple'],

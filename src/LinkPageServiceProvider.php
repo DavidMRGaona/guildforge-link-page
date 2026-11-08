@@ -9,6 +9,8 @@ use App\Application\Modules\DTOs\PagePrefixDTO;
 use App\Application\Modules\DTOs\PermissionDTO;
 use App\Modules\ModuleServiceProvider;
 use Filament\Pages\Page;
+use Modules\LinkPage\Application\Contracts\ClockInterface;
+use Modules\LinkPage\Application\Contracts\HighlightsSettingsInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageLinksInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
@@ -21,9 +23,11 @@ use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\LinkModel;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Modules\LinkPage\Infrastructure\Services\CoreSiteSocialProfiles;
 use Modules\LinkPage\Infrastructure\Services\EloquentLinkPageLinks;
+use Modules\LinkPage\Infrastructure\Services\HighlightsSettings;
 use Modules\LinkPage\Infrastructure\Services\LinkPageSettings;
 use Modules\LinkPage\Infrastructure\Services\NullQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\QrCodeImages;
+use Modules\LinkPage\Infrastructure\Services\SystemClock;
 use Modules\LinkPage\Policies\LinkPolicy;
 use Modules\LinkPage\Policies\QrCodePolicy;
 
@@ -43,6 +47,8 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
         $this->app->bind(LinkPageSettingsInterface::class, LinkPageSettings::class);
         $this->app->bind(LinkPageLinksInterface::class, EloquentLinkPageLinks::class);
         $this->app->bind(SiteSocialProfilesInterface::class, CoreSiteSocialProfiles::class);
+        $this->app->bind(HighlightsSettingsInterface::class, HighlightsSettings::class);
+        $this->app->bind(ClockInterface::class, SystemClock::class);
         $this->app->bind(QrCodeImagesInterface::class, QrCodeImages::class);
         // Scans are counted by the statistics; until then, nothing is stored
         $this->app->bindIf(QrScanRecorderInterface::class, NullQrScanRecorder::class);

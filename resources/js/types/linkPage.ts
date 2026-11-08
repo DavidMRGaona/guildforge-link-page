@@ -138,10 +138,40 @@ export interface LinkPageShare {
     text: string;
 }
 
+export type LinkPageNoticeTone = 'info' | 'warning' | 'important';
+
+/** The temporary notice at the top; the server only sends it inside its window. */
+export interface LinkPageNotice {
+    text: string;
+    tone: LinkPageNoticeTone;
+    /** An https address or a path of the site; a null label means «Más información». */
+    link: { url: string; label: string | null } | null;
+}
+
+/** The big event block: dates in ISO 8601 with the display offset, all decided by the server. */
+export interface LinkPageFeatured {
+    id: string;
+    title: string;
+    url: string;
+    startsAt: string | null;
+    endsAt: string | null;
+    /** The first instant of the venue day the event starts on: from then on it is «Hoy». */
+    dayStartsAt: string | null;
+    /** Whether the event ends on a later venue day than it starts. */
+    spansDays: boolean;
+    location: string | null;
+    /** A core image id, turned into a URL with the core's card image helper. */
+    imagePublicId: string | null;
+}
+
 export interface LinkPageProps {
     site: LinkPageSite;
     appearance: LinkPageAppearance;
     intro: string | null;
+    /** The server's own «now» in ISO 8601: the countdown counts from it, not from the device's clock. */
+    serverNow: string | null;
+    notice: LinkPageNotice | null;
+    featured: LinkPageFeatured | null;
     /** Own links around the event buttons, each group in its dragged order. */
     links: { before: LinkPageLink[]; after: LinkPageLink[] };
     social: { position: LinkPageSocialPosition; links: LinkPageSocialLink[] };

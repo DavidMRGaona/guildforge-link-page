@@ -32,16 +32,20 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Modules\LinkPage\Application\Contracts\HighlightsSettingsInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\Enums\BackgroundType;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LogoSource;
+use Modules\LinkPage\Domain\ValueObjects\FeaturedSettings;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Filament\Schemas\AppearanceSection;
+use Modules\LinkPage\Filament\Schemas\HighlightsSection;
 use Modules\LinkPage\Filament\Schemas\ShareSection;
 use Modules\LinkPage\Filament\Schemas\SocialSection;
 use Modules\LinkPage\Filament\Support\AppearanceFormState;
 use Modules\LinkPage\Filament\Support\AppearancePreview;
+use Modules\LinkPage\Filament\Support\HighlightsFormState;
 use Modules\LinkPage\Filament\Support\ShareFormState;
 use Modules\LinkPage\Http\Presenters\AppearancePresenter;
 use Throwable;
@@ -98,7 +102,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
         return self::userCan('link-page:manage');
     }
 
-    public function mount(LinkPageSettingsInterface $settings): void
+    public function mount(LinkPageSettingsInterface $settings, HighlightsSettingsInterface $highlights): void
     {
         // Pinned or hidden events that have ended and tags that no longer exist are dropped,
         // so they neither show as raw ids nor stop the form from saving
@@ -115,6 +119,8 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'calendar' => [
                 'initial_view' => $settings->calendarInitialView()->value,
             ],
+            'notice' => HighlightsFormState::noticeToForm($highlights->noticeForForm(), app(TimezoneServiceInterface::class)),
+            'featured' => $this->featuredForForm($highlights->featured()),
             'share' => [
                 'title' => $settings->shareTitle(),
                 'description' => $settings->shareDescription(),
@@ -144,6 +150,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                             ->maxLength(LinkPageSettingsInterface::MAX_INTRO_LENGTH)
                             ->rows(3),
                     ]),
+                ...HighlightsSection::make(fn (): array => $this->tagOptions(), fn (): array => $this->eventOptions()),
                 Section::make(__('link-page::messages.settings.sections.events'))
                     ->description(__('link-page::messages.settings.sections.events_help'))
                     ->columns(2)
@@ -252,6 +259,8 @@ final class LinkPageSettingsPage extends Page implements HasForms
             'calendar' => [
                 'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
             ],
+            'notice' => HighlightsFormState::noticeToStored(is_array($state['notice'] ?? null) ? $state['notice'] : [], app(TimezoneServiceInterface::class)),
+            'featured' => HighlightsFormState::featuredToStored(is_array($state['featured'] ?? null) ? $state['featured'] : []),
             'share' => $share,
             'social' => $social,
             'appearance' => $appearance->toArray(),
@@ -412,6 +421,27 @@ final class LinkPageSettingsPage extends Page implements HasForms
         }
 
         return $this->tagOptions = $options;
+    }
+
+    /**
+     * The featured settings as the form shows them: a tag that no longer exists or an event that
+     * has ended is dropped, so it neither shows as a raw value nor stops the form from saving.
+     *
+     * @return array{mode: string, tag: string|null, event: string|null}
+     */
+    private function featuredForForm(FeaturedSettings $featured): array
+    {
+        $stored = $featured->toArray();
+
+        if ($stored['tag'] !== null && ! array_key_exists($stored['tag'], $this->tagOptions())) {
+            $stored['tag'] = null;
+        }
+
+        if ($stored['event'] !== null && ! array_key_exists($stored['event'], $this->eventOptions())) {
+            $stored['event'] = null;
+        }
+
+        return $stored;
     }
 
     private function trimmed(mixed $value): ?string

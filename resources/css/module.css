@@ -339,6 +339,74 @@
     outline-offset: 2px;
 }
 
+/* ------------------------------------------------------------------------
+ * Notice and featured event (NoticeBanner.vue, FeaturedEvent.vue)
+ *
+ * Only colour pairs the page already validated for WCAG AA, in both themes and
+ * with colours of its own: the soft background with the text, the button pair
+ * (--lp-initial-bg / --lp-initial-fg, the site's primary with white when the
+ * page keeps the site colours) and the card's surface with the text. The tones
+ * differ by icon, border and the word before the text, never by a colour of
+ * their own.
+ * ------------------------------------------------------------------------ */
+
+.link-page-notice {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border-strong);
+}
+
+.link-page-notice--warning {
+    border-bottom-width: 4px;
+}
+
+.link-page-notice--important {
+    background-color: var(--lp-initial-bg);
+    color: var(--lp-initial-fg);
+    border-bottom: 4px double var(--lp-initial-fg);
+}
+
+.link-page-notice__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.link-page-featured {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: min(var(--lp-radius), 1.5rem);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    box-shadow: var(--lp-btn-shadow);
+}
+
+.link-page-featured__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.link-page-featured__label {
+    background-color: var(--lp-badge-bg);
+    color: var(--lp-badge-fg);
+}
+
+.link-page-featured__countdown {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .link-page-button {
+        transition: none;
+    }
+
+    .link-page--buttons-shadow .link-page-button:hover {
+        transform: none;
+    }
+}
+
 /* The core's calendar, painted with the page colours. This sheet is imported
    into a cascade layer and app.css styles .event-calendar unlayered, so a rule
    here never wins on the same element: the variables are set on everything
