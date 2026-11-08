@@ -65,6 +65,9 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             logo: { shape: 'circle', custom: false },
         },
         intro: null,
+        serverNow: null,
+        notice: null,
+        featured: null,
         links: { before: [], after: [] },
         social: { position: 'bottom', links: [] },
         events: [

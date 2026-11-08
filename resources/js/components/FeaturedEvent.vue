@@ -173,7 +173,7 @@ const untilText = computed(() => {
 
             <a
                 :href="featured.url"
-                class="link-page-button flex min-h-12 items-center justify-center px-4 py-3 text-center font-semibold focus:outline-none"
+                class="link-page-button flex min-h-12 items-center justify-center px-4 py-3 text-center font-semibold"
                 data-testid="link-page-featured-link"
             >
                 {{ t('linkPage.featuredCta') }}<span class="sr-only">: {{ featured.title }}</span>

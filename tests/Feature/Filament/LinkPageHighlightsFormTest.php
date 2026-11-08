@@ -104,11 +104,12 @@ final class LinkPageHighlightsFormTest extends ModuleTestCase
         $page = $this->page();
 
         // assertFormSet reads through the picker's cast, which answers in the storage zone
+        $storage = app(TimezoneServiceInterface::class);
         $page->assertFormSet([
             'notice.enabled' => true,
             'notice.tone' => 'important',
-            'notice.starts_at' => '2026-11-10 09:00',
-            'notice.ends_at' => '2026-11-12 09:00',
+            'notice.starts_at' => $storage->toStorage(new DateTimeImmutable('2026-11-10T09:00:00Z'))->format('Y-m-d H:i'),
+            'notice.ends_at' => $storage->toStorage(new DateTimeImmutable('2026-11-12T09:00:00Z'))->format('Y-m-d H:i'),
         ]);
         // What the picker holds, and shows, is the venue's wall time
         $this->assertSame('2026-11-10 10:00:00', $page->get('data.notice.starts_at'));
