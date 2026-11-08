@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\LinkPage\Http\Controllers\StatsBeaconController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,5 +18,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('link-page')
     ->name('link_page.api.')
     ->group(function (): void {
-        // Route::apiResource('items', ItemController::class);
+        // Anonymous counters of the link page; the limiter is registered by the provider
+        Route::post('stats', StatsBeaconController::class)
+            ->middleware('throttle:link-page-stats')
+            ->name('stats');
     });

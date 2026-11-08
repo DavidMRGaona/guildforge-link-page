@@ -9,25 +9,41 @@ use App\Application\Modules\DTOs\PagePrefixDTO;
 use App\Application\Modules\DTOs\PermissionDTO;
 use App\Modules\ModuleServiceProvider;
 use Filament\Pages\Page;
+use Filament\Widgets\Widget;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Modules\LinkPage\Application\Contracts\CalendarClickTargetsInterface;
 use Modules\LinkPage\Application\Contracts\ClockInterface;
 use Modules\LinkPage\Application\Contracts\HighlightsSettingsInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageLinksInterface;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Application\Contracts\LinkPageStatsInterface;
+use Modules\LinkPage\Application\Contracts\LinkPageStatsRecorderInterface;
 use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\Contracts\QrScanRecorderInterface;
 use Modules\LinkPage\Application\Contracts\SiteSocialProfilesInterface;
+use Modules\LinkPage\Application\Contracts\StatsLabelsInterface;
+use Modules\LinkPage\Console\Commands\PruneStatsCommand;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
+use Modules\LinkPage\Filament\Pages\LinkPageStatsPage;
 use Modules\LinkPage\Filament\Resources\LinkResource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource;
+use Modules\LinkPage\Filament\Widgets\LinkPageStatsOverviewWidget;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\LinkModel;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
+use Modules\LinkPage\Infrastructure\Services\CoreCalendarClickTargets;
 use Modules\LinkPage\Infrastructure\Services\CoreSiteSocialProfiles;
+use Modules\LinkPage\Infrastructure\Services\CountingQrScanRecorder;
+use Modules\LinkPage\Infrastructure\Services\DatabaseLinkPageStats;
 use Modules\LinkPage\Infrastructure\Services\EloquentLinkPageLinks;
 use Modules\LinkPage\Infrastructure\Services\HighlightsSettings;
 use Modules\LinkPage\Infrastructure\Services\LinkPageSettings;
-use Modules\LinkPage\Infrastructure\Services\NullQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\QrCodeImages;
+use Modules\LinkPage\Infrastructure\Services\StatsLabels;
 use Modules\LinkPage\Infrastructure\Services\SystemClock;
+use Modules\LinkPage\Infrastructure\Stats\TrafficFilter;
 use Modules\LinkPage\Policies\LinkPolicy;
 use Modules\LinkPage\Policies\QrCodePolicy;
 
@@ -50,14 +66,39 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
         $this->app->bind(HighlightsSettingsInterface::class, HighlightsSettings::class);
         $this->app->bind(ClockInterface::class, SystemClock::class);
         $this->app->bind(QrCodeImagesInterface::class, QrCodeImages::class);
-        // Scans are counted by the statistics; until then, nothing is stored
-        $this->app->bindIf(QrScanRecorderInterface::class, NullQrScanRecorder::class);
+        $this->app->bind(LinkPageStatsRecorderInterface::class, DatabaseLinkPageStats::class);
+        $this->app->bind(LinkPageStatsInterface::class, DatabaseLinkPageStats::class);
+        $this->app->bind(QrScanRecorderInterface::class, CountingQrScanRecorder::class);
+        $this->app->bind(CalendarClickTargetsInterface::class, CoreCalendarClickTargets::class);
+        $this->app->bind(StatsLabelsInterface::class, StatsLabels::class);
+    }
+
+    public function boot(): void
+    {
+        parent::boot();
+
+        // The beacon endpoint, per device (keyed hash of address and agent) and, looser, per
+        // address alone, so changing the agent on every request does not get round it.
+        // Neither key is ever stored with the statistics
+        RateLimiter::for('link-page-stats', static fn (Request $request): array => [
+            Limit::perMinute(TrafficFilter::BEACONS_PER_MINUTE)->by('link-page-stats:'.TrafficFilter::device($request)),
+            Limit::perMinute(TrafficFilter::BEACONS_PER_ADDRESS_MINUTE)->by('link-page-stats-address:'.TrafficFilter::address($request)),
+        ]);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([PruneStatsCommand::class]);
+        }
+
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+            $schedule->command('link-page:prune-stats')->dailyAt('03:40')->withoutOverlapping(10);
+        });
     }
 
     /**
-     * Stored as "link-page:manage", "link-page:qr_codes.manage" and "link-page:links.manage".
-     * Admins pass every check; other roles only get them when an admin ticks them in the role
-     * editor (none is suggested, see PermissionSuggestionsTest).
+     * Stored as "link-page:manage", "link-page:qr_codes.manage", "link-page:links.manage" and
+     * "link-page:stats.view". Admins pass every check; other roles only get them when an admin
+     * ticks them in the role editor. Only stats.view is suggested for editor (see
+     * PermissionSuggestionsTest).
      *
      * @return array<PermissionDTO>
      */
@@ -81,6 +122,14 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
                 label: __('link-page::messages.permissions.links_manage'),
                 group: __('link-page::messages.title'),
                 module: $this->moduleName(),
+            ),
+            // Read only, like the core's search.view_stats: suggested for editor, never granted
+            new PermissionDTO(
+                name: 'stats.view',
+                label: __('link-page::messages.permissions.stats_view'),
+                group: __('link-page::messages.title'),
+                module: $this->moduleName(),
+                roles: ['editor'],
             ),
         ];
     }
@@ -118,7 +167,18 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
      */
     public function registerFilamentPages(): array
     {
-        return [LinkPageSettingsPage::class];
+        return [LinkPageSettingsPage::class, LinkPageStatsPage::class];
+    }
+
+    /**
+     * The dashboard gets the overview of the last 30 days; the chart and the rankings stay on the
+     * statistics page.
+     *
+     * @return array<class-string<Widget>>
+     */
+    public function registerFilamentWidgets(): array
+    {
+        return [LinkPageStatsOverviewWidget::class];
     }
 
     /**

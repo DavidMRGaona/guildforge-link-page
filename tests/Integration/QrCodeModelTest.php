@@ -10,7 +10,7 @@ use Modules\LinkPage\Application\Contracts\QrScanRecorderInterface;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
 use Modules\LinkPage\Domain\ValueObjects\ScanCode;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
-use Modules\LinkPage\Infrastructure\Services\NullQrScanRecorder;
+use Modules\LinkPage\Infrastructure\Services\CountingQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\ScanCodeGenerator;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -142,8 +142,8 @@ final class QrCodeModelTest extends ModuleTestCase
         Storage::disk('images')->assertExists('branding/logo.png');
     }
 
-    public function test_scans_are_not_counted_until_the_statistics_arrive(): void
+    public function test_scans_are_counted_by_the_statistics(): void
     {
-        $this->assertInstanceOf(NullQrScanRecorder::class, app(QrScanRecorderInterface::class));
+        $this->assertInstanceOf(CountingQrScanRecorder::class, app(QrScanRecorderInterface::class));
     }
 }

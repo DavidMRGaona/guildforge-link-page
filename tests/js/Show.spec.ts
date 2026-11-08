@@ -99,6 +99,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             title: 'Example guild',
             text: 'Scan, play, repeat.',
         },
+        stats: { endpoint: '/api/link-page/stats', enabled: false },
         ...overrides,
     };
 }

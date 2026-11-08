@@ -52,6 +52,7 @@ const icon = computed(() => ICONS[props.notice.tone]);
                     {{ ' ' }}
                     <a
                         :href="notice.link.url"
+                        data-link-id="notice"
                         class="link-page-notice__link font-semibold underline underline-offset-2"
                     >
                         {{ notice.link.label ?? t('linkPage.noticeMoreInfo') }}

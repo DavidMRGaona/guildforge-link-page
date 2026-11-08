@@ -95,6 +95,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             title: 'Example guild',
             text: 'Scan, play, repeat.',
         },
+        stats: { endpoint: '/api/link-page/stats', enabled: false },
         ...overrides,
     };
 }
@@ -332,7 +333,7 @@ describe('LinkPage/Show with own links and social networks', () => {
             .findAll('[data-link-id]')
             .map((node) => node.attributes('data-link-id'));
 
-        expect(ids).toEqual(['social:instagram', 'link:a', 'event:event-1', 'link:b']);
+        expect(ids).toEqual(['social:instagram', 'link:a', 'event:event-1', 'link:b', 'home']);
         expect(new Set(ids).size).toBe(ids.length);
     });
 });
