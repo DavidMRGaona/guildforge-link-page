@@ -48,6 +48,29 @@ final readonly class QrCodeImages implements QrCodeImagesInterface
 
     private function logo(QrCodeDesignDTO $design): ?QrCodeLogoDTO
     {
+        try {
+            $contents = $this->logoContents($design);
+
+            return $contents === null ? null : new QrCodeLogoDTO($contents);
+        } catch (Throwable $exception) {
+            // Missing file, unreachable disk or not a usable image (InvalidQrCodeOptionsException)
+            Log::warning('QR code logo left out', [
+                'module' => 'link-page',
+                'code' => $design->code,
+                'reason' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function logoContents(QrCodeDesignDTO $design): ?string
+    {
+        // An upload the form has not stored yet: the caller checked it, and it is no disk path
+        if ($design->logoSource === QrLogoSource::Custom && $design->logoContents !== null) {
+            return $design->logoContents;
+        }
+
         $path = match ($design->logoSource) {
             QrLogoSource::None => null,
             QrLogoSource::Site => $this->branding->customLogoPath(),
@@ -59,19 +82,8 @@ final readonly class QrCodeImages implements QrCodeImagesInterface
             return null;
         }
 
-        try {
-            $contents = Storage::disk('images')->get($path);
+        $contents = Storage::disk('images')->get($path);
 
-            return is_string($contents) ? new QrCodeLogoDTO($contents) : null;
-        } catch (Throwable $exception) {
-            // Missing file, unreachable disk or not a usable image (InvalidQrCodeOptionsException)
-            Log::warning('QR code logo left out', [
-                'module' => 'link-page',
-                'code' => $design->code,
-                'reason' => $exception->getMessage(),
-            ]);
-
-            return null;
-        }
+        return is_string($contents) ? $contents : null;
     }
 }

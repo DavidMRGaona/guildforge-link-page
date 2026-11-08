@@ -140,6 +140,63 @@ final class QrCodeResourceTest extends ModuleTestCase
             ->assertDontSee('data:image/svg+xml', false);
     }
 
+    public function test_a_logo_just_uploaded_shows_in_the_preview_before_saving(): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $logo = UploadedFile::fake()->createWithContent('logo.png', QrCodeTestImages::png(120, 120))->mimeType('image/png');
+
+        $page = Livewire::test(CreateQrCode::class)
+            ->fillForm(['logo_source' => 'custom']);
+        $this->assertStringNotContainsString('<image', $this->previewSvg($page->html()));
+
+        $page->fillForm(['logo_path' => $logo]);
+
+        $this->assertStringContainsString('<image', $this->previewSvg($page->html()));
+        $page->assertDontSee(__('link-page::messages.qr_codes.preview_logo_unusable'));
+        // Nothing is kept until the code is created
+        $this->assertSame([], Storage::disk('images')->allFiles());
+        $this->assertSame(0, QrCodeModel::query()->count());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function unusableUploads(): iterable
+    {
+        yield 'not an image' => ['logo.txt', 'text/plain'];
+        yield 'a GIF' => ['logo.gif', 'image/gif'];
+    }
+
+    #[DataProvider('unusableUploads')]
+    public function test_an_upload_the_logo_cannot_use_is_reported_in_the_preview(string $name, string $mimeType): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $content = $mimeType === 'image/gif' ? QrCodeTestImages::gif(120, 120) : 'not an image';
+
+        $page = Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'logo_source' => 'custom',
+                'logo_path' => UploadedFile::fake()->createWithContent($name, $content)->mimeType($mimeType),
+            ]);
+
+        $page->assertSee(__('link-page::messages.qr_codes.preview_logo_unusable'));
+        // The code itself is still drawn, without the logo
+        $this->assertStringNotContainsString('<image', $this->previewSvg($page->html()));
+    }
+
+    public function test_an_upload_too_large_for_the_logo_is_reported_in_the_preview(): void
+    {
+        Storage::fake('images');
+        $this->actingAs($this->userWith([self::MANAGE]));
+        $logo = UploadedFile::fake()->createWithContent('logo.png', QrCodeTestImages::png(2100, 40))->mimeType('image/png');
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm(['logo_source' => 'custom', 'logo_path' => $logo])
+            ->assertSee(__('link-page::messages.qr_codes.preview_logo_unusable'));
+    }
+
     public function test_a_colour_must_be_a_hex_value(): void
     {
         $this->actingAs($this->userWith([self::MANAGE]));
@@ -336,5 +393,15 @@ final class QrCodeResourceTest extends ModuleTestCase
         $this->assertInstanceOf(HasTable::class, $instance);
 
         return $instance->getTable();
+    }
+
+    /**
+     * The SVG drawn in the form's preview.
+     */
+    private function previewSvg(string $html): string
+    {
+        $this->assertSame(1, preg_match('#data:image/svg\+xml;base64,([A-Za-z0-9+/=]+)#', $html, $match));
+
+        return (string) base64_decode($match[1], true);
     }
 }

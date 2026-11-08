@@ -348,6 +348,7 @@ return [
         'default_tagline' => 'Escanea para ver los próximos eventos',
         'preview_alt' => 'Vista previa del código QR',
         'preview_unavailable' => 'Con estos colores no se puede dibujar un QR que los móviles lean.',
+        'preview_logo_unusable' => 'La imagen subida no se puede usar como logo: tiene que ser PNG, JPEG o WebP de hasta 1 MB y 2048 × 2048 px. La vista previa sale sin logo.',
         'address_copied' => 'Dirección copiada',
         'sections' => [
             'origin' => 'Origen',
@@ -355,7 +356,7 @@ return [
             'design' => 'Diseño',
             'design_help' => 'Si el contraste no permite leerlo con el móvil, no se guarda.',
             'preview' => 'Vista previa',
-            'preview_help' => 'Se actualiza al cambiar los colores, el margen o el logo. Un logo recién subido aparece al guardar.',
+            'preview_help' => 'Se actualiza al cambiar los colores, el margen o el logo, también al subir una imagen, antes de guardar.',
         ],
         'fields' => [
             'name' => 'Nombre',
