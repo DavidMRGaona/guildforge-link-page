@@ -439,7 +439,6 @@ return [
         'columns' => [
             'qr_code' => 'Código QR',
             'link' => 'Enlace',
-            'type' => 'Tipo',
             'scans' => 'Escaneos',
             'clicks' => 'Clics',
         ],

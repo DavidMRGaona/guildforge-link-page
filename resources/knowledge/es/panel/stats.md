@@ -23,7 +23,7 @@ Los días se cuentan con la hora de la web: lo que pasa a las 23:30 cuenta en es
 
 - **Visitas**: las veces que alguien abre la página de enlaces en su navegador, llegue por un QR, por un enlace compartido o escribiendo la dirección.
 - **Escaneos**: las veces que se abre la dirección de un código QR impreso. Cada código cuenta por separado, así que un código por cartel te dice qué cartel funciona mejor. Un escaneo que acaba en la página cuenta también como visita.
-- **Clics**: las pulsaciones en los enlaces propios, los iconos de redes sociales, los botones de los próximos eventos, las entradas del calendario y el enlace para ir a la web. En el ranking, la columna **Tipo** dice de cuál se trata.
+- **Clics**: las pulsaciones en los enlaces propios, los iconos de redes sociales, los botones de los próximos eventos, las entradas del calendario y el enlace para ir a la web. En el ranking, debajo de cada nombre se ve de cuál se trata (*Enlace*, *Red social*, *Evento*, *Calendario* o *Web*): un evento puede salir dos veces, como botón y como entrada del calendario.
 
 ## Qué no se cuenta
 
@@ -48,7 +48,7 @@ Para que las cifras se parezcan a lo que hace la gente de verdad, se dejan fuera
 
 ## Qué se guarda y qué no
 
-Solo un contador por día de cada cosa: la página, cada código QR y cada enlace. Nunca la dirección IP, la cuenta, el navegador ni ninguna cookie, y por eso la página no necesita aviso de cookies. Para reconocer las repeticiones y las ráfagas se usa una huella cifrada de la conexión y del navegador que dura como mucho un minuto y nunca llega a las estadísticas.
+Solo un contador por día de cada cosa: la página, cada código QR y cada enlace. Nunca la dirección IP, la cuenta ni el navegador. Las estadísticas tampoco usan cookies ni guardan nada en el navegador de quien visita, así que no necesitan aviso de cookies. Para reconocer las repeticiones y las ráfagas se usa una huella cifrada de la conexión y del navegador que dura como mucho un minuto y nunca llega a las estadísticas.
 
 ## Cuánto tiempo se conservan
 

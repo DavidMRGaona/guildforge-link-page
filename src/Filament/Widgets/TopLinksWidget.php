@@ -36,14 +36,12 @@ class TopLinksWidget extends TableWidget
             ->heading(__('link-page::messages.stats.top_links'))
             ->records(fn (): array => $this->rows())
             ->columns([
+                // The kind goes under the title, on every width: an event button and the same
+                // event in the calendar share a title
                 TextColumn::make('label')
                     ->label(__('link-page::messages.stats.columns.link'))
+                    ->description(fn (array $record): string => (string) $record['type'])
                     ->wrap(),
-                TextColumn::make('type')
-                    ->label(__('link-page::messages.stats.columns.type'))
-                    ->badge()
-                    ->color('gray')
-                    ->visibleFrom('sm'),
                 TextColumn::make('count')
                     ->label(__('link-page::messages.stats.columns.clicks'))
                     ->numeric()

@@ -137,20 +137,21 @@ final class LinkPageStatsPanelTest extends ModuleTestCase
             ]);
     }
 
-    public function test_the_rankings_fit_a_phone_with_secondary_columns_from_wider_screens(): void
+    public function test_the_rankings_fit_a_phone_with_two_columns_and_wrapping_titles(): void
     {
         $this->actingAs($this->userWith(['link-page:stats.view']));
 
         $linksWidget = Livewire::test(TopLinksWidget::class)->instance();
         $this->assertInstanceOf(TopLinksWidget::class, $linksWidget);
         $links = $linksWidget->getTable();
-        $this->assertSame('sm', $this->column($links->getColumns(), 'type')->getVisibleFrom());
+        $this->assertSame(['label', 'count'], array_keys($links->getColumns()));
         $this->assertTrue($this->column($links->getColumns(), 'label')->canWrap());
         $this->assertSame([], $links->getRecordActions());
 
         $qrWidget = Livewire::test(TopQrCodesWidget::class)->instance();
         $this->assertInstanceOf(TopQrCodesWidget::class, $qrWidget);
         $qr = $qrWidget->getTable();
+        $this->assertSame(['name', 'count'], array_keys($qr->getColumns()));
         $this->assertTrue($this->column($qr->getColumns(), 'name')->canWrap());
         $this->assertSame([], $qr->getRecordActions());
     }
