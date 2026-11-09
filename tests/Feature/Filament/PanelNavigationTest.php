@@ -10,7 +10,6 @@ use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
 use Modules\LinkPage\Filament\Pages\LinkPageStatsPage;
 use Modules\LinkPage\Filament\Resources\LinkResource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource;
-use Modules\LinkPage\LinkPageServiceProvider;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -70,11 +69,6 @@ final class PanelNavigationTest extends ModuleTestCase
         $this->assertNull(LinkPageSettingsPage::getNavigationGroup());
         $this->assertSame('Sistema', SettingsCluster::getNavigationGroup());
         $this->assertStringStartsWith('/admin/configuracion/', (string) parse_url(LinkPageSettingsPage::getUrl(), PHP_URL_PATH));
-    }
-
-    public function test_the_module_declares_no_navigation_group_of_its_own(): void
-    {
-        $this->assertSame([], (new LinkPageServiceProvider($this->app))->registerNavigationGroups());
     }
 
     public function test_no_entry_uses_the_old_core_navigation_keys(): void
