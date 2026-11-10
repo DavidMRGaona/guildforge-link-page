@@ -123,3 +123,7 @@ make check MODULE=link-page
 1. Sube `version` en `module.json` (un módulo nuevo empieza en `0.0.0`, sin publicar).
 2. Crea y empuja la etiqueta `vX.Y.Z` (debe coincidir con `version`).
 3. El workflow `release.yml` ejecuta los tests contra el core (`main`, o la variable `GUILDFORGE_HOST_REF`), compila los assets y publica `link-page-X.Y.Z.zip` con su `.sha256` en la release.
+
+## Biblioteca de medios
+
+Registra dos fuentes para la biblioteca de medios del panel (core ≥ 3.53): `link-page.settings` (logo y fondo de la apariencia, imagen para compartir; reclama `link-page/` salvo `qr/`) y `link-page.qr_logos` (logos de los códigos QR en `link-page/qr/`; un QR en la papelera sigue usando su logo). Los usos se actualizan al guardar los ajustes o un QR.
