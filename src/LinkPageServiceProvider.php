@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage;
 
+use App\Application\Media\Contracts\MediaUsageSourceInterface;
 use App\Application\Modules\DTOs\ModuleRouteDTO;
 use App\Application\Modules\DTOs\PagePrefixDTO;
 use App\Application\Modules\DTOs\PermissionDTO;
+use App\Infrastructure\Media\Observers\RefreshMediaUsagesObserver;
 use App\Modules\ModuleServiceProvider;
 use Filament\Pages\Page;
 use Filament\Widgets\Widget;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\LinkPage\Application\Contracts\CalendarClickTargetsInterface;
@@ -26,6 +29,8 @@ use Modules\LinkPage\Application\Contracts\QrScanRecorderInterface;
 use Modules\LinkPage\Application\Contracts\SiteSocialProfilesInterface;
 use Modules\LinkPage\Application\Contracts\StatsLabelsInterface;
 use Modules\LinkPage\Console\Commands\PruneStatsCommand;
+use Modules\LinkPage\Filament\Media\Sources\QrLogoMediaSource;
+use Modules\LinkPage\Filament\Media\Sources\SettingsMediaSource;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
 use Modules\LinkPage\Filament\Pages\LinkPageStatsPage;
 use Modules\LinkPage\Filament\Resources\LinkResource;
@@ -85,6 +90,14 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
             Limit::perMinute(TrafficFilter::BEACONS_PER_ADDRESS_MINUTE)->by('link-page-stats-address:'.TrafficFilter::address($request)),
         ]);
 
+        // Keep the media library's usages of a QR logo up to date; the settings images refresh on save
+        $qrLogos = new RefreshMediaUsagesObserver(
+            QrLogoMediaSource::TYPE,
+            static fn (Model $model): array => [(string) $model->getKey()],
+        );
+        QrCodeModel::saved($qrLogos->saved(...));
+        QrCodeModel::deleted($qrLogos->deleted(...));
+
         if ($this->app->runningInConsole()) {
             $this->commands([PruneStatsCommand::class]);
         }
@@ -92,6 +105,16 @@ final class LinkPageServiceProvider extends ModuleServiceProvider
         $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
             $schedule->command('link-page:prune-stats')->dailyAt('03:40')->withoutOverlapping(10);
         });
+    }
+
+    /**
+     * What this module stores in the media library: its settings images and the QR logos.
+     *
+     * @return list<class-string<MediaUsageSourceInterface>>
+     */
+    public function registerMediaSources(): array
+    {
+        return [SettingsMediaSource::class, QrLogoMediaSource::class];
     }
 
     /**

@@ -5,6 +5,19 @@ declare(strict_types=1);
 return [
     'title' => 'Página de enlaces',
 
+    'media' => [
+        'sources' => [
+            'settings' => 'Ajustes de la página de enlaces',
+            'qr_logos' => 'Códigos QR',
+        ],
+        'roles' => [
+            'appearance_logo' => 'Logo',
+            'appearance_background' => 'Fondo',
+            'share' => 'Compartir',
+            'qr_logo' => 'Logo del QR',
+        ],
+    ],
+
     'permissions' => [
         'settings_manage' => 'Configurar la página de enlaces',
         'qr_codes_manage' => 'Gestionar e imprimir los códigos QR',

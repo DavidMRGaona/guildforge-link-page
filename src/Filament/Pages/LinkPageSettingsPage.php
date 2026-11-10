@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Pages;
 
+use App\Application\Media\Services\MediaIndexerInterface;
 use App\Application\Modules\Services\ModuleManagerServiceInterface;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
 use App\Application\Seo\Services\SeoMetadataFactoryInterface;
@@ -42,6 +43,7 @@ use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LogoSource;
 use Modules\LinkPage\Domain\ValueObjects\FeaturedSettings;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
+use Modules\LinkPage\Filament\Media\Sources\SettingsMediaSource;
 use Modules\LinkPage\Filament\Schemas\AppearanceSection;
 use Modules\LinkPage\Filament\Schemas\HighlightsSection;
 use Modules\LinkPage\Filament\Schemas\ShareSection;
@@ -235,6 +237,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
         ModuleManagerServiceInterface $moduleManager,
         ModuleSettingsStoreInterface $settingsStore,
         LinkPageSettingsInterface $settings,
+        MediaIndexerInterface $mediaIndexer,
     ): void {
         // Livewire methods can be called without the page's button
         abort_unless(self::canAccess(), 403);
@@ -285,6 +288,10 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
         AppearanceFormState::deleteReplacedImages($storedAppearance, $appearance);
         ShareFormState::deleteReplacedImage($storedShareImage, $share['image']);
+
+        foreach ([SettingsMediaSource::LOGO, SettingsMediaSource::BACKGROUND, SettingsMediaSource::SHARE] as $record) {
+            $mediaIndexer->refresh(SettingsMediaSource::TYPE, $record);
+        }
 
         Notification::make()
             ->title(__('link-page::messages.settings.saved'))
