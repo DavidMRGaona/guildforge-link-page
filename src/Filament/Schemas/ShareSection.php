@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Filament\Schemas;
 
 use App\Application\Services\SiteBrandingServiceInterface;
+use App\Filament\Forms\Components\MediaLibraryPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,6 +18,7 @@ use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
+use Modules\LinkPage\Filament\Support\StoredSettingsImages;
 
 /**
  * The share section of the link page settings: the card WhatsApp, Telegram and the social
@@ -66,8 +68,10 @@ final class ShareSection
                 ->rows(3)
                 ->live(onBlur: true),
             // The images go to the images disk, as every panel upload in the core, with a fresh
-            // name. The core's preview URLs crop them from the centre to 1200 × 630.
-            FileUpload::make(self::KEY.'.image')
+            // name. The core's preview URLs crop them from the centre to 1200 × 630. A file of the
+            // media library can be chosen too (only JPG or PNG up to the same size), with no
+            // minimum size, as uploads have none
+            MediaLibraryPicker::attachTo(FileUpload::make(self::KEY.'.image')
                 ->label(__('link-page::messages.share.image'))
                 ->helperText(__('link-page::messages.share.image_help'))
                 ->image()
@@ -78,7 +82,7 @@ final class ShareSection
                 )
                 ->acceptedFileTypes(self::IMAGE_TYPES)
                 ->maxSize(self::MAX_IMAGE_KILOBYTES)
-                ->live(),
+                ->live(), storedPaths: StoredSettingsImages::paths(...)),
             Toggle::make(self::KEY.'.noindex')
                 ->label(__('link-page::messages.share.noindex'))
                 ->helperText(__('link-page::messages.share.noindex_help')),

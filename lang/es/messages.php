@@ -16,6 +16,7 @@ return [
             'share' => 'Compartir',
             'qr_logo' => 'Logo del QR',
         ],
+        'unusable_image' => 'Esta imagen no se puede usar aquí: su nombre tiene espacios u otros caracteres que la página no admite. Súbela desde este campo.',
     ],
 
     'permissions' => [

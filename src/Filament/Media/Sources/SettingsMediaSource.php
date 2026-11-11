@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Filament\Media\Sources;
 
 use App\Application\Authorization\Services\AuthorizationServiceInterface;
 use App\Application\Media\Contracts\MediaUsageSourceInterface;
+use App\Application\Media\Contracts\ReleasesMediaThroughCoreInterface;
 use App\Application\Media\DTOs\MediaUsageDTO;
 use App\Application\Media\Services\MediaFileIdResolverInterface;
 use App\Domain\Media\ValueObjects\MediaFileId;
@@ -16,7 +17,7 @@ use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
  * Images kept in the module settings: the appearance (logo and background, under link-page/<year>/<month>)
  * and the share card image (link-page/share). The record id names the setting.
  */
-final readonly class SettingsMediaSource implements MediaUsageSourceInterface
+final readonly class SettingsMediaSource implements MediaUsageSourceInterface, ReleasesMediaThroughCoreInterface
 {
     public const string TYPE = 'link-page.settings';
 

@@ -13,6 +13,7 @@ use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Modules\LinkPage\Infrastructure\Services\CountingQrScanRecorder;
 use Modules\LinkPage\Infrastructure\Services\ScanCodeGenerator;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use Modules\LinkPage\Tests\Support\RecordingMediaFileReleaser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -71,40 +72,58 @@ final class QrCodeModelTest extends ModuleTestCase
         $this->qrCode()->forceFill(['code' => $old->code])->save();
     }
 
-    public function test_the_previous_logo_is_removed_when_it_changes(): void
+    public function test_the_previous_logo_is_released_through_the_core_when_it_changes(): void
     {
         Storage::fake('images');
         Storage::disk('images')->put('link-page/qr/old.png', 'old');
-        Storage::disk('images')->put('link-page/qr/new.png', 'new');
+        $releaser = RecordingMediaFileReleaser::bind();
         $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => 'link-page/qr/old.png']);
 
         $qr->update(['logo_path' => 'link-page/qr/new.png']);
 
-        Storage::disk('images')->assertMissing('link-page/qr/old.png');
-        Storage::disk('images')->assertExists('link-page/qr/new.png');
+        // Another code may have chosen the same logo: the core checks before deleting it
+        $this->assertSame(['link-page/qr/old.png'], $releaser->released);
+        Storage::disk('images')->assertExists('link-page/qr/old.png');
     }
 
-    public function test_choosing_another_logo_source_drops_the_uploaded_logo(): void
+    public function test_choosing_another_logo_source_releases_the_uploaded_logo(): void
     {
-        Storage::fake('images');
-        Storage::disk('images')->put('link-page/qr/own.png', 'own');
+        $releaser = RecordingMediaFileReleaser::bind();
         $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => 'link-page/qr/own.png']);
 
         $qr->update(['logo_source' => QrLogoSource::Site]);
 
         $this->assertNull($qr->refresh()->logo_path);
-        Storage::disk('images')->assertMissing('link-page/qr/own.png');
+        $this->assertSame(['link-page/qr/own.png'], $releaser->released);
     }
 
-    public function test_deleting_a_qr_code_removes_its_logo(): void
+    public function test_saving_without_changing_the_logo_releases_nothing(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => 'link-page/qr/own.png']);
+
+        $qr->update(['name' => 'Otro nombre']);
+
+        $this->assertSame([], $releaser->released);
+    }
+
+    /**
+     * A code in the trash still counts as a use of its logo, so the core keeps the file until
+     * the code is deleted for good; restoring it brings the logo back.
+     */
+    public function test_deleting_a_qr_code_releases_its_logo_without_deleting_it(): void
     {
         Storage::fake('images');
         Storage::disk('images')->put('link-page/qr/own.png', 'own');
+        $releaser = RecordingMediaFileReleaser::bind();
         $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => 'link-page/qr/own.png']);
 
         $qr->delete();
+        $this->assertSame(['link-page/qr/own.png'], $releaser->released);
+        Storage::disk('images')->assertExists('link-page/qr/own.png');
 
-        Storage::disk('images')->assertMissing('link-page/qr/own.png');
+        $qr->forceDelete();
+        $this->assertSame(['link-page/qr/own.png', 'link-page/qr/own.png'], $releaser->released);
     }
 
     /**
@@ -123,13 +142,14 @@ final class QrCodeModelTest extends ModuleTestCase
 
     /**
      * A forged form state must not point the QR at another file of the images disk, nor
-     * get it deleted when the logo changes or the QR goes.
+     * hand that file to the core when the logo changes or the QR goes.
      */
     #[DataProvider('foreignPaths')]
-    public function test_a_logo_path_outside_the_qr_logo_directory_is_never_kept_nor_deleted(string $path): void
+    public function test_a_logo_path_outside_the_qr_logo_directory_is_never_kept_nor_released(string $path): void
     {
         Storage::fake('images');
         Storage::disk('images')->put('branding/logo.png', 'site');
+        $releaser = RecordingMediaFileReleaser::bind();
 
         $qr = $this->qrCode(['logo_source' => QrLogoSource::Custom, 'logo_path' => $path]);
         $this->assertNull($qr->refresh()->logo_path);
@@ -139,6 +159,7 @@ final class QrCodeModelTest extends ModuleTestCase
         $qr->forceFill(['logo_path' => $path])->saveQuietly();
         $qr->delete();
 
+        $this->assertSame([], $releaser->released);
         Storage::disk('images')->assertExists('branding/logo.png');
     }
 

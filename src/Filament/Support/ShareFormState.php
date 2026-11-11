@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Support;
 
-use Illuminate\Support\Facades\Storage;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 
 /**
@@ -14,8 +13,8 @@ final class ShareFormState
 {
     /**
      * What gets stored: the texts trimmed (empty ones as null, so the card falls back to the
-     * site's), the option as a real boolean and the image only when it is a file this form
-     * stores, whatever a forged form state sent.
+     * site's), the option as a real boolean and the image only when the card can use it (the
+     * field's picker already refused any file that is neither stored nor in the library).
      *
      * @param  array<array-key, mixed>  $state
      * @return array{title: string|null, description: string|null, image: string|null, noindex: bool}
@@ -27,20 +26,22 @@ final class ShareFormState
         return [
             'title' => self::text($state['title'] ?? null),
             'description' => self::text($state['description'] ?? null),
-            'image' => is_string($image) && ShareImagePath::isOwn($image) ? $image : null,
+            'image' => is_string($image) && ShareImagePath::isUsable($image) ? $image : null,
             'noindex' => ($state['noindex'] ?? false) === true,
         ];
     }
 
     /**
-     * Deletes the stored image once it is replaced or removed, so no file is left on the images
-     * disk. Only the form's own files are ever deleted.
+     * Whether the form holds an image the card cannot use (a file chosen from the library whose
+     * name has spaces or other characters), so the field can say so instead of dropping it.
+     *
+     * @param  array<array-key, mixed>  $state
      */
-    public static function deleteReplacedImage(?string $before, ?string $after): void
+    public static function hasUnusableImage(array $state): bool
     {
-        if ($before !== null && $before !== $after && ShareImagePath::isOwn($before)) {
-            Storage::disk('images')->delete($before);
-        }
+        $image = $state['image'] ?? null;
+
+        return is_string($image) && $image !== '' && ! ShareImagePath::isUsable($image);
     }
 
     private static function text(mixed $value): ?string

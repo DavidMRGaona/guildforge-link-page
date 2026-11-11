@@ -98,7 +98,7 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
     {
         $image = $this->shareValue('image');
 
-        return is_string($image) && ShareImagePath::isOwn($image) ? $image : null;
+        return is_string($image) && ShareImagePath::isUsable($image) ? $image : null;
     }
 
     public function noindex(): bool

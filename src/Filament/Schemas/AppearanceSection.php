@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Schemas;
 
+use App\Filament\Forms\Components\MediaLibraryPicker;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -27,6 +28,7 @@ use Modules\LinkPage\Domain\Enums\PageFont;
 use Modules\LinkPage\Domain\Enums\ThemeMode;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
 use Modules\LinkPage\Domain\ValueObjects\ColorScheme;
+use Modules\LinkPage\Filament\Support\StoredSettingsImages;
 
 /**
  * The appearance section of the link page settings, with the live preview beside it.
@@ -211,10 +213,12 @@ final class AppearanceSection
 
     /**
      * The images go to the images disk, as every panel upload in the core, with a fresh name.
+     * A file of the media library can be chosen too («Elegir de la biblioteca»): the picker
+     * offers only images of these types and size, and refuses any other path on saving.
      */
     private static function image(string $name, string $label, int $maxKilobytes): FileUpload
     {
-        return FileUpload::make($name)
+        $upload = FileUpload::make($name)
             ->label(__("link-page::messages.appearance.{$label}"))
             ->helperText(__("link-page::messages.appearance.{$label}_help"))
             ->image()
@@ -226,6 +230,8 @@ final class AppearanceSection
             ->acceptedFileTypes(self::IMAGE_TYPES)
             ->maxSize($maxKilobytes)
             ->live();
+
+        return MediaLibraryPicker::attachTo($upload, storedPaths: StoredSettingsImages::paths(...));
     }
 
     /** The extension from the content, so the stored name always matches Appearance's pattern. */

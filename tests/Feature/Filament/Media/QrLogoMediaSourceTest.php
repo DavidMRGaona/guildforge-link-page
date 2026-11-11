@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Tests\Feature\Filament\Media;
 
+use App\Application\Media\Contracts\ReleasesMediaThroughCoreInterface;
 use App\Domain\Media\ValueObjects\MediaFileId;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
 use Modules\LinkPage\Filament\Media\Sources\QrLogoMediaSource;
 use Modules\LinkPage\Filament\Resources\QrCodeResource;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use ReflectionClass;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -39,6 +41,12 @@ final class QrLogoMediaSourceTest extends ModuleTestCase
         $this->assertSame('link-page.qr_logos', $source->type());
         $this->assertSame(['link-page/qr/'], $source->folders());
         $this->assertFalse($source->hidden());
+    }
+
+    public function test_it_lets_the_core_release_its_files(): void
+    {
+        // Without the marker the library would neither offer its files nor attach the picker to its fields
+        $this->assertTrue((new ReflectionClass(QrLogoMediaSource::class))->implementsInterface(ReleasesMediaThroughCoreInterface::class));
     }
 
     public function test_usages_list_the_logo_with_the_qr_name_and_role(): void

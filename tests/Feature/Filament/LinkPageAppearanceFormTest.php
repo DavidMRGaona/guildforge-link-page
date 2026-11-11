@@ -15,6 +15,8 @@ use Modules\LinkPage\Domain\Enums\AppearanceTemplate;
 use Modules\LinkPage\Domain\Enums\ButtonStyle;
 use Modules\LinkPage\Domain\Enums\ThemeMode;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
+use Modules\LinkPage\Tests\Support\InteractsWithMediaLibrary;
+use Modules\LinkPage\Tests\Support\RecordingMediaFileReleaser;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -24,6 +26,7 @@ use Tests\Support\Modules\ModuleTestCase;
  */
 final class LinkPageAppearanceFormTest extends ModuleTestCase
 {
+    use InteractsWithMediaLibrary;
     use InteractsWithModulePanel;
 
     protected ?string $moduleName = 'link-page';
@@ -138,6 +141,7 @@ final class LinkPageAppearanceFormTest extends ModuleTestCase
 
     public function test_an_uploaded_logo_is_stored_on_the_images_disk_and_a_new_one_replaces_it(): void
     {
+        $releaser = RecordingMediaFileReleaser::bind();
         $this->page()
             ->fillForm(['appearance.logo.source' => 'custom', 'appearance.logo.image' => UploadedFile::fake()->image('logo.png', 200, 200)])
             ->call('save')
@@ -158,11 +162,14 @@ final class LinkPageAppearanceFormTest extends ModuleTestCase
         $second = app(LinkPageSettingsInterface::class)->appearance()->logoImage;
         $this->assertNotSame($first, $second);
         Storage::disk('images')->assertExists($second);
-        Storage::disk('images')->assertMissing($first);
+        // Another record may have chosen the replaced file: the core checks before deleting it
+        $this->assertSame([$first], $releaser->released);
+        Storage::disk('images')->assertExists($first);
     }
 
-    public function test_removing_the_background_image_deletes_it(): void
+    public function test_removing_the_background_image_releases_it_through_the_core(): void
     {
+        $releaser = RecordingMediaFileReleaser::bind();
         Storage::disk('images')->put('link-page/2026/06/back.jpg', 'image');
         $values = AppearanceTemplate::Minimal->values();
         $this->assertNotNull($values);
@@ -181,7 +188,109 @@ final class LinkPageAppearanceFormTest extends ModuleTestCase
             ->assertHasNoFormErrors();
 
         $this->assertNull(app(LinkPageSettingsInterface::class)->appearance()->backgroundImage);
-        Storage::disk('images')->assertMissing('link-page/2026/06/back.jpg');
+        $this->assertSame(['link-page/2026/06/back.jpg'], $releaser->released);
+    }
+
+    public function test_the_logo_and_background_fields_offer_the_library(): void
+    {
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        $this->assertFieldOffersLibrary($this->page(), 'appearance.logo.image');
+        $this->assertFieldOffersLibrary($this->page(), 'appearance.background.image');
+    }
+
+    public function test_an_image_of_the_library_can_be_chosen_for_the_logo_and_the_background(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        $this->indexLibraryFile('branding/logo', 'png');
+        $this->indexLibraryFile('events/2026/11/poster', 'webp');
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        $this->page()
+            ->set('data.appearance.logo.image', ['chosen' => 'branding/logo.png'])
+            ->set('data.appearance.background.image', ['chosen' => 'events/2026/11/poster.webp'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $appearance = app(LinkPageSettingsInterface::class)->appearance();
+        $this->assertSame('branding/logo.png', $appearance->logoImage);
+        $this->assertSame('events/2026/11/poster.webp', $appearance->backgroundImage);
+        $this->assertSame(['link-page/2026/06/logo.png', 'link-page/2026/06/back.jpg'], $releaser->released);
+    }
+
+    public function test_an_image_moved_from_the_logo_to_the_background_is_not_released(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        $this->page()
+            ->set('data.appearance.logo.source', 'site')
+            ->set('data.appearance.background.image', ['moved' => 'link-page/2026/06/logo.png'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $appearance = app(LinkPageSettingsInterface::class)->appearance();
+        $this->assertNull($appearance->logoImage);
+        $this->assertSame('link-page/2026/06/logo.png', $appearance->backgroundImage);
+        $this->assertSame(['link-page/2026/06/back.jpg'], $releaser->released);
+    }
+
+    public function test_a_forged_path_is_refused_and_the_stored_images_kept(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        Storage::disk('images')->put('events/2026/11/poster.jpg', 'poster');
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        // A forged form state points the logo at a file that is not in the library
+        $this->page()
+            ->set('data.appearance.logo.image', ['forged' => 'events/2026/11/poster.jpg'])
+            ->call('save')
+            ->assertHasFormErrors(['appearance.logo.image']);
+
+        $this->assertSame('link-page/2026/06/logo.png', app(LinkPageSettingsInterface::class)->appearance()->logoImage);
+        $this->assertSame([], $releaser->released);
+    }
+
+    public function test_a_library_image_the_field_does_not_take_is_refused(): void
+    {
+        // SVG is not among the logo types, and the background takes up to 4 MB
+        $this->indexLibraryFile('branding/logo', 'svg');
+        $this->indexLibraryFile('events/2026/11/huge', 'jpg', bytes: 4097 * 1024);
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        $this->page()
+            ->set('data.appearance.logo.image', ['chosen' => 'branding/logo.svg'])
+            ->set('data.appearance.background.image', ['chosen' => 'events/2026/11/huge.jpg'])
+            ->call('save')
+            ->assertHasFormErrors(['appearance.logo.image', 'appearance.background.image']);
+    }
+
+    public function test_a_library_image_whose_name_the_page_cannot_use_says_so_on_the_field(): void
+    {
+        $this->indexLibraryFile('events/2026/11/my poster', 'jpg');
+        $this->storeAppearance(logo: 'link-page/2026/06/logo.png', background: 'link-page/2026/06/back.jpg');
+
+        $this->page()
+            ->set('data.appearance.background.image', ['chosen' => 'events/2026/11/my poster.jpg'])
+            ->call('save')
+            ->assertHasFormErrors(['appearance.background.image'])
+            ->assertHasNoFormErrors(['appearance.template']);
+
+        $this->assertSame('link-page/2026/06/back.jpg', app(LinkPageSettingsInterface::class)->appearance()->backgroundImage);
+    }
+
+    private function storeAppearance(string $logo, string $background): void
+    {
+        $values = AppearanceTemplate::Minimal->values();
+        $this->assertNotNull($values);
+        app(ModuleSettingsStoreInterface::class)->store('link-page', ['appearance' => [
+            ...$values,
+            'template' => 'minimal',
+            'theme' => 'device',
+            'logo' => ['source' => 'custom', 'image' => $logo, 'shape' => 'circle'],
+            'background' => ['type' => 'image', 'image' => $background, 'angle' => 180],
+        ]]);
+        $this->refreshModuleSettings();
     }
 
     public function test_the_preview_shows_both_colour_sets_and_their_contrast(): void

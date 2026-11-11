@@ -10,6 +10,7 @@ use App\Application\QrCodes\Enums\QrCodeFormat;
 use App\Application\QrCodes\HexColor;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Filament\Actions\RowDetailsAction;
+use App\Filament\Forms\Components\MediaLibraryPicker;
 use App\Filament\Resources\BaseResource;
 use App\Filament\Support\PanelNavigationGroup;
 use BackedEnum;
@@ -36,6 +37,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -43,6 +45,7 @@ use Modules\LinkPage\Application\Contracts\QrCodeImagesInterface;
 use Modules\LinkPage\Application\DTOs\QrCodeDesignDTO;
 use Modules\LinkPage\Domain\Enums\PrintPaper;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
+use Modules\LinkPage\Domain\ValueObjects\QrLogoPath;
 use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\CreateQrCode;
 use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\EditQrCode;
 use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\ListQrCodes;
@@ -181,7 +184,7 @@ final class QrCodeResource extends BaseResource
                             ->selectablePlaceholder(false)
                             ->required()
                             ->live(),
-                        FileUpload::make('logo_path')
+                        MediaLibraryPicker::attachTo(FileUpload::make('logo_path')
                             ->label(__('link-page::messages.qr_codes.fields.logo'))
                             ->helperText(__('link-page::messages.qr_codes.fields.logo_help'))
                             ->image()
@@ -206,6 +209,10 @@ final class QrCodeResource extends BaseResource
                             // The preview draws an upload as soon as it arrives, before saving
                             ->live()
                             ->columnSpanFull(),
+                            // The logo's own rules (sanitized SVG, size) only run on uploads: only
+                            // logos uploaded here, by this or another code, can be chosen
+                            constrain: static fn (Builder $query): Builder => $query->where('media_files.folder', 'like', QrLogoPath::DIRECTORY.'/%'),
+                        ),
                     ]),
                 Section::make(__('link-page::messages.qr_codes.sections.preview'))
                     ->description(__('link-page::messages.qr_codes.sections.preview_help'))

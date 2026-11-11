@@ -12,6 +12,8 @@ use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
 use Modules\LinkPage\Filament\Pages\LinkPageSettingsPage;
+use Modules\LinkPage\Tests\Support\InteractsWithMediaLibrary;
+use Modules\LinkPage\Tests\Support\RecordingMediaFileReleaser;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
 
@@ -21,6 +23,7 @@ use Tests\Support\Modules\ModuleTestCase;
  */
 final class LinkPageShareFormTest extends ModuleTestCase
 {
+    use InteractsWithMediaLibrary;
     use InteractsWithModulePanel;
 
     protected ?string $moduleName = 'link-page';
@@ -109,6 +112,7 @@ final class LinkPageShareFormTest extends ModuleTestCase
 
     public function test_an_uploaded_image_is_stored_on_the_images_disk_and_a_new_one_replaces_it(): void
     {
+        $releaser = RecordingMediaFileReleaser::bind();
         $this->page()
             ->fillForm(['share.image' => UploadedFile::fake()->image('card.jpg', 1200, 630)])
             ->call('save')
@@ -134,11 +138,14 @@ final class LinkPageShareFormTest extends ModuleTestCase
         $this->assertNotSame($first, $second);
         $this->assertStringEndsWith('.png', $second);
         Storage::disk('images')->assertExists($second);
-        Storage::disk('images')->assertMissing($first);
+        // Another record may have chosen the replaced file: the core checks before deleting it
+        $this->assertSame([$first], $releaser->released);
+        Storage::disk('images')->assertExists($first);
     }
 
-    public function test_removing_the_image_deletes_the_file(): void
+    public function test_removing_the_image_releases_the_file_through_the_core(): void
     {
+        $releaser = RecordingMediaFileReleaser::bind();
         Storage::disk('images')->put('link-page/share/2026/11/card.jpg', 'image');
         app(ModuleSettingsStoreInterface::class)->store('link-page', ['share' => ['image' => 'link-page/share/2026/11/card.jpg']]);
         $this->refreshModuleSettings();
@@ -150,7 +157,74 @@ final class LinkPageShareFormTest extends ModuleTestCase
 
         $this->refreshModuleSettings();
         $this->assertNull($this->settings()->shareImage());
-        Storage::disk('images')->assertMissing('link-page/share/2026/11/card.jpg');
+        $this->assertSame(['link-page/share/2026/11/card.jpg'], $releaser->released);
+    }
+
+    public function test_saving_without_changing_the_image_releases_nothing(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        Storage::disk('images')->put('link-page/share/2026/11/card.jpg', 'image');
+        app(ModuleSettingsStoreInterface::class)->store('link-page', ['share' => ['image' => 'link-page/share/2026/11/card.jpg']]);
+        $this->refreshModuleSettings();
+
+        $this->page()
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->refreshModuleSettings();
+        $this->assertSame('link-page/share/2026/11/card.jpg', $this->settings()->shareImage());
+        $this->assertSame([], $releaser->released);
+    }
+
+    public function test_the_image_field_offers_the_library(): void
+    {
+        $this->assertFieldOffersLibrary($this->page(), 'share.image');
+    }
+
+    public function test_an_image_of_the_library_can_be_chosen_for_the_card(): void
+    {
+        $releaser = RecordingMediaFileReleaser::bind();
+        $this->indexLibraryFile('events/2026/11/poster', 'jpg');
+        app(ModuleSettingsStoreInterface::class)->store('link-page', ['share' => ['image' => 'link-page/share/2026/11/card.jpg']]);
+        $this->refreshModuleSettings();
+
+        $this->page()
+            ->set('data.share.image', ['chosen' => 'events/2026/11/poster.jpg'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->refreshModuleSettings();
+        $this->assertSame('events/2026/11/poster.jpg', $this->settings()->shareImage());
+        $this->assertSame(['link-page/share/2026/11/card.jpg'], $releaser->released);
+    }
+
+    public function test_a_library_image_the_card_does_not_take_is_refused(): void
+    {
+        $this->indexLibraryFile('events/2026/11/poster', 'webp');
+        $this->indexLibraryFile('events/2026/11/big', 'jpg', bytes: 1025 * 1024);
+
+        foreach (['events/2026/11/poster.webp', 'events/2026/11/big.jpg'] as $path) {
+            $this->page()
+                ->set('data.share.image', ['chosen' => $path])
+                ->call('save')
+                ->assertHasFormErrors(['share.image']);
+        }
+
+        $this->refreshModuleSettings();
+        $this->assertNull($this->settings()->shareImage());
+    }
+
+    public function test_a_library_image_whose_name_the_card_cannot_use_says_so_on_the_field(): void
+    {
+        $this->indexLibraryFile('events/2026/11/my poster', 'jpg');
+
+        $this->page()
+            ->set('data.share.image', ['chosen' => 'events/2026/11/my poster.jpg'])
+            ->call('save')
+            ->assertHasFormErrors(['share.image']);
+
+        $this->refreshModuleSettings();
+        $this->assertNull($this->settings()->shareImage());
     }
 
     public function test_the_image_takes_only_jpg_and_png_of_up_to_one_megabyte(): void
@@ -168,22 +242,23 @@ final class LinkPageShareFormTest extends ModuleTestCase
         $this->assertNull($this->settings()->shareImage());
     }
 
-    public function test_a_file_that_is_not_the_cards_is_neither_used_nor_deleted(): void
+    public function test_a_forged_path_is_refused_and_the_stored_card_kept(): void
     {
+        $releaser = RecordingMediaFileReleaser::bind();
         Storage::disk('images')->put('events/2026/11/poster.jpg', 'poster');
-        Storage::disk('images')->put('link-page/share/2026/11/card.jpg', 'image');
         app(ModuleSettingsStoreInterface::class)->store('link-page', ['share' => ['image' => 'link-page/share/2026/11/card.jpg']]);
         $this->refreshModuleSettings();
 
-        // A forged form state points the card at an event image
+        // A forged form state points the card at a file that is not in the library
         $this->page()
             ->set('data.share.image', ['forged' => 'events/2026/11/poster.jpg'])
-            ->call('save');
+            ->call('save')
+            ->assertHasFormErrors(['share.image']);
 
         $this->refreshModuleSettings();
-        $this->assertNull($this->settings()->shareImage());
+        $this->assertSame('link-page/share/2026/11/card.jpg', $this->settings()->shareImage());
+        $this->assertSame([], $releaser->released);
         Storage::disk('images')->assertExists('events/2026/11/poster.jpg');
-        Storage::disk('images')->assertMissing('link-page/share/2026/11/card.jpg');
     }
 
     public function test_the_preview_shows_the_card_as_it_will_read(): void

@@ -22,6 +22,7 @@ use Modules\LinkPage\Filament\Resources\QrCodeResource\Pages\ListQrCodes;
 use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 use Modules\LinkPage\LinkPageServiceProvider;
 use Modules\LinkPage\Tests\Support\CreatesQrCodes;
+use Modules\LinkPage\Tests\Support\InteractsWithMediaLibrary;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Modules\InteractsWithModulePanel;
 use Tests\Support\Modules\ModuleTestCase;
@@ -30,6 +31,7 @@ use Tests\Support\QrCodes\QrCodeTestImages;
 final class QrCodeResourceTest extends ModuleTestCase
 {
     use CreatesQrCodes;
+    use InteractsWithMediaLibrary;
     use InteractsWithModulePanel;
 
     private const string MANAGE = 'link-page:qr_codes.manage';
@@ -74,6 +76,60 @@ final class QrCodeResourceTest extends ModuleTestCase
 
         $this->assertFalse(Gate::forUser($admin)->allows('restore', $qr));
         $this->assertFalse(Gate::forUser($admin)->allows('forceDelete', $qr));
+    }
+
+    public function test_the_logo_field_offers_the_library(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE, 'media.view_any']));
+
+        $this->assertFieldOffersLibrary(Livewire::test(CreateQrCode::class)->fillForm(['logo_source' => 'custom']), 'logo_path');
+    }
+
+    public function test_a_logo_of_another_qr_code_can_be_chosen(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE, 'media.view_any']));
+        $this->indexLibraryFile('link-page/qr/2026/11/shared', 'png');
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Table cards',
+                'foreground_color' => '#000000',
+                'background_color' => '#FFFFFF',
+                'margin' => 6,
+                'logo_source' => 'custom',
+            ])
+            ->set('data.logo_path', ['chosen' => 'link-page/qr/2026/11/shared.png'])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('link-page/qr/2026/11/shared.png', QrCodeModel::query()->sole()->logo_path);
+    }
+
+    /**
+     * The logo's own rules (sanitized SVG, size) only ran on files uploaded here, so nothing
+     * else of the library is offered or accepted.
+     */
+    public function test_a_library_image_outside_the_qr_logos_is_refused_as_a_logo(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE, 'media.view_any']));
+        $this->indexLibraryFile('events/2026/11/poster', 'png');
+        $this->indexLibraryFile('link-page/2026/11/page-logo', 'png');
+
+        foreach (['events/2026/11/poster.png', 'link-page/2026/11/page-logo.png'] as $path) {
+            Livewire::test(CreateQrCode::class)
+                ->fillForm([
+                    'name' => 'Table cards',
+                    'foreground_color' => '#000000',
+                    'background_color' => '#FFFFFF',
+                    'margin' => 6,
+                    'logo_source' => 'custom',
+                ])
+                ->set('data.logo_path', ['chosen' => $path])
+                ->call('create')
+                ->assertHasFormErrors(['logo_path']);
+        }
+
+        $this->assertSame(0, QrCodeModel::query()->count());
     }
 
     public function test_it_creates_a_qr_code_with_its_own_code(): void
