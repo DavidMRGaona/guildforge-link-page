@@ -46,7 +46,7 @@ La sección **Compartir** controla la tarjeta que WhatsApp, Telegram y las redes
 
 - **Título de la tarjeta** (hasta 70 caracteres): vacío, el nombre del sitio.
 - **Descripción de la tarjeta** (hasta 160): vacía, el texto de presentación y, si tampoco hay, la descripción del sitio.
-- **Imagen de la tarjeta**: JPG o PNG de hasta 1 MB. Se recorta desde el centro a 1200 × 630 píxeles, así que deja los textos y logos en la parte central. Sin imagen se usa el logo del sitio.
+- **Imagen de la tarjeta**: JPG o PNG de hasta 1 MB, subida o elegida con **Elegir de la biblioteca** entre las imágenes que ya tiene el sitio. Se recorta desde el centro a 1200 × 630 píxeles, así que deja los textos y logos en la parte central. Sin imagen se usa el logo del sitio.
 - **No indexar en buscadores**: pide a Google y otros buscadores que no muestren la página en sus resultados. Quien tenga el enlace o el QR sigue entrando.
 
 La **Vista previa de la tarjeta** se actualiza mientras escribes. Una imagen recién subida se prepara al guardar.

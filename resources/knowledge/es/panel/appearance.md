@@ -28,9 +28,9 @@ Después de elegir una plantilla puedes retocar lo que quieras.
 ## Qué se puede cambiar
 
 - **Tema**: **Según el dispositivo** usa el tema que la persona eligió en la web o, si no eligió, el de su móvil; **Siempre claro** y **Siempre oscuro** lo fijan para todos.
-- **Logo**: el **Logo del sitio**, una **Imagen propia** (PNG, JPG o WebP de hasta 1 MB, que se recorta para llenar la forma) o la **Inicial del nombre**, en **Círculo** o **Cuadrado redondeado**.
+- **Logo**: el **Logo del sitio**, una **Imagen propia** (PNG, JPG o WebP de hasta 1 MB, que se recorta para llenar la forma; se sube o se elige con **Elegir de la biblioteca** entre las imágenes que ya tiene el sitio) o la **Inicial del nombre**, en **Círculo** o **Cuadrado redondeado**.
 - **Colores**: un juego para el **Tema claro** y otro para el **Tema oscuro**, con el fondo, el texto, el botón y el texto del botón.
-- **Fondo**: **Color liso**, **Degradado** (dos colores y un ángulo) o **Imagen** (PNG, JPG o WebP de hasta 4 MB) con un **Oscurecido de la imagen** de 0 a 90 % para que el texto se lea.
+- **Fondo**: **Color liso**, **Degradado** (dos colores y un ángulo) o **Imagen** (PNG, JPG o WebP de hasta 4 MB, subida o elegida de la biblioteca) con un **Oscurecido de la imagen** de 0 a 90 % para que el texto se lea.
 - **Estilo de los botones**: **Relleno**, **Contorno** o **Sombra**, con esquinas **Rectas**, **Redondeadas** o de **Píldora**.
 - **Letra**: la de los títulos o la del texto del sitio, Inter, Playfair Display o las del dispositivo. No se descarga nada de fuera.
 

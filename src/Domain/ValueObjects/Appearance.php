@@ -16,15 +16,19 @@ use Modules\LinkPage\Domain\Enums\ThemeMode;
 use ValueError;
 
 /**
- * How the link page looks. Every value comes from a closed list, a strict colour or a path
- * the module itself stored, so nothing free-form reaches the page styles.
+ * How the link page looks. Every value comes from a closed list, a strict colour or a plain
+ * image path of the images disk, so nothing free-form reaches the page styles.
  */
 final readonly class Appearance
 {
     public const int MAX_ANGLE = 360;
 
-    /** Images uploaded from the settings page live under link-page/ on the images disk. */
-    private const string IMAGE_PATTERN = '#^link-page/[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*\.[A-Za-z0-9]+$#';
+    /**
+     * A relative path of the images disk: uploads of the settings page (link-page/...) or files
+     * chosen from the media library, which the form checked exist there. Letters, digits, "-"
+     * and "_" only, so a path can neither climb out nor break the CSS url() it is painted in.
+     */
+    private const string IMAGE_PATTERN = '#^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:png|jpe?g|webp)$#Di';
 
     public function __construct(
         public AppearanceTemplate $template,
@@ -46,10 +50,16 @@ final readonly class Appearance
         }
 
         foreach ([$logoImage, $backgroundImage] as $path) {
-            if ($path !== null && (str_contains($path, '..') || preg_match(self::IMAGE_PATTERN, $path) !== 1)) {
-                throw new InvalidArgumentException('Images must be files the module stored under link-page/.');
+            if ($path !== null && ! self::isUsableImage($path)) {
+                throw new InvalidArgumentException('Images must be PNG, JPG or WebP files of the images disk.');
             }
         }
+    }
+
+    /** Whether the page can paint this path as its logo or background. */
+    public static function isUsableImage(string $path): bool
+    {
+        return preg_match(self::IMAGE_PATTERN, $path) === 1;
     }
 
     /**

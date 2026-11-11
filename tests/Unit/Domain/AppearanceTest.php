@@ -47,6 +47,30 @@ final class AppearanceTest extends TestCase
         $this->assertSame($stored, Appearance::fromArray($stored)->toArray());
     }
 
+    /**
+     * Files chosen from the library live in other folders; the picker checked they exist.
+     */
+    public function test_images_of_the_library_are_kept(): void
+    {
+        $appearance = Appearance::fromArray($this->stored([
+            'logo' => ['source' => 'custom', 'image' => 'branding/logo.png', 'shape' => 'circle'],
+            'background' => ['type' => 'image', 'image' => 'events/2026/11/poster.webp', 'angle' => 180],
+        ]));
+
+        $this->assertSame('branding/logo.png', $appearance->logoImage);
+        $this->assertSame('events/2026/11/poster.webp', $appearance->backgroundImage);
+    }
+
+    public function test_it_tells_which_paths_the_page_can_paint(): void
+    {
+        $this->assertTrue(Appearance::isUsableImage('link-page/2026/06/logo.png'));
+        $this->assertTrue(Appearance::isUsableImage('events/2026/11/poster.JPEG'));
+        $this->assertFalse(Appearance::isUsableImage('events/2026/11/my poster.jpg'));
+        $this->assertFalse(Appearance::isUsableImage('link-page/a").png'));
+        $this->assertFalse(Appearance::isUsableImage('branding/logo.svg'));
+        $this->assertFalse(Appearance::isUsableImage('/branding/logo.png'));
+    }
+
     public function test_site_colours_are_never_checked(): void
     {
         $appearance = Appearance::fromArray($this->stored(['template' => 'site', 'light' => $this->unreadable()]));
@@ -96,7 +120,10 @@ final class AppearanceTest extends TestCase
         yield 'unknown theme' => [['theme' => 'sepia']];
         yield 'unknown font' => [['font' => 'Comic Sans']];
         yield 'angle out of range' => [['background' => ['type' => 'gradient', 'image' => null, 'angle' => 400]]];
-        yield 'path outside the module folder' => [['logo' => ['source' => 'custom', 'image' => 'branding/logo.png', 'shape' => 'circle']]];
+        yield 'absolute path' => [['logo' => ['source' => 'custom', 'image' => '/branding/logo.png', 'shape' => 'circle']]];
+        yield 'url' => [['logo' => ['source' => 'custom', 'image' => 'https://example.com/logo.png', 'shape' => 'circle']]];
+        yield 'path with a space' => [['background' => ['type' => 'image', 'image' => 'events/2026/11/my poster.jpg', 'angle' => 180]]];
+        yield 'not a page image' => [['logo' => ['source' => 'custom', 'image' => 'branding/logo.svg', 'shape' => 'circle']]];
         yield 'path climbing up' => [['background' => ['type' => 'image', 'image' => 'link-page/../secret.png', 'angle' => 180]]];
         yield 'path with a quote' => [['background' => ['type' => 'image', 'image' => 'link-page/a").png', 'angle' => 180]]];
         yield 'colour set not a list' => [['light' => 'white']];

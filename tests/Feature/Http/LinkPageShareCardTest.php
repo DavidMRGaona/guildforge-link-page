@@ -120,9 +120,18 @@ final class LinkPageShareCardTest extends ModuleTestCase
             ->assertSee('<meta name="robots" content="noindex, nofollow" data-seo-server>', false);
     }
 
-    public function test_a_foreign_image_path_is_never_used_for_the_card(): void
+    public function test_an_image_chosen_from_the_library_is_used_for_the_card(): void
     {
         config()->set('modules.settings.link-page.share.image', 'events/2026/11/poster.jpg');
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertSee('guildforge/events/2026/11/poster', false);
+    }
+
+    public function test_an_image_path_the_card_cannot_use_is_never_used(): void
+    {
+        config()->set('modules.settings.link-page.share.image', 'events/2026/11/poster.webp');
 
         $this->get('/enlaces')
             ->assertOk()

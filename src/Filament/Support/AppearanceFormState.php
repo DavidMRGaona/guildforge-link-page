@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Support;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Number;
 use InvalidArgumentException;
 use Modules\LinkPage\Domain\Enums\BackgroundType;
@@ -30,7 +29,7 @@ final class AppearanceFormState
     {
         $values = array_replace_recursive($stored->toArray(), $state);
 
-        // An image the appearance no longer shows is dropped (and deleted once saved), so no
+        // An image the appearance no longer shows is dropped (and released once saved), so no
         // file is left behind on the disk
         if (($values['logo']['source'] ?? null) !== LogoSource::Custom->value) {
             $values['logo']['image'] = null;
@@ -40,6 +39,34 @@ final class AppearanceFormState
         }
 
         return Appearance::fromArray($values);
+    }
+
+    /**
+     * One message per image field holding a path the page cannot paint (a file chosen from the
+     * library whose name has spaces or other characters), keyed by its Livewire path. Images the
+     * appearance drops (another logo source, another background) are not checked.
+     *
+     * @param  array<array-key, mixed>  $state
+     * @return array<string, string>
+     */
+    public static function imageErrors(array $state, Appearance $stored): array
+    {
+        $values = array_replace_recursive($stored->toArray(), $state);
+        $shown = [
+            'logo' => ($values['logo']['source'] ?? null) === LogoSource::Custom->value,
+            'background' => ($values['background']['type'] ?? null) === BackgroundType::Image->value,
+        ];
+
+        $errors = [];
+        foreach ($shown as $group => $isShown) {
+            $path = $values[$group]['image'] ?? null;
+
+            if ($isShown && is_string($path) && $path !== '' && ! Appearance::isUsableImage($path)) {
+                $errors["data.appearance.{$group}.image"] = __('link-page::messages.media.unusable_image');
+            }
+        }
+
+        return $errors;
     }
 
     /**
@@ -72,16 +99,16 @@ final class AppearanceFormState
     }
 
     /**
-     * Deletes the images the new appearance no longer uses (replaced or removed) from the
-     * images disk. Only paths under link-page/ ever reach here (Appearance checks them).
+     * The images the new appearance no longer uses (replaced or removed), for the core to release.
+     *
+     * @return list<string>
      */
-    public static function deleteReplacedImages(Appearance $before, Appearance $after): void
+    public static function replacedImages(Appearance $before, Appearance $after): array
     {
-        foreach ([[$before->logoImage, $after->logoImage], [$before->backgroundImage, $after->backgroundImage]] as [$old, $new]) {
-            if ($old !== null && $old !== $new && ! in_array($old, [$after->logoImage, $after->backgroundImage], true)) {
-                Storage::disk('images')->delete($old);
-            }
-        }
+        return array_values(array_unique(array_filter(
+            [$before->logoImage, $before->backgroundImage],
+            static fn (?string $old): bool => $old !== null && ! in_array($old, [$after->logoImage, $after->backgroundImage], true),
+        )));
     }
 
     private static function message(string $set, ContrastCheck $failure): string

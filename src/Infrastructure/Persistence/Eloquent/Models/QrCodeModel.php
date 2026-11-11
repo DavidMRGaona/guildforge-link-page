@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models;
 
+use App\Application\Media\Services\MediaFileReleaserInterface;
 use App\Infrastructure\Persistence\Eloquent\Concerns\StoresInstantsInStorageTimezone;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Modules\LinkPage\Application\DTOs\QrCodeDesignDTO;
 use Modules\LinkPage\Domain\Enums\QrLogoSource;
 use Modules\LinkPage\Domain\ValueObjects\QrLogoPath;
@@ -85,14 +85,15 @@ final class QrCodeModel extends Model
         self::updated(function (self $qr): void {
             $previous = $qr->getOriginal('logo_path');
             if ($qr->wasChanged('logo_path') && is_string($previous)) {
-                self::deleteLogo($previous);
+                self::releaseLogo($previous);
             }
         });
 
-        // Nothing draws a deleted code again, so its logo goes
+        // Fired when the code goes to the trash and again when it is deleted for good. A code
+        // in the trash still counts as a use of its logo, so the core keeps the file until then
         self::deleted(function (self $qr): void {
             if (is_string($qr->logo_path)) {
-                self::deleteLogo($qr->logo_path);
+                self::releaseLogo($qr->logo_path);
             }
         });
     }
@@ -121,16 +122,20 @@ final class QrCodeModel extends Model
         ];
     }
 
-    private static function deleteLogo(string $path): void
+    /**
+     * Logos may be shared between codes (chosen from the library): the core deletes the file
+     * only once no code uses it. Only uploaded logos are ever handed over, never another file.
+     */
+    private static function releaseLogo(string $path): void
     {
         if (! QrLogoPath::isOwn($path)) {
             return;
         }
 
         try {
-            Storage::disk('images')->delete($path);
+            app(MediaFileReleaserInterface::class)->release($path);
         } catch (Throwable $exception) {
-            // A stale file is not worth failing the save for
+            // A file left unused is not worth failing the save for: the library shows it
             report($exception);
         }
     }

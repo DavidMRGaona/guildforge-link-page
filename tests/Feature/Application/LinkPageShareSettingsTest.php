@@ -45,7 +45,7 @@ final class LinkPageShareSettingsTest extends ModuleTestCase
         config()->set('modules.settings.link-page.share', [
             'title' => '   ',
             'description' => ['not', 'text'],
-            'image' => 'settings/logo.png',
+            'image' => 'settings/logo.webp',
             'noindex' => 'maybe',
         ]);
 
@@ -53,7 +53,7 @@ final class LinkPageShareSettingsTest extends ModuleTestCase
 
         $this->assertNull($settings->shareTitle());
         $this->assertNull($settings->shareDescription());
-        $this->assertNull($settings->shareImage(), 'Only files the share form stored are used.');
+        $this->assertNull($settings->shareImage(), 'Only PNG or JPG paths of the images disk are used.');
         $this->assertFalse($settings->noindex(), 'Anything but a real true keeps the page indexable.');
     }
 

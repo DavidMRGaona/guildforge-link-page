@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Filament\Pages;
 
+use App\Application\Media\Services\MediaFileReleaserInterface;
 use App\Application\Media\Services\MediaIndexerInterface;
 use App\Application\Modules\Services\ModuleManagerServiceInterface;
 use App\Application\Modules\Services\ModuleSettingsStoreInterface;
@@ -32,6 +33,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -238,6 +240,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
         ModuleSettingsStoreInterface $settingsStore,
         LinkPageSettingsInterface $settings,
         MediaIndexerInterface $mediaIndexer,
+        MediaFileReleaserInterface $releaser,
     ): void {
         // Livewire methods can be called without the page's button
         abort_unless(self::canAccess(), 403);
@@ -250,6 +253,10 @@ final class LinkPageSettingsPage extends Page implements HasForms
 
         // Colours below WCAG AA are not saved; the field says which pair fails and by how much
         $storedAppearance = $settings->appearance();
+        $imageErrors = AppearanceFormState::imageErrors(is_array($state['appearance'] ?? null) ? $state['appearance'] : [], $storedAppearance);
+        if ($imageErrors !== []) {
+            throw ValidationException::withMessages($imageErrors);
+        }
         try {
             $appearance = AppearanceFormState::toAppearance(is_array($state['appearance'] ?? null) ? $state['appearance'] : [], $storedAppearance);
         } catch (InvalidArgumentException) {
@@ -260,34 +267,48 @@ final class LinkPageSettingsPage extends Page implements HasForms
             throw ValidationException::withMessages($contrastErrors);
         }
 
-        $share = ShareFormState::toStored(is_array($state['share'] ?? null) ? $state['share'] : []);
+        $shareState = is_array($state['share'] ?? null) ? $state['share'] : [];
+        if (ShareFormState::hasUnusableImage($shareState)) {
+            throw ValidationException::withMessages(['data.share.image' => __('link-page::messages.media.unusable_image')]);
+        }
+        $share = ShareFormState::toStored($shareState);
         // Read before saving: the effective settings are the new ones right after
         $storedShareImage = $settings->shareImage();
 
-        // Keys this form does not show (other releases or pages) keep their stored values
-        $moduleManager->updateSettings(new ModuleName(self::MODULE), array_replace($settingsStore->stored(self::MODULE), [
-            'enabled' => (bool) ($state['enabled'] ?? false),
-            'intro' => is_string($state['intro'] ?? null) && trim($state['intro']) !== '' ? trim($state['intro']) : null,
-            'events' => [
-                'limit' => (int) ($events['limit'] ?? LinkPageSettingsInterface::DEFAULT_EVENTS),
-                'within_days' => (int) ($events['within_days'] ?? LinkPageSettingsInterface::DEFAULT_WITHIN_DAYS),
-                'tags' => array_values((array) ($events['tags'] ?? [])),
-                'pinned' => array_values((array) ($events['pinned'] ?? [])),
-                'hidden' => array_values((array) ($events['hidden'] ?? [])),
-            ],
-            'calendar' => [
-                'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
-            ],
-            'notice' => HighlightsFormState::noticeToStored(is_array($state['notice'] ?? null) ? $state['notice'] : [], app(TimezoneServiceInterface::class)),
-            'featured' => HighlightsFormState::featuredToStored(is_array($state['featured'] ?? null) ? $state['featured'] : []),
-            'share' => $share,
-            'social' => $social,
-            'appearance' => $appearance->toArray(),
-            'stats' => StatsSection::toSettings(is_array($state['stats'] ?? null) ? $state['stats'] : []),
-        ]));
+        // One transaction with the releases last: the core checks a released file only after the
+        // commit, so an image let go in one field and chosen in another is still in use by then
+        DB::transaction(function () use ($moduleManager, $settingsStore, $state, $events, $social, $share, $appearance, $storedAppearance, $storedShareImage, $releaser): void {
+            // Keys this form does not show (other releases or pages) keep their stored values
+            $moduleManager->updateSettings(new ModuleName(self::MODULE), array_replace($settingsStore->stored(self::MODULE), [
+                'enabled' => (bool) ($state['enabled'] ?? false),
+                'intro' => is_string($state['intro'] ?? null) && trim($state['intro']) !== '' ? trim($state['intro']) : null,
+                'events' => [
+                    'limit' => (int) ($events['limit'] ?? LinkPageSettingsInterface::DEFAULT_EVENTS),
+                    'within_days' => (int) ($events['within_days'] ?? LinkPageSettingsInterface::DEFAULT_WITHIN_DAYS),
+                    'tags' => array_values((array) ($events['tags'] ?? [])),
+                    'pinned' => array_values((array) ($events['pinned'] ?? [])),
+                    'hidden' => array_values((array) ($events['hidden'] ?? [])),
+                ],
+                'calendar' => [
+                    'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
+                ],
+                'notice' => HighlightsFormState::noticeToStored(is_array($state['notice'] ?? null) ? $state['notice'] : [], app(TimezoneServiceInterface::class)),
+                'featured' => HighlightsFormState::featuredToStored(is_array($state['featured'] ?? null) ? $state['featured'] : []),
+                'share' => $share,
+                'social' => $social,
+                'appearance' => $appearance->toArray(),
+                'stats' => StatsSection::toSettings(is_array($state['stats'] ?? null) ? $state['stats'] : []),
+            ]));
 
-        AppearanceFormState::deleteReplacedImages($storedAppearance, $appearance);
-        ShareFormState::deleteReplacedImage($storedShareImage, $share['image']);
+            // Files may be shared with other records now: the core deletes them only when unused
+            $kept = [$appearance->logoImage, $appearance->backgroundImage, $share['image']];
+            $replaced = [...AppearanceFormState::replacedImages($storedAppearance, $appearance), $storedShareImage];
+            foreach (array_unique(array_filter($replaced)) as $path) {
+                if (! in_array($path, $kept, true)) {
+                    $releaser->release($path);
+                }
+            }
+        });
 
         foreach ([SettingsMediaSource::LOGO, SettingsMediaSource::BACKGROUND, SettingsMediaSource::SHARE] as $record) {
             $mediaIndexer->refresh(SettingsMediaSource::TYPE, $record);
@@ -374,7 +395,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
             ?? '';
 
         $upload = $this->previewUpload($share['image'] ?? null);
-        $custom = $upload['url'] !== null || ($upload['path'] !== null && ShareImagePath::isOwn($upload['path']));
+        $custom = $upload['url'] !== null || ($upload['path'] !== null && ShareImagePath::isUsable($upload['path']));
         $imageUrl = $upload['url']
             ?? ($custom && $upload['path'] !== null ? Storage::disk('images')->url($upload['path']) : null)
             // What the card falls back to: the site logo, or the core's default one
