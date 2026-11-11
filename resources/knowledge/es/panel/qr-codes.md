@@ -38,6 +38,7 @@ Para que los móviles lo lean, el color del código debe ser **más oscuro** que
 
 - **PNG, JPEG o WebP** de hasta 1 MB y 2048 × 2048 píxeles.
 - **SVG** de hasta 1 MB, como el que se suele poner de logo del sitio. Tiene que estar bien formado, sin DOCTYPE ni entidades, y tener `viewBox` o un ancho y un alto en unidades fijas (no en porcentaje). Del SVG solo se guarda el dibujo: se quitan los scripts, los enlaces y lo que cargaría algo de fuera.
+- Con **Elegir de la biblioteca** puedes reutilizar el logo de otro QR sin subirlo de nuevo. Solo se ofrecen logos subidos a algún QR, porque son los que ya pasaron estas comprobaciones.
 - Si el SVG lleva **textos**, conviértelos a trazados en el programa de diseño antes de exportarlo: el QR no lleva las fuentes y el texto podría salir con otra letra.
 
 ## Descargarlo
