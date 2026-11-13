@@ -185,6 +185,24 @@ final class QrCodeResourceTest extends ModuleTestCase
         $this->assertSame(0, QrCodeModel::query()->count());
     }
 
+    public function test_a_colour_with_a_trailing_newline_is_refused(): void
+    {
+        $this->actingAs($this->userWith([self::MANAGE]));
+
+        Livewire::test(CreateQrCode::class)
+            ->fillForm([
+                'name' => 'Poster',
+                'foreground_color' => "#000000\n",
+                'background_color' => "#FFFFFF\n",
+                'margin' => 8,
+                'logo_source' => 'none',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['foreground_color' => 'regex', 'background_color' => 'regex']);
+
+        $this->assertSame(0, QrCodeModel::query()->count());
+    }
+
     public function test_the_preview_draws_the_code_or_says_why_it_cannot(): void
     {
         $this->actingAs($this->userWith([self::MANAGE]));

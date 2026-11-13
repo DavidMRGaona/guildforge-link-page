@@ -39,15 +39,15 @@ final readonly class ClickTarget
             return new self(ClickTargetType::from($value), '');
         }
 
-        if (preg_match('/^(link|event|featured):('.self::UUID.')$/', strtolower($value), $matches) === 1) {
+        if (preg_match('/^(link|event|featured):('.self::UUID.')\z/', strtolower($value), $matches) === 1) {
             return new self(ClickTargetType::from($matches[1]), $matches[2]);
         }
 
-        if (preg_match('/^social:([a-z]+)$/', $value, $matches) === 1 && SocialNetwork::tryFrom($matches[1]) !== null) {
+        if (preg_match('/^social:([a-z]+)\z/', $value, $matches) === 1 && SocialNetwork::tryFrom($matches[1]) !== null) {
             return new self(ClickTargetType::Social, $matches[1]);
         }
 
-        if (preg_match('/^calendar:('.self::CALENDAR_PART.'):('.self::CALENDAR_PART.')$/i', $value, $matches) === 1) {
+        if (preg_match('/^calendar:('.self::CALENDAR_PART.'):('.self::CALENDAR_PART.')\z/i', $value, $matches) === 1) {
             return new self(ClickTargetType::Calendar, $matches[1].':'.$matches[2]);
         }
 

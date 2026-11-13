@@ -31,7 +31,7 @@ final readonly class FeaturedSettings
             (is_string($mode) ? FeaturedMode::tryFrom($mode) : null) ?? FeaturedMode::Off,
             is_string($tag) && trim($tag) !== '' ? trim($tag) : null,
             // A malformed id would make PostgreSQL refuse the query
-            is_string($event) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $event) === 1 ? $event : null,
+            is_string($event) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i', $event) === 1 ? $event : null,
         );
     }
 

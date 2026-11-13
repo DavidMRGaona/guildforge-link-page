@@ -60,7 +60,7 @@ use WeakMap;
  */
 final class QrCodeResource extends BaseResource
 {
-    private const string HEX_PATTERN = '/^#[0-9A-Fa-f]{6}$/';
+    private const string HEX_PATTERN = '/^#[0-9A-Fa-f]{6}\z/';
 
     /** The logos the core renderer takes, by MIME type, with the extension they are stored with. */
     private const array LOGO_EXTENSIONS = [

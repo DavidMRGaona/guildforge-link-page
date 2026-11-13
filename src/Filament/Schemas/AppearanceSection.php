@@ -184,7 +184,7 @@ final class AppearanceSection
             $fields[] = ColorPicker::make(self::KEY.".{$scheme}.{$field}")
                 ->label(fn (Get $get): string => self::colorLabel($get, $field))
                 ->hex()
-                ->regex('/^#[0-9A-Fa-f]{6}$/')
+                ->regex('/^#[0-9A-Fa-f]{6}\z/')
                 ->required()
                 ->live(debounce: 400)
                 ->visible($field === 'background_to'
