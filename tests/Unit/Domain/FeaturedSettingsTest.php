@@ -42,6 +42,13 @@ final class FeaturedSettingsTest extends TestCase
         $this->assertNull($settings->eventId);
     }
 
+    public function test_an_event_id_with_a_trailing_newline_is_dropped(): void
+    {
+        $settings = FeaturedSettings::fromArray(['mode' => 'manual', 'event' => "0199f3a2-7b1c-7d4e-9a10-3c5b2e8f6d41\n"]);
+
+        $this->assertNull($settings->eventId);
+    }
+
     public function test_a_manual_mode_without_event_is_still_manual(): void
     {
         $this->assertSame(FeaturedMode::Manual, FeaturedSettings::fromArray(['mode' => 'manual'])->mode);

@@ -135,6 +135,7 @@ final class ColorSchemeTest extends TestCase
     {
         yield 'not a colour' => [['text' => 'red']];
         yield 'css injection' => [['text' => '#fff;background:url(x)']];
+        yield 'trailing newline' => [['text' => "#111111\n"]];
         yield 'missing key' => [['button' => null]];
         yield 'overlay too high' => [['overlay' => 95]];
         yield 'overlay negative' => [['overlay' => -1]];

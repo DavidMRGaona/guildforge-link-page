@@ -139,6 +139,15 @@ final class LinkPageAppearanceFormTest extends ModuleTestCase
             ->assertHasFormErrors(['appearance.light.text']);
     }
 
+    public function test_a_colour_with_a_trailing_newline_is_refused(): void
+    {
+        $this->page()
+            ->fillForm(['appearance.template' => 'minimal'])
+            ->fillForm(['appearance.light.text' => "#111111\n"])
+            ->call('save')
+            ->assertHasFormErrors(['appearance.light.text' => 'regex']);
+    }
+
     public function test_an_uploaded_logo_is_stored_on_the_images_disk_and_a_new_one_replaces_it(): void
     {
         $releaser = RecordingMediaFileReleaser::bind();

@@ -80,6 +80,9 @@ final class ClickTargetTest extends TestCase
         yield 'featured without uuid' => ['featured:next'];
         yield 'calendar without id' => ['calendar:event'];
         yield 'calendar with odd characters' => ['calendar:event:<script>'];
+        yield 'link with a trailing newline' => ['link:'.self::UUID."\n"];
+        yield 'social with a trailing newline' => ["social:instagram\n"];
+        yield 'calendar with a trailing newline' => ["calendar:event:42\n"];
         yield 'too long' => ['calendar:event:'.str_repeat('a', 200)];
     }
 }

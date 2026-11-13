@@ -18,7 +18,7 @@ final readonly class ColorScheme
 {
     public const int MAX_OVERLAY = 90;
 
-    private const string PATTERN = '/^#[0-9A-Fa-f]{6}$/';
+    private const string PATTERN = '/^#[0-9A-Fa-f]{6}\z/';
 
     /** How far the selected calendar button moves from the button colour, in OKLCH lightness. */
     private const float STRONG_STEP = 0.08;
