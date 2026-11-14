@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
 import CalendarSubscribe from '../../components/CalendarSubscribe.vue';
-import PersonalCalendarLink from '../../components/PersonalCalendarLink.vue';
 import FeaturedEvent from '../../components/FeaturedEvent.vue';
 import NoticeBanner from '../../components/NoticeBanner.vue';
 import ShareButton from '../../components/ShareButton.vue';
@@ -286,11 +285,7 @@ function formatStart(event: LinkPageEvent): string | null {
                         :views="calendar.views"
                     />
                 </div>
-                <CalendarSubscribe :links="calendarFeed" class="mt-4">
-                    <template v-if="personalCalendar" #actions>
-                        <PersonalCalendarLink :personal-calendar="personalCalendar" />
-                    </template>
-                </CalendarSubscribe>
+                <CalendarSubscribe :links="calendarFeed" class="mt-4" />
             </section>
 
             <SocialRow v-if="social.position === 'bottom'" :links="social.links" />
