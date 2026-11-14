@@ -38,7 +38,7 @@ La sección **Próximos eventos** decide los botones de eventos de la página. S
 
 ## El calendario
 
-En la sección **Calendario**, **Vista inicial** elige cómo se abre: **Lista** (se lee mejor en el móvil) o **Mes**. Quien visita la página puede cambiar de vista. Debajo del calendario hay un botón **Suscribirse** para seguirlo en el móvil, Google Calendar u Outlook sin necesitar cuenta; a quien ha iniciado sesión, además, le sale **Mi calendario**, que le lleva a su perfil para suscribirse a lo suyo.
+En la sección **Calendario**, **Vista inicial** elige cómo se abre: **Lista** (se lee mejor en el móvil) o **Mes**. Quien visita la página puede cambiar de vista. Debajo del calendario hay un botón **Suscribirse** para seguirlo en el móvil, Google Calendar u Outlook sin necesitar cuenta.
 
 ## Qué se ve al compartir la página
 

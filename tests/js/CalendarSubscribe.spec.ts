@@ -25,10 +25,8 @@ function setNavigator(features: Partial<Navigator>, userAgent = 'Mozilla/5.0 Saf
     });
 }
 
-function mountSubscribe(
-    slots: Record<string, string> = {}
-): ReturnType<typeof mount<typeof CalendarSubscribe>> {
-    return mount(CalendarSubscribe, { props: { links }, slots, attachTo: document.body });
+function mountSubscribe(): ReturnType<typeof mount<typeof CalendarSubscribe>> {
+    return mount(CalendarSubscribe, { props: { links }, attachTo: document.body });
 }
 
 async function open(wrapper: ReturnType<typeof mountSubscribe>): Promise<void> {
@@ -212,13 +210,5 @@ describe('CalendarSubscribe', () => {
         expect(wrapper.get('[data-testid="link-page-subscribe-hint"]').text()).toBe(
             es.linkPage.subscribe.hint
         );
-    });
-
-    it('leaves room next to the button for another action', () => {
-        const wrapper = mountSubscribe({ actions: '<a data-testid="other">Mi calendario</a>' });
-
-        const row = wrapper.get('[data-testid="link-page-subscribe-actions"]');
-        expect(row.find('[data-testid="other"]').exists()).toBe(true);
-        expect(row.find('[data-testid="link-page-subscribe-button"]').exists()).toBe(true);
     });
 });

@@ -179,15 +179,6 @@ export interface LinkPageStats {
     enabled: boolean;
 }
 
-/**
- * Way in to the signed-in person's own calendar subscription (`null` for guests, or while the
- * core has no personal calendar). The feed address is not here: the core stores only its hash.
- */
-export interface LinkPagePersonalCalendar {
-    /** The calendar tab of the profile, where the address is issued, copied and revoked. */
-    profileUrl: string;
-}
-
 export interface LinkPageProps {
     site: LinkPageSite;
     appearance: LinkPageAppearance;
@@ -202,7 +193,6 @@ export interface LinkPageProps {
     events: LinkPageEvent[];
     calendar: LinkPageCalendar;
     calendarFeed: LinkPageCalendarFeed;
-    personalCalendar: LinkPagePersonalCalendar | null;
     homeUrl: string;
     share: LinkPageShare;
     stats: LinkPageStats;

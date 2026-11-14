@@ -13,8 +13,7 @@ import { writeToClipboard } from '../utils/clipboard';
  *
  * The options open below the button instead of floating over the page, so they never run off
  * a narrow screen. Every control is a button of the page (`link-page-button`: its colours,
- * shape and focus ring), at least 48 px tall. The `actions` slot is the row next to the
- * button, where the signed-in person's own calendar goes.
+ * shape and focus ring), at least 48 px tall.
  */
 const props = defineProps<{ links: LinkPageCalendarFeed }>();
 
@@ -129,7 +128,6 @@ async function copyAddress(): Promise<void> {
                     <path d="M6 9l6 6 6-6" />
                 </svg>
             </button>
-            <slot name="actions" />
         </div>
 
         <div v-if="isOpen">

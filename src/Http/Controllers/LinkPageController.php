@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\LinkPage\Http\Controllers;
 
 use App\Application\Authorization\Services\AuthorizationServiceInterface;
-use App\Application\Calendar\Services\PersonalCalendarServiceInterface;
 use App\Application\Calendar\Services\PublicCalendarFeedInterface;
 use App\Application\Services\SiteBrandingServiceInterface;
 use App\Application\Services\TimezoneServiceInterface;
@@ -44,7 +43,6 @@ final readonly class LinkPageController
         private FeaturedEventService $featuredEvent,
         private HighlightsPresenter $highlights,
         private AuthorizationServiceInterface $authorization,
-        private PersonalCalendarServiceInterface $personalCalendar,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -83,7 +81,6 @@ final readonly class LinkPageController
             ],
             // The core builds the addresses (feed, webcal, Google, Outlook): the module never does
             'calendarFeed' => $this->calendarFeed->subscriptionLinks()->toArray(),
-            'personalCalendar' => $this->personalCalendarProps($request),
             'homeUrl' => url('/'),
             'seo' => $card['seo'],
             'share' => $card['share'],
@@ -93,24 +90,6 @@ final readonly class LinkPageController
                 'enabled' => ! $this->hasPanelAccess($request),
             ],
         ]);
-    }
-
-    /**
-     * «Mi calendario» for a signed-in person, while the core has a personal calendar at all.
-     *
-     * The feed address is never here: the core stores only its hash and gives the address once,
-     * when the person issues it from their profile (which also revokes the previous one). So the
-     * page leads to that tab instead of issuing a token on a visit.
-     *
-     * @return array{profileUrl: string}|null
-     */
-    private function personalCalendarProps(Request $request): ?array
-    {
-        if ($request->user() === null || ! $this->personalCalendar->isAvailable()) {
-            return null;
-        }
-
-        return ['profileUrl' => route('profile.show', ['tab' => 'calendar'])];
     }
 
     private function hasPanelAccess(Request $request): bool
