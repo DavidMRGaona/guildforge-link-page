@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
+import SiteBlock from '@/components/layout/SiteBlock.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
 import CalendarSubscribe from '../../components/CalendarSubscribe.vue';
 import FeaturedEvent from '../../components/FeaturedEvent.vue';
@@ -273,6 +274,28 @@ function formatStart(event: LinkPageEvent): string | null {
                         <OwnLinkButton :link="link" />
                     </li>
                 </ul>
+            </section>
+
+            <!-- Site blocks of other modules (link-page#48); a block the core cannot draw leaves its card
+                 empty, and module.css hides the whole section then -->
+            <section
+                v-for="(item, index) in blocks"
+                :key="`${index}:${item.block.key}`"
+                :aria-labelledby="item.title ? `link-page-block-${index}` : undefined"
+                :aria-label="item.title ? undefined : (item.label ?? undefined)"
+                class="link-page-block"
+                data-testid="link-page-block"
+            >
+                <h2
+                    v-if="item.title"
+                    :id="`link-page-block-${index}`"
+                    class="mb-3 text-lg font-semibold"
+                >
+                    {{ item.title }}
+                </h2>
+                <div class="link-page-block__card p-4 sm:p-5">
+                    <SiteBlock :block="item.block" placement="link_page" />
+                </div>
             </section>
 
             <section aria-labelledby="link-page-calendar">

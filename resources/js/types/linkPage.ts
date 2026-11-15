@@ -1,3 +1,5 @@
+import type { ResolvedSiteBlock } from '@/types/siteBlocks';
+
 /** The views the core's ModuleEventCalendar takes. */
 export type CalendarView = 'list' | 'month';
 
@@ -179,6 +181,18 @@ export interface LinkPageStats {
     enabled: boolean;
 }
 
+/**
+ * A site block another module offers for the link page (link-page#48), already resolved on the server
+ * for the person viewing: only blocks that can be drawn now arrive.
+ */
+export interface LinkPageBlock {
+    /** Drawn above the block; null for none. */
+    title: string | null;
+    /** The block's name, which names its section when it has no title. */
+    label: string | null;
+    block: ResolvedSiteBlock;
+}
+
 export interface LinkPageProps {
     site: LinkPageSite;
     appearance: LinkPageAppearance;
@@ -191,6 +205,8 @@ export interface LinkPageProps {
     links: { before: LinkPageLink[]; after: LinkPageLink[] };
     social: { position: LinkPageSocialPosition; links: LinkPageSocialLink[] };
     events: LinkPageEvent[];
+    /** Site blocks of other modules, after the links that follow the events and before the calendar. */
+    blocks: LinkPageBlock[];
     calendar: LinkPageCalendar;
     calendarFeed: LinkPageCalendarFeed;
     homeUrl: string;

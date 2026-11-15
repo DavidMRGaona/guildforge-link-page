@@ -99,6 +99,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             text: 'Scan, play, repeat.',
         },
         stats: { endpoint: '/api/link-page/stats', enabled: false },
+        blocks: [],
         ...overrides,
     };
 }

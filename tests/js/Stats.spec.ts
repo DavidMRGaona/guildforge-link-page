@@ -106,6 +106,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
         homeUrl: 'https://example.test',
         share: { url: 'https://example.test/enlaces', title: 'Example guild', text: '' },
         stats: { endpoint: ENDPOINT, enabled: true },
+        blocks: [],
         ...overrides,
     };
 }

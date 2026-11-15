@@ -291,6 +291,21 @@ return [
         'calendar_initial_view_help' => 'La lista se lee mejor en el móvil; desde la página se puede pasar a la otra vista.',
     ],
 
+    'blocks' => [
+        'section' => 'Bloques',
+        'section_help' => 'Bloques que ofrecen otros módulos, como la suscripción al boletín. Salen en este orden después de los enlaces que van tras los eventos y antes del calendario. Hasta :max.',
+        'none_available' => 'Ahora ningún módulo activo ofrece bloques para la página de enlaces, así que no se puede añadir ninguno. Saldrán aquí cuando un módulo los ofrezca, como el del boletín.',
+        'add' => 'Añadir bloque',
+        'title' => 'Título',
+        'title_help' => 'Opcional. Sale encima del bloque.',
+        'unavailable' => 'Ahora no se puede mostrar: no sale en la página hasta que vuelva a estar disponible.',
+        'broken' => 'No se pueden mostrar los ajustes de este bloque. Se conservan tal cual al guardar.',
+        'unknown' => [
+            'label' => 'Bloque no disponible (:key)',
+            'help' => 'Este bloque es de un módulo que no está activo. Se conserva tal cual al guardar y vuelve a salir en la página si el módulo se activa. Bórralo si ya no lo quieres.',
+        ],
+    ],
+
     'share' => [
         'section' => 'Compartir',
         'section_help' => 'La tarjeta que WhatsApp, Telegram y las redes sociales enseñan al compartir la página, y el botón «Compartir» de la propia página. Lo que dejes vacío se toma del sitio.',

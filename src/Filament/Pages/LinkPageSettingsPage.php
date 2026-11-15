@@ -44,9 +44,11 @@ use Modules\LinkPage\Domain\Enums\BackgroundType;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LogoSource;
 use Modules\LinkPage\Domain\ValueObjects\FeaturedSettings;
+use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Filament\Media\Sources\SettingsMediaSource;
 use Modules\LinkPage\Filament\Schemas\AppearanceSection;
+use Modules\LinkPage\Filament\Schemas\BlocksSection;
 use Modules\LinkPage\Filament\Schemas\HighlightsSection;
 use Modules\LinkPage\Filament\Schemas\ShareSection;
 use Modules\LinkPage\Filament\Schemas\SocialSection;
@@ -54,6 +56,7 @@ use Modules\LinkPage\Filament\Schemas\StatsSection;
 use Modules\LinkPage\Filament\Support\AppearanceFormState;
 use Modules\LinkPage\Filament\Support\AppearancePreview;
 use Modules\LinkPage\Filament\Support\HighlightsFormState;
+use Modules\LinkPage\Filament\Support\PageBlockCatalog;
 use Modules\LinkPage\Filament\Support\ShareFormState;
 use Modules\LinkPage\Http\Presenters\AppearancePresenter;
 use Throwable;
@@ -95,6 +98,9 @@ final class LinkPageSettingsPage extends Page implements HasForms
     /** @var array<string, string>|null */
     private ?array $tagOptions = null;
 
+    /** The site blocks the page can offer, worked out once per request */
+    private ?PageBlockCatalog $blockCatalog = null;
+
     public static function getNavigationLabel(): string
     {
         return __('link-page::messages.settings.title');
@@ -132,6 +138,10 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 'pinned' => array_values(array_intersect($settings->pinnedEventIds(), array_keys($this->eventOptions()))),
                 'hidden' => array_values(array_intersect($settings->hiddenEventIds(), array_keys($this->eventOptions()))),
             ],
+            'blocks' => array_map(
+                fn (PageBlock $block): array => $this->blockCatalog()->formState($block),
+                $settings->blocks(),
+            ),
             'calendar' => [
                 'initial_view' => $settings->calendarInitialView()->value,
             ],
@@ -217,6 +227,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                             ->rules([fn (): Closure => $this->onlyOptions($this->eventOptions(...))])
                             ->columnSpanFull(),
                     ]),
+                BlocksSection::make(fn (): PageBlockCatalog => $this->blockCatalog()),
                 Section::make(__('link-page::messages.settings.sections.calendar'))
                     ->schema([
                         Select::make('calendar.initial_view')
@@ -289,6 +300,7 @@ final class LinkPageSettingsPage extends Page implements HasForms
                     'pinned' => array_values((array) ($events['pinned'] ?? [])),
                     'hidden' => array_values((array) ($events['hidden'] ?? [])),
                 ],
+                'blocks' => $this->blockCatalog()->toStored($state['blocks'] ?? []),
                 'calendar' => [
                     'initial_view' => is_array($state['calendar'] ?? null) ? ($state['calendar']['initial_view'] ?? null) : null,
                 ],
@@ -421,6 +433,11 @@ final class LinkPageSettingsPage extends Page implements HasForms
                 ->label(__('common.save'))
                 ->submit('save'),
         ];
+    }
+
+    private function blockCatalog(): PageBlockCatalog
+    {
+        return $this->blockCatalog ??= new PageBlockCatalog;
     }
 
     /**

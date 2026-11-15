@@ -12,6 +12,7 @@ use Modules\LinkPage\Domain\Enums\SocialNetwork;
 use Modules\LinkPage\Domain\Enums\SocialPosition;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
 use Modules\LinkPage\Domain\ValueObjects\LinkUrl;
+use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use Modules\LinkPage\Domain\ValueObjects\ShareImagePath;
 use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 
@@ -82,6 +83,11 @@ final readonly class LinkPageSettings implements LinkPageSettingsInterface
         $view = config(self::KEY.'.calendar.initial_view');
 
         return (is_string($view) ? CalendarView::tryFrom($view) : null) ?? CalendarView::List;
+    }
+
+    public function blocks(): array
+    {
+        return PageBlock::listFrom(config(self::KEY.'.blocks'));
     }
 
     public function shareTitle(): ?string
