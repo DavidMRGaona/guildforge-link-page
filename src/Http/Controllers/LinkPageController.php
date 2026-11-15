@@ -19,6 +19,7 @@ use Modules\LinkPage\Application\DTOs\LinkPageEventDTO;
 use Modules\LinkPage\Application\DTOs\LinkPageLinkDTO;
 use Modules\LinkPage\Application\Services\FeaturedEventService;
 use Modules\LinkPage\Application\Services\LinkPageEventsService;
+use Modules\LinkPage\Application\Services\PageBlocksResolver;
 use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\LinkPlacement;
 use Modules\LinkPage\Domain\ValueObjects\SocialLink;
@@ -74,6 +75,10 @@ final readonly class LinkPageController
                 'position' => $this->settings->socialPosition()->value,
                 'links' => array_map($this->socialProps(...), $this->settings->socialLinks()),
             ],
+            // Site blocks of other modules, drawn before the calendar; one that cannot be drawn now is
+            // left out. Resolved per call: the core's renderer is scoped to the request, and the route
+            // keeps its controller
+            'blocks' => resolve(PageBlocksResolver::class)->resolve($this->settings->blocks(), $request->user()),
             'events' => array_map($this->eventProps(...), $this->events->upcoming($featured instanceof FeaturedEventDTO ? [$featured->id] : [])),
             'calendar' => [
                 'initialView' => $this->settings->calendarInitialView()->value,

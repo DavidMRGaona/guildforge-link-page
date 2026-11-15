@@ -25,6 +25,9 @@ return [
     'calendar' => [
         'initial_view' => 'list',
     ],
+    // Site blocks other modules offer for the link page, drawn before the calendar: a list of
+    // {key, title, settings}, at most three
+    'blocks' => [],
     // A temporary notice at the top; the dates are ISO 8601 instants, empty meaning "no limit"
     'notice' => [
         'enabled' => false,

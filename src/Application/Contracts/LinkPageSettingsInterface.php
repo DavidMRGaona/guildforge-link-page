@@ -8,6 +8,7 @@ use Modules\LinkPage\Domain\Enums\CalendarView;
 use Modules\LinkPage\Domain\Enums\SocialNetwork;
 use Modules\LinkPage\Domain\Enums\SocialPosition;
 use Modules\LinkPage\Domain\ValueObjects\Appearance;
+use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use Modules\LinkPage\Domain\ValueObjects\SocialLink;
 
 /**
@@ -72,6 +73,14 @@ interface LinkPageSettingsInterface
     public function hiddenEventIds(): array;
 
     public function calendarInitialView(): CalendarView;
+
+    /**
+     * The site blocks placed between the links after the events and the calendar, in their order
+     * (link-page#48). Whether each one can be drawn now is the core's business, asked per request.
+     *
+     * @return list<PageBlock>
+     */
+    public function blocks(): array;
 
     /**
      * Days of statistics kept; older days are deleted every night. Between the minimum and the

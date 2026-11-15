@@ -397,6 +397,54 @@
     color: var(--color-text-primary);
 }
 
+/* ------------------------------------------------------------------------
+ * Site blocks of other modules (Show.vue, link-page#48)
+ *
+ * Each block (the newsletter form, for instance) sits on a card like the
+ * featured event's: the page surface with the page text, a pair the page
+ * already keeps readable in both themes, with colours of its own and over a
+ * gradient or an image. The block draws itself with the site tokens.
+ * ------------------------------------------------------------------------ */
+
+.link-page-block__card {
+    border: 1px solid var(--color-border);
+    border-radius: min(var(--lp-radius), 1.5rem);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    box-shadow: var(--lp-btn-shadow);
+}
+
+/* A block the core could not draw (its component failed to load or render)
+   leaves only Vue's placeholder in the card: neither the card nor its title
+   is shown */
+.link-page-block__card:empty,
+.link-page-block:has(> .link-page-block__card:empty) {
+    display: none;
+}
+
+/* With colours of its own the page sets the site tokens on its root, but what
+   the core derives from them on :root (the primary button) is resolved there,
+   and a block's links, field borders and error text use palette steps the page
+   does not set. Inside a block they take the pairs the page checked: the
+   button of the chosen style, and the text on the background. */
+.link-page--custom .link-page-block__card {
+    --button-primary-bg: var(--lp-btn-bg);
+    --button-primary-text: var(--lp-btn-fg);
+    --button-primary-border: var(--lp-btn-border);
+    --button-primary-hover-bg: var(--lp-btn-hover-bg);
+    --button-primary-hover-text: var(--lp-btn-fg);
+    --color-primary-200: var(--lp-text);
+    --color-primary-300: var(--lp-text);
+    --color-primary-600: var(--lp-button);
+    --color-primary-700: var(--lp-text);
+    --color-primary-800: var(--lp-text);
+    --color-neutral-300: var(--color-border-strong);
+    --color-neutral-400: var(--color-border-strong);
+    --color-neutral-500: var(--color-border-strong);
+    --color-neutral-600: var(--color-border-strong);
+    --color-error: var(--lp-text);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .link-page-button {
         transition: none;

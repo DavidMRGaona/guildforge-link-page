@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file -- the stand-ins for the core's calendar and site block */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { VNode } from 'vue';
 import { mount } from '@vue/test-utils';
@@ -5,6 +6,7 @@ import Show from '../../resources/js/pages/LinkPage/Show.vue';
 import es from '../../resources/js/locales/es';
 import type {
     LinkPageAppearance,
+    LinkPageBlock,
     LinkPageColors,
     LinkPageEvent,
     LinkPageProps,
@@ -34,6 +36,32 @@ vi.mock('@/components/calendar/ModuleEventCalendar.vue', async () => {
 });
 
 vi.mock('@/utils/datetime', () => ({ VENUE_TIMEZONE: 'Europe/Madrid' }));
+
+// The core draws each site block (it loads the module's component): only what it is given is checked
+vi.mock('@/components/layout/SiteBlock.vue', async () => {
+    const { defineComponent, h } = await import('vue');
+
+    return {
+        default: defineComponent({
+            name: 'SiteBlock',
+            props: {
+                block: { type: Object, required: true },
+                placement: { type: String, default: 'footer' },
+            },
+            setup(props) {
+                return (): VNode =>
+                    h('div', {
+                        'data-testid': 'site-block',
+                        'data-key': (props.block as { key: string }).key,
+                        'data-placement': props.placement,
+                        'data-heading': String(
+                            (props.block as { props: Record<string, unknown> }).props.heading ?? ''
+                        ),
+                    });
+            },
+        }),
+    };
+});
 
 function event(overrides: Partial<LinkPageEvent> = {}): LinkPageEvent {
     return {
@@ -103,6 +131,7 @@ function props(overrides: Partial<LinkPageProps> = {}): LinkPageProps {
             text: 'Scan, play, repeat.',
         },
         stats: { endpoint: '/api/link-page/stats', enabled: false },
+        blocks: [],
         ...overrides,
     };
 }
@@ -283,6 +312,93 @@ describe('LinkPage/Show', () => {
         const home = wrapper.find('footer a');
         expect(home.attributes('href')).toBe('https://example.test');
         expect(home.text()).toBe('Ir a la web de Example guild');
+    });
+});
+
+function block(overrides: Partial<LinkPageBlock> = {}, heading = 'Subscribe'): LinkPageBlock {
+    return {
+        title: null,
+        label: 'Newsletter',
+        block: {
+            key: 'example-module.subscribe',
+            module: 'example-module',
+            component: 'components/SubscribeBlock.vue',
+            props: { heading },
+        },
+        ...overrides,
+    };
+}
+
+function link(linkId: string): LinkPageProps['links']['after'][number] {
+    return {
+        linkId,
+        title: 'Discord',
+        url: 'https://example.test/discord',
+        description: null,
+        icon: null,
+        featured: false,
+        external: true,
+    };
+}
+
+describe('LinkPage/Show site blocks', () => {
+    it('draws no block section when the server sends none', () => {
+        const wrapper = mount(Show, { props: props() });
+
+        expect(wrapper.find('[data-testid="link-page-block"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="site-block"]').exists()).toBe(false);
+    });
+
+    it('draws each block in order for the link page placement', () => {
+        const wrapper = mount(Show, {
+            props: props({ blocks: [block({}, 'First'), block({}, 'Second')] }),
+        });
+
+        const drawn = wrapper.findAll('[data-testid="site-block"]');
+        expect(drawn.map((item) => item.attributes('data-heading'))).toEqual(['First', 'Second']);
+        expect(drawn.every((item) => item.attributes('data-placement') === 'link_page')).toBe(true);
+    });
+
+    it('puts the blocks after the links that follow the events and before the calendar', () => {
+        const wrapper = mount(Show, {
+            props: props({
+                links: { before: [], after: [link('link:after')] },
+                blocks: [block()],
+            }),
+        });
+
+        const after = wrapper.get('[data-testid="link-page-links-after"]').element;
+        const section = wrapper.get('[data-testid="link-page-block"]').element;
+        const calendar = wrapper.get('section[aria-labelledby="link-page-calendar"]').element;
+        expect(
+            after.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        expect(
+            section.compareDocumentPosition(calendar) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+    });
+
+    it('names a block section by its title, or by the block when it has none', () => {
+        const wrapper = mount(Show, {
+            props: props({ blocks: [block({ title: 'Our newsletter' }), block()] }),
+        });
+
+        const [titled, untitled] = wrapper.findAll('[data-testid="link-page-block"]');
+        const heading = titled?.get('h2');
+        expect(heading?.text()).toBe('Our newsletter');
+        expect(titled?.attributes('aria-labelledby')).toBe(heading?.attributes('id'));
+        expect(titled?.attributes('aria-label')).toBeUndefined();
+
+        expect(untitled?.find('h2').exists()).toBe(false);
+        expect(untitled?.attributes('aria-label')).toBe('Newsletter');
+        expect(untitled?.attributes('aria-labelledby')).toBeUndefined();
+    });
+
+    it('draws each block inside a card of the page', () => {
+        const wrapper = mount(Show, { props: props({ blocks: [block()] }) });
+
+        const card = wrapper.get('[data-testid="link-page-block"] .link-page-block__card');
+        expect(card.find('[data-testid="site-block"]').exists()).toBe(true);
     });
 });
 

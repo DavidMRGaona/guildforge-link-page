@@ -1,11 +1,11 @@
 ---
 id: link-page.panel.settings
 title: Configurar la página de enlaces
-summary: Enciende la página de enlaces, elige qué eventos y qué calendario muestra y cómo se ve al compartirla.
+summary: Enciende la página de enlaces, elige qué eventos, bloques y calendario muestra y cómo se ve al compartirla.
 category: content
 audience: panel
 order: 86
-keywords: [página de enlaces, enlaces, linktree, bio, qr, /enlaces, ajustes, configurar, presentación, próximos eventos, eventos fijados, eventos escondidos, calendario, tarjeta, compartir, whatsapp, telegram, buscadores, apagar la página]
+keywords: [página de enlaces, enlaces, linktree, bio, qr, /enlaces, ajustes, configurar, presentación, próximos eventos, eventos fijados, eventos escondidos, calendario, bloques, boletín, suscripción, tarjeta, compartir, whatsapp, telegram, buscadores, apagar la página]
 related: [link-page.panel.appearance, link-page.panel.notice-and-featured-event, link-page.panel.links-and-socials, link-page.panel.qr-codes, link-page.panel.stats]
 conditions:
   permissions:
@@ -36,6 +36,17 @@ La sección **Próximos eventos** decide los botones de eventos de la página. S
 > [!TIP]
 > Al abrir la pantalla se descartan solos los eventos fijados o escondidos que ya han terminado, para que no estorben al guardar.
 
+## Bloques de otros módulos
+
+La sección **Bloques** añade a la página piezas que ofrecen otros módulos instalados, como el formulario para suscribirse al boletín. Salen después de los enlaces que van tras los eventos y antes del calendario, en el orden de la lista. Caben hasta 3.
+
+- Pulsa **Añadir bloque** y elige uno. Cada bloque tiene un **Título** opcional (hasta 80 caracteres), que sale encima, y sus propios ajustes.
+- Arrastra los bloques para cambiar el orden, o bórralos con la papelera.
+- Si ningún módulo activo ofrece bloques para la página de enlaces, la sección lo dice y no deja añadir ninguno.
+
+> [!IMPORTANT]
+> Un bloque guardado que ahora no se puede mostrar (por ejemplo, porque su módulo está desactivado o el servicio que usa no responde) no sale en la página, pero se conserva al guardar con sus ajustes. Vuelve a salir solo en cuanto esté disponible otra vez.
+
 ## El calendario
 
 En la sección **Calendario**, **Vista inicial** elige cómo se abre: **Lista** (se lee mejor en el móvil) o **Mes**. Quien visita la página puede cambiar de vista. Debajo del calendario hay un botón **Suscribirse** para seguirlo en el móvil, Google Calendar u Outlook sin necesitar cuenta.
@@ -62,6 +73,7 @@ Cada una tiene su guía:
 
 ## Si algo no sale bien
 
+- **Un bloque no sale en la página**: comprueba que su módulo está activo. Si en la sección **Bloques** pone que ahora no se puede mostrar, el módulo o su servicio no está disponible; el bloque vuelve solo cuando lo esté.
 - **Un evento no aparece**: comprueba que está publicado, que empieza dentro del **Horizonte**, que tiene alguna de las **Etiquetas** (si has elegido) y que no está en **Eventos escondidos**.
 - **No me deja guardar**: baja hasta el campo marcado en rojo; el mensaje dice qué falla (un contraste insuficiente en **Apariencia**, un enlace no válido, un número fuera de rango…).
 - **WhatsApp enseña la tarjeta antigua**: las aplicaciones guardan la tarjeta un tiempo. Prueba a pegar la dirección en una conversación nueva pasados unos minutos.
