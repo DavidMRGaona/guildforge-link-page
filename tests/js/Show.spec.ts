@@ -98,6 +98,7 @@ function colors(overrides: Partial<LinkPageColors> = {}): LinkPageColors {
         buttonText: '#FFFFFF',
         buttonStrong: '#000000',
         muted: '#EDEDED',
+        error: '#DC2626',
         overlay: 0.6,
         ...overrides,
     };
@@ -454,6 +455,7 @@ describe('LinkPage/Show appearance', () => {
         expect(style).toContain('--lp-light-bg: #FFFFFF');
         expect(style).toContain('--lp-light-button-strong: #000000');
         expect(style).toContain('--lp-light-muted: #EDEDED');
+        expect(style).toContain('--lp-light-error: #DC2626');
         expect(style).toContain('--lp-dark-bg: #0A0A0A');
         expect(style).toContain('--lp-dark-text: #F5F5F5');
         expect(style).toContain('--lp-dark-overlay: 0.4');

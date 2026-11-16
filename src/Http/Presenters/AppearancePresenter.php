@@ -79,7 +79,7 @@ final readonly class AppearancePresenter
     }
 
     /**
-     * @return array{background: string, backgroundTo: string, text: string, button: string, buttonText: string, buttonStrong: string, muted: string, overlay: float}
+     * @return array{background: string, backgroundTo: string, text: string, button: string, buttonText: string, buttonStrong: string, muted: string, error: string, overlay: float}
      */
     private function colors(ColorScheme $scheme): array
     {
@@ -91,6 +91,7 @@ final readonly class AppearancePresenter
             'buttonText' => $scheme->buttonText->value,
             'buttonStrong' => $scheme->strongButton()->value,
             'muted' => $scheme->muted()->value,
+            'error' => $scheme->error()->value,
             'overlay' => round($scheme->overlay / 100, 2),
         ];
     }

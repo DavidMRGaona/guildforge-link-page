@@ -26,6 +26,11 @@ final readonly class ColorScheme
     /** Percentage of the text colour in the muted background. */
     private const int MUTED_TEXT = 8;
 
+    /** The site's error red on a light page and on a dark one (app.css `--color-error`). */
+    private const string ERROR_ON_LIGHT = '#DC2626';
+
+    private const string ERROR_ON_DARK = '#F87171';
+
     /**
      * @param  int  $overlay  percentage of the background colour laid over a background image
      */
@@ -121,6 +126,27 @@ final readonly class ColorScheme
     public function muted(): HexColor
     {
         return $this->blend($this->text, $this->background, self::MUTED_TEXT / 100);
+    }
+
+    /**
+     * The colour of error messages in blocks of other modules (link-page#50): the site's error red
+     * (red-600 on a light background, red-400 on a dark one, as app.css) moved towards the text in
+     * steps of 10 % until it reads at 4.5:1 on the background. When no tint of red does (a red
+     * background), it is the text, which the saved colours already keep readable.
+     */
+    public function error(): HexColor
+    {
+        $red = new HexColor($this->background->relativeLuminance() > 0.18 ? self::ERROR_ON_LIGHT : self::ERROR_ON_DARK);
+
+        for ($step = 10; $step > 0; $step--) {
+            $candidate = $this->blend($red, $this->text, $step / 10);
+
+            if ($candidate->contrastRatio($this->background) >= 4.5) {
+                return $candidate;
+            }
+        }
+
+        return $this->text;
     }
 
     /**

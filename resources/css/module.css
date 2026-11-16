@@ -143,6 +143,7 @@
     --lp-button-text: var(--lp-light-button-text);
     --lp-button-strong: var(--lp-light-button-strong);
     --lp-muted: var(--lp-light-muted);
+    --lp-error: var(--lp-light-error);
     --lp-overlay: var(--lp-light-overlay);
 }
 
@@ -154,6 +155,7 @@
     --lp-button-text: var(--lp-dark-button-text);
     --lp-button-strong: var(--lp-dark-button-strong);
     --lp-muted: var(--lp-dark-muted);
+    --lp-error: var(--lp-dark-error);
     --lp-overlay: var(--lp-dark-overlay);
 }
 
@@ -426,7 +428,8 @@
    the core derives from them on :root (the primary button) is resolved there,
    and a block's links, field borders and error text use palette steps the page
    does not set. Inside a block they take the pairs the page checked: the
-   button of the chosen style, and the text on the background. */
+   button of the chosen style, the text on the background, and for errors the
+   site's red moved towards the text until it reads (link-page#50). */
 .link-page--custom .link-page-block__card {
     --button-primary-bg: var(--lp-btn-bg);
     --button-primary-text: var(--lp-btn-fg);
@@ -442,7 +445,7 @@
     --color-neutral-400: var(--color-border-strong);
     --color-neutral-500: var(--color-border-strong);
     --color-neutral-600: var(--color-border-strong);
-    --color-error: var(--lp-text);
+    --color-error: var(--lp-error);
 }
 
 @media (prefers-reduced-motion: reduce) {
