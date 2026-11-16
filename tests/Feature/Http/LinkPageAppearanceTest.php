@@ -59,6 +59,8 @@ final class LinkPageAppearanceTest extends ModuleTestCase
                 ->where('appearance.colors.dark.buttonText', '#1B1030')
                 ->where('appearance.colors.dark.overlay', 0.6)
                 ->has('appearance.colors.dark.buttonStrong')
+                ->has('appearance.colors.light.error')
+                ->has('appearance.colors.dark.error')
                 ->where('appearance.background.type', 'gradient')
                 ->where('appearance.background.angle', 135)
                 ->where('appearance.buttons', ['style' => 'filled', 'shape' => 'pill'])

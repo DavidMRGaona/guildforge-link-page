@@ -49,6 +49,7 @@ const COLOR_KEYS: Record<Exclude<keyof LinkPageColors, 'overlay'>, string> = {
     buttonText: 'button-text',
     buttonStrong: 'button-strong',
     muted: 'muted',
+    error: 'error',
 };
 
 const rootStyle = computed<Record<string, string>>(() => {

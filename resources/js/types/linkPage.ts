@@ -124,6 +124,8 @@ export interface LinkPageColors {
     buttonStrong: string;
     /** The soft background of the calendar: 8 % of the text over the background. */
     muted: string;
+    /** Error messages of blocks: the site's red moved towards the text until it reads (4.5:1). */
+    error: string;
     /** Opacity of the background colour over a background image, 0 to 0.9. */
     overlay: number;
 }

@@ -113,6 +113,60 @@ final class ColorSchemeTest extends TestCase
         }
     }
 
+    public function test_the_error_colour_is_the_site_red_when_it_already_reads_on_the_background(): void
+    {
+        // red-600 on white is 4.83:1; red-400 on near black is 7.16:1
+        $this->assertSame('#DC2626', $this->scheme(background: '#FFFFFF', text: '#111111')->error()->value);
+        $this->assertSame('#F87171', $this->scheme(background: '#0A0A0A', text: '#F5F5F5')->error()->value);
+    }
+
+    public function test_the_error_colour_moves_towards_the_text_until_it_reads_on_a_tinted_background(): void
+    {
+        // Parchment, light: red-600 alone is 4:1 on #F4E9D0
+        $scheme = $this->scheme(background: '#F4E9D0', text: '#3B2A1A');
+        $error = $scheme->error();
+
+        $this->assertGreaterThanOrEqual(4.5, $error->contrastRatio($scheme->background));
+        $this->assertNotSame('#DC2626', $error->value);
+        $this->assertNotSame($scheme->text->value, $error->value);
+        // Still a red: more red than green and blue
+        $rgb = $error->toRgb();
+        $this->assertGreaterThan($rgb['g'] * 2, $rgb['r']);
+    }
+
+    public function test_the_error_colour_falls_back_to_the_text_when_no_tint_of_red_reads(): void
+    {
+        // A mid grey with white text (4.67:1): no tint of red reaches 4.5:1 on it
+        $this->assertSame('#FFFFFF', $this->scheme(background: '#747474', text: '#FFFFFF')->error()->value);
+
+        // On a red background a pale tint of red still reads, so it is used
+        $red = $this->scheme(background: '#B91C1C', text: '#FFFFFF');
+        $this->assertGreaterThanOrEqual(4.5, $red->error()->contrastRatio($red->background));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function templateSchemes(): iterable
+    {
+        yield 'parchment light' => ['#F4E9D0', '#3B2A1A'];
+        yield 'parchment dark' => ['#2A2118', '#F4E9D0'];
+        yield 'tavern light' => ['#F3E7D7', '#2E1F14'];
+        yield 'arcane light' => ['#EDE7FB', '#2A1846'];
+        yield 'arcane dark' => ['#1B1030', '#F1EAFF'];
+        yield 'forest light' => ['#E8F1E4', '#1F3320'];
+        yield 'minimal light' => ['#FFFFFF', '#111111'];
+    }
+
+    #[DataProvider('templateSchemes')]
+    public function test_the_error_colour_of_every_template_reads_and_is_not_the_text(string $background, string $text): void
+    {
+        $scheme = $this->scheme(background: $background, text: $text);
+
+        $this->assertGreaterThanOrEqual(4.5, $scheme->error()->contrastRatio($scheme->background));
+        $this->assertNotSame($text, $scheme->error()->value);
+    }
+
     public function test_it_round_trips_through_an_array(): void
     {
         $scheme = $this->scheme(overlay: 40);
