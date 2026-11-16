@@ -207,6 +207,11 @@ return [
         'after' => 'Después de los eventos',
     ],
 
+    'block_positions' => [
+        'before_calendar' => 'Antes del calendario',
+        'after_calendar' => 'Después del calendario',
+    ],
+
     'link_visibility' => [
         'visible' => 'Visible',
         'scheduled' => 'Programado',
@@ -293,11 +298,12 @@ return [
 
     'blocks' => [
         'section' => 'Bloques',
-        'section_help' => 'Bloques que ofrecen otros módulos, como la suscripción al boletín. Salen en este orden después de los enlaces que van tras los eventos y antes del calendario. Hasta :max.',
+        'section_help' => 'Bloques que ofrecen otros módulos, como la suscripción al boletín. Cada uno va antes o después del calendario, según su posición, y dentro de cada sitio salen en este orden. Hasta :max.',
         'none_available' => 'Ahora ningún módulo activo ofrece bloques para la página de enlaces, así que no se puede añadir ninguno. Saldrán aquí cuando un módulo los ofrezca, como el del boletín.',
         'add' => 'Añadir bloque',
         'title' => 'Título',
         'title_help' => 'Opcional. Sale encima del bloque.',
+        'position' => 'Posición',
         'unavailable' => 'Ahora no se puede mostrar: no sale en la página hasta que vuelva a estar disponible.',
         'broken' => 'No se pueden mostrar los ajustes de este bloque. Se conservan tal cual al guardar.',
         'unknown' => [

@@ -192,8 +192,12 @@ export interface LinkPageBlock {
     title: string | null;
     /** The block's name, which names its section when it has no title. */
     label: string | null;
+    /** Before the calendar, or after it and before the social row at the bottom (link-page#53). */
+    position: LinkPageBlockPosition;
     block: ResolvedSiteBlock;
 }
+
+export type LinkPageBlockPosition = 'before_calendar' | 'after_calendar';
 
 export interface LinkPageProps {
     site: LinkPageSite;
@@ -207,7 +211,7 @@ export interface LinkPageProps {
     links: { before: LinkPageLink[]; after: LinkPageLink[] };
     social: { position: LinkPageSocialPosition; links: LinkPageSocialLink[] };
     events: LinkPageEvent[];
-    /** Site blocks of other modules, after the links that follow the events and before the calendar. */
+    /** Site blocks of other modules in their order, each before or after the calendar. */
     blocks: LinkPageBlock[];
     calendar: LinkPageCalendar;
     calendarFeed: LinkPageCalendarFeed;

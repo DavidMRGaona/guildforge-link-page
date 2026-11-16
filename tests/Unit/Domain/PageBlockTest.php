@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Tests\Unit\Domain;
 
+use Modules\LinkPage\Domain\Enums\BlockPosition;
 use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -18,12 +19,41 @@ final class PageBlockTest extends TestCase
     {
         $blocks = PageBlock::listFrom([
             ['key' => 'example-module.subscribe', 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete']],
-            ['key' => 'other-module.block', 'title' => null, 'settings' => []],
+            ['key' => 'other-module.block', 'title' => null, 'settings' => [], 'position' => 'after_calendar'],
         ]);
 
         $this->assertCount(2, $blocks);
-        $this->assertSame(['key' => 'example-module.subscribe', 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete']], $blocks[0]->toArray());
-        $this->assertSame(['key' => 'other-module.block', 'title' => null, 'settings' => []], $blocks[1]->toArray());
+        $this->assertSame(['key' => 'example-module.subscribe', 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete'], 'position' => 'before_calendar'], $blocks[0]->toArray());
+        $this->assertSame(['key' => 'other-module.block', 'title' => null, 'settings' => [], 'position' => 'after_calendar'], $blocks[1]->toArray());
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function unknownPositions(): iterable
+    {
+        yield 'none stored' => [null];
+        yield 'an unknown value' => ['footer'];
+        yield 'blank' => [''];
+        yield 'not a string' => [['after_calendar']];
+    }
+
+    #[DataProvider('unknownPositions')]
+    public function test_a_missing_or_unknown_position_is_before_the_calendar(mixed $position): void
+    {
+        $entry = ['key' => 'a-module.a'];
+        if ($position !== null) {
+            $entry['position'] = $position;
+        }
+
+        $this->assertSame(BlockPosition::BeforeCalendar, PageBlock::listFrom([$entry])[0]->position);
+    }
+
+    public function test_it_reads_a_block_placed_after_the_calendar(): void
+    {
+        $block = PageBlock::listFrom([['key' => 'a-module.a', 'position' => 'after_calendar']])[0];
+
+        $this->assertSame(BlockPosition::AfterCalendar, $block->position);
     }
 
     /**

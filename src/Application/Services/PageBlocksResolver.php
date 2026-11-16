@@ -27,7 +27,7 @@ final readonly class PageBlocksResolver
 
     /**
      * @param  list<PageBlock>  $blocks
-     * @return list<array{title: string|null, label: string|null, block: array<string, mixed>}>
+     * @return list<array{title: string|null, label: string|null, position: string, block: array<string, mixed>}>
      */
     public function resolve(array $blocks, ?Authenticatable $user): array
     {
@@ -45,6 +45,8 @@ final readonly class PageBlocksResolver
                     'title' => $block->title,
                     // Names the section for assistive technology when it has no title
                     'label' => $this->labelOf($block->key),
+                    // Before or after the calendar (link-page#53); the page keeps the order inside each
+                    'position' => $block->position->value,
                     'block' => $drawn->toArray(),
                 ];
             }

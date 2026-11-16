@@ -6,8 +6,10 @@ namespace Modules\LinkPage\Tests\Feature\Filament;
 
 use App\Application\SiteBlocks\Services\SiteBlockRegistryInterface;
 use App\Domain\SiteBlocks\SiteBlockPlacement;
+use Filament\Actions\Testing\TestAction;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -87,15 +89,15 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
 
         Livewire::test(LinkPageSettingsPage::class)
             ->fillForm(['blocks' => [
-                ['type' => self::KEY, 'data' => ['title' => '  Boletín  ', 'settings' => ['heading' => 'Suscríbete']]],
-                ['type' => self::KEY, 'data' => ['title' => '', 'settings' => ['heading' => 'Otra vez']]],
+                ['type' => self::KEY, 'data' => ['title' => '  Boletín  ', 'position' => 'before_calendar', 'settings' => ['heading' => 'Suscríbete']]],
+                ['type' => self::KEY, 'data' => ['title' => '', 'position' => 'before_calendar', 'settings' => ['heading' => 'Otra vez']]],
             ]])
             ->call('save')
             ->assertHasNoFormErrors();
 
         $this->assertSame([
-            ['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete']],
-            ['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Otra vez']],
+            ['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete'], 'position' => 'before_calendar'],
+            ['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Otra vez'], 'position' => 'before_calendar'],
         ], $this->storedBlocks());
     }
 
@@ -114,7 +116,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
 
         $page->call('save')->assertHasNoFormErrors();
 
-        $this->assertSame([['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete']]], $this->storedBlocks());
+        $this->assertSame([['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete'], 'position' => 'before_calendar']], $this->storedBlocks());
     }
 
     public function test_removing_every_block_stores_none(): void
@@ -142,7 +144,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
 
         $page->call('save')->assertHasNoFormErrors();
 
-        $this->assertSame([['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete']]], $this->storedBlocks());
+        $this->assertSame([['key' => self::KEY, 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete'], 'position' => 'before_calendar']], $this->storedBlocks());
     }
 
     public function test_a_stored_block_nobody_registers_keeps_its_title_and_settings(): void
@@ -161,8 +163,8 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
         $page->call('save')->assertHasNoFormErrors();
 
         $this->assertSame([
-            ['key' => 'gone-module.subscribe', 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete', 'list' => 3]],
-            ['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Hola']],
+            ['key' => 'gone-module.subscribe', 'title' => 'Boletín', 'settings' => ['heading' => 'Suscríbete', 'list' => 3], 'position' => 'before_calendar'],
+            ['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Hola'], 'position' => 'before_calendar'],
         ], $this->storedBlocks());
     }
 
@@ -191,7 +193,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertSame([['key' => 'example-module.broken', 'title' => 'Roto', 'settings' => ['label' => 'Hola']]], $this->storedBlocks());
+        $this->assertSame([['key' => 'example-module.broken', 'title' => 'Roto', 'settings' => ['label' => 'Hola'], 'position' => 'before_calendar']], $this->storedBlocks());
     }
 
     public function test_forged_blocks_and_hidden_copies_are_dropped(): void
@@ -202,6 +204,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
             ->fillForm(['blocks' => [
                 ['type' => self::KEY, 'data' => [
                     'title' => null,
+                    'position' => 'before_calendar',
                     'settings' => ['heading' => 'Del formulario'],
                     'stored_settings' => '{"heading":"Forjado","extra":"x"}',
                 ]],
@@ -211,7 +214,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertSame([['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Del formulario']]], $this->storedBlocks());
+        $this->assertSame([['key' => self::KEY, 'title' => null, 'settings' => ['heading' => 'Del formulario'], 'position' => 'before_calendar']], $this->storedBlocks());
     }
 
     public function test_it_refuses_more_blocks_than_the_maximum(): void
@@ -263,6 +266,79 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
 
         Livewire::test(LinkPageSettingsPage::class)
             ->fillForm(['blocks' => [['type' => self::KEY, 'data' => ['title' => null, 'settings' => ['heading' => '']]]]])
+            ->call('save')
+            ->assertHasFormErrors();
+
+        $this->assertSame([], app(LinkPageSettingsInterface::class)->blocks());
+    }
+
+    public function test_each_block_offers_its_position_before_or_after_the_calendar(): void
+    {
+        $this->registerSubscribe(available: true);
+
+        $page = Livewire::test(LinkPageSettingsPage::class)
+            ->fillForm(['blocks' => [['type' => self::KEY, 'data' => ['title' => null, 'settings' => []]]]]);
+
+        $position = $this->positionFieldOf($page);
+        $this->assertTrue($position->isRequired());
+        $this->assertSame([
+            'before_calendar' => __('link-page::messages.block_positions.before_calendar'),
+            'after_calendar' => __('link-page::messages.block_positions.after_calendar'),
+        ], $position->getOptions());
+        // A block added from the panel starts before the calendar, where blocks always went
+        $added = Livewire::test(LinkPageSettingsPage::class)
+            ->set('data.blocks', [])
+            ->callAction(TestAction::make('add')->schemaComponent('blocks')->arguments(['block' => self::KEY]));
+        $this->assertSame('before_calendar', array_first($added->get('data.blocks'))['data']['position'] ?? null);
+    }
+
+    public function test_it_saves_the_position_of_each_block(): void
+    {
+        $this->registerSubscribe(available: true);
+
+        Livewire::test(LinkPageSettingsPage::class)
+            ->fillForm(['blocks' => [
+                ['type' => self::KEY, 'data' => ['title' => 'Al final', 'settings' => [], 'position' => 'after_calendar']],
+                ['type' => self::KEY, 'data' => ['title' => 'Antes', 'settings' => [], 'position' => 'before_calendar']],
+            ]])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame(['after_calendar', 'before_calendar'], array_column($this->storedBlocks(), 'position'));
+    }
+
+    public function test_it_opens_with_the_stored_position_and_saving_untouched_keeps_it(): void
+    {
+        $this->registerSubscribe(available: true);
+        $this->store([['key' => self::KEY, 'title' => null, 'settings' => [], 'position' => 'after_calendar']]);
+
+        $page = Livewire::test(LinkPageSettingsPage::class);
+
+        $this->assertSame('after_calendar', array_first($page->get('data.blocks'))['data']['position']);
+
+        $page->call('save')->assertHasNoFormErrors();
+
+        $this->assertSame(['after_calendar'], array_column($this->storedBlocks(), 'position'));
+    }
+
+    public function test_a_stored_block_without_a_form_keeps_its_position(): void
+    {
+        $this->registerSubscribe(available: true);
+        $this->store([['key' => 'gone-module.subscribe', 'title' => null, 'settings' => [], 'position' => 'after_calendar']]);
+
+        Livewire::test(LinkPageSettingsPage::class)
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame(['after_calendar'], array_column($this->storedBlocks(), 'position'));
+    }
+
+    public function test_it_refuses_a_position_it_does_not_offer(): void
+    {
+        $this->registerSubscribe(available: true);
+
+        Livewire::test(LinkPageSettingsPage::class)
+            ->fillForm(['blocks' => [['type' => self::KEY, 'data' => ['title' => null, 'settings' => [], 'position' => 'footer']]]])
             ->call('save')
             ->assertHasFormErrors();
 
@@ -321,7 +397,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
     /**
      * Blocks as if the page had saved them before.
      *
-     * @param  list<array{key: string, title: string|null, settings: array<string, mixed>}>  $blocks
+     * @param  list<array{key: string, title: string|null, settings: array<string, mixed>, position?: string}>  $blocks
      */
     private function store(array $blocks): void
     {
@@ -329,7 +405,7 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
     }
 
     /**
-     * @return list<array{key: string, title: string|null, settings: array<string, mixed>}>
+     * @return list<array{key: string, title: string|null, settings: array<string, mixed>, position?: string}>
      */
     private function storedBlocks(): array
     {
@@ -348,6 +424,19 @@ final class LinkPageBlocksFormTest extends ModuleTestCase
         $this->assertInstanceOf(Builder::class, $builder);
 
         return $builder;
+    }
+
+    /**
+     * @param  Testable<LinkPageSettingsPage>  $page
+     */
+    private function positionFieldOf(Testable $page): Select
+    {
+        $position = $page->instance()->form->getComponent(
+            static fn (mixed $component): bool => $component instanceof Select && $component->getName() === 'position',
+        );
+        $this->assertInstanceOf(Select::class, $position);
+
+        return $position;
     }
 
     private function blockNamed(Builder $builder, string $name): Block

@@ -75,8 +75,8 @@ final readonly class LinkPageController
                 'position' => $this->settings->socialPosition()->value,
                 'links' => array_map($this->socialProps(...), $this->settings->socialLinks()),
             ],
-            // Site blocks of other modules, drawn before the calendar; one that cannot be drawn now is
-            // left out. Resolved per call: the core's renderer is scoped to the request, and the route
+            // Site blocks of other modules, each drawn before or after the calendar as it says; one that
+            // cannot be drawn now is left out. Resolved per call: the core's renderer is scoped to the request, and the route
             // keeps its controller
             'blocks' => resolve(PageBlocksResolver::class)->resolve($this->settings->blocks(), $request->user()),
             'events' => array_map($this->eventProps(...), $this->events->upcoming($featured instanceof FeaturedEventDTO ? [$featured->id] : [])),

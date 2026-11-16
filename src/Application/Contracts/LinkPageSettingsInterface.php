@@ -75,8 +75,8 @@ interface LinkPageSettingsInterface
     public function calendarInitialView(): CalendarView;
 
     /**
-     * The site blocks placed between the links after the events and the calendar, in their order
-     * (link-page#48). Whether each one can be drawn now is the core's business, asked per request.
+     * The site blocks of the page, in their order (link-page#48), each before or after the calendar
+     * (link-page#53). Whether each one can be drawn now is the core's business, asked per request.
      *
      * @return list<PageBlock>
      */

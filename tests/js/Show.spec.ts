@@ -320,6 +320,7 @@ function block(overrides: Partial<LinkPageBlock> = {}, heading = 'Subscribe'): L
     return {
         title: null,
         label: 'Newsletter',
+        position: 'before_calendar',
         block: {
             key: 'example-module.subscribe',
             module: 'example-module',
@@ -377,6 +378,63 @@ describe('LinkPage/Show site blocks', () => {
         expect(
             section.compareDocumentPosition(calendar) & Node.DOCUMENT_POSITION_FOLLOWING
         ).toBeTruthy();
+    });
+
+    it('puts the blocks placed after the calendar between it and the social links below', () => {
+        const wrapper = mount(Show, {
+            props: props({
+                social: {
+                    position: 'bottom',
+                    links: [
+                        {
+                            linkId: 'social:discord',
+                            network: 'discord',
+                            label: 'Discord',
+                            url: 'https://example.test/discord',
+                            icon: 'discord',
+                            external: true,
+                        },
+                    ],
+                },
+                blocks: [block({ position: 'after_calendar' }, 'Last'), block({}, 'Before')],
+            }),
+        });
+
+        const calendar = wrapper.get('section[aria-labelledby="link-page-calendar"]').element;
+        const social = wrapper.get('[data-testid="link-page-social"]').element;
+        const sections = wrapper.findAll('[data-testid="link-page-block"]');
+        expect(
+            sections.map((item) =>
+                item.get('[data-testid="site-block"]').attributes('data-heading')
+            )
+        ).toEqual(['Before', 'Last']);
+        const [before, last] = sections.map((item) => item.element);
+        expect(
+            before!.compareDocumentPosition(calendar) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        expect(
+            calendar.compareDocumentPosition(last!) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        expect(
+            last!.compareDocumentPosition(social) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+    });
+
+    it('keeps the order of the blocks inside each group and their ids unique', () => {
+        const wrapper = mount(Show, {
+            props: props({
+                blocks: [
+                    block({ title: 'One', position: 'after_calendar' }),
+                    block({ title: 'Two' }),
+                    block({ title: 'Three', position: 'after_calendar' }),
+                ],
+            }),
+        });
+
+        const headings = wrapper.findAll('[data-testid="link-page-block"] h2');
+        expect(headings.map((item) => item.text())).toEqual(['Two', 'One', 'Three']);
+        const ids = headings.map((item) => item.attributes('id'));
+        expect(new Set(ids).size).toBe(3);
     });
 
     it('names a block section by its title, or by the block when it has none', () => {
