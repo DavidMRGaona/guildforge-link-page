@@ -76,8 +76,29 @@ final class LinkPageBlocksTest extends ModuleTestCase
                 ->where('blocks.0.block.component', 'components/ExampleBlock.vue')
                 ->where('blocks.0.block.props.settings', ['heading' => 'Suscríbete'])
                 ->where('blocks.0.block.props.signedIn', false)
+                ->where('blocks.0.position', 'before_calendar')
                 ->where('blocks.1.title', null)
                 ->where('blocks.1.block.props.settings', ['heading' => 'Otra vez'])
+            );
+    }
+
+    public function test_each_block_says_whether_it_goes_before_or_after_the_calendar(): void
+    {
+        $this->registerSubscribe();
+        config()->set('modules.settings.link-page.blocks', [
+            ['key' => self::KEY, 'title' => 'Al final', 'settings' => [], 'position' => 'after_calendar'],
+            ['key' => self::KEY, 'title' => 'Antes', 'settings' => []],
+            ['key' => self::KEY, 'title' => 'Desconocida', 'settings' => [], 'position' => 'footer'],
+        ]);
+
+        $this->get('/enlaces')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('blocks', 3)
+                ->where('blocks.0.title', 'Al final')
+                ->where('blocks.0.position', 'after_calendar')
+                ->where('blocks.1.position', 'before_calendar')
+                ->where('blocks.2.position', 'before_calendar')
             );
     }
 

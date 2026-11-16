@@ -9,18 +9,20 @@ use Closure;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
+use Modules\LinkPage\Domain\Enums\BlockPosition;
 use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use Modules\LinkPage\Filament\Support\PageBlockCatalog;
 
 /**
  * The «Bloques» section of the link page settings (link-page#48): site blocks other modules offer for
- * the link page (the newsletter subscription, for instance), each with an optional title and its own
- * settings. Its state lives under "blocks" as Builder items; PageBlockCatalog turns them into the
- * stored list.
+ * the link page (the newsletter subscription, for instance), each with an optional title, its own
+ * settings and whether it goes before or after the calendar (link-page#53). Its state lives under
+ * "blocks" as Builder items; PageBlockCatalog turns them into the stored list.
  */
 final class BlocksSection
 {
@@ -87,6 +89,7 @@ final class BlocksSection
                     ->color('warning')
                     ->visible(! $available),
                 self::titleField(),
+                self::positionField(),
                 Group::make($catalog->settingsSchema($block) ?? [])->statePath('settings'),
             ])
             // Kept where it is stored, but not offered while it cannot be drawn
@@ -100,6 +103,7 @@ final class BlocksSection
             ->schema([
                 Text::make($help)->color('warning'),
                 Hidden::make('title'),
+                Hidden::make('position'),
                 Hidden::make(PageBlockCatalog::STORED_SETTINGS),
             ])
             ->maxItems(0);
@@ -112,6 +116,17 @@ final class BlocksSection
             ->helperText(__('link-page::messages.blocks.title_help'))
             ->maxLength(PageBlock::MAX_TITLE_LENGTH)
             ->live(onBlur: true);
+    }
+
+    private static function positionField(): Select
+    {
+        return Select::make('position')
+            ->label(__('link-page::messages.blocks.position'))
+            ->options(BlockPosition::options())
+            ->default(BlockPosition::BeforeCalendar->value)
+            ->native(false)
+            ->selectablePlaceholder(false)
+            ->required();
     }
 
     /**

@@ -2,16 +2,22 @@
 import { computed, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModuleEventCalendar from '@/components/calendar/ModuleEventCalendar.vue';
-import SiteBlock from '@/components/layout/SiteBlock.vue';
 import { VENUE_TIMEZONE } from '@/utils/datetime';
 import CalendarSubscribe from '../../components/CalendarSubscribe.vue';
 import FeaturedEvent from '../../components/FeaturedEvent.vue';
 import NoticeBanner from '../../components/NoticeBanner.vue';
 import ShareButton from '../../components/ShareButton.vue';
 import OwnLinkButton from '../../components/OwnLinkButton.vue';
+import PageBlockSection from '../../components/PageBlockSection.vue';
 import SocialRow from '../../components/SocialRow.vue';
 import { useLinkPageStats } from '../../composables/useLinkPageStats';
-import type { LinkPageColors, LinkPageEvent, LinkPageProps } from '../../types/linkPage';
+import type {
+    LinkPageBlock,
+    LinkPageBlockPosition,
+    LinkPageColors,
+    LinkPageEvent,
+    LinkPageProps,
+} from '../../types/linkPage';
 
 /**
  * /enlaces, the page a printed QR code leads to: no site header, menu or footer
@@ -27,6 +33,22 @@ useLinkPageStats(props.stats);
 const { t, locale } = useI18n();
 
 const initial = computed(() => props.site.name.trim().charAt(0).toLocaleUpperCase());
+
+// Site blocks before and after the calendar (link-page#53), each group in the page's order; the index
+// is the block's place in the whole list, which keeps its ids unique
+type PlacedBlock = { item: LinkPageBlock; index: number };
+const blockGroups = computed<Record<LinkPageBlockPosition, PlacedBlock[]>>(() => {
+    const groups: Record<LinkPageBlockPosition, PlacedBlock[]> = {
+        before_calendar: [],
+        after_calendar: [],
+    };
+    props.blocks.forEach((item, index) => {
+        const group = item.position === 'after_calendar' ? 'after_calendar' : 'before_calendar';
+        groups[group].push({ item, index });
+    });
+
+    return groups;
+});
 
 // A forced theme sets the class the core reads (its palette and the calendar follow it)
 // before the first render; the page has no content before Vue mounts, so nothing flashes
@@ -277,27 +299,13 @@ function formatStart(event: LinkPageEvent): string | null {
                 </ul>
             </section>
 
-            <!-- Site blocks of other modules (link-page#48); a block the core cannot draw leaves its card
-                 empty, and module.css hides the whole section then -->
-            <section
-                v-for="(item, index) in blocks"
-                :key="`${index}:${item.block.key}`"
-                :aria-labelledby="item.title ? `link-page-block-${index}` : undefined"
-                :aria-label="item.title ? undefined : (item.label ?? undefined)"
-                class="link-page-block"
-                data-testid="link-page-block"
-            >
-                <h2
-                    v-if="item.title"
-                    :id="`link-page-block-${index}`"
-                    class="mb-3 text-lg font-semibold"
-                >
-                    {{ item.title }}
-                </h2>
-                <div class="link-page-block__card p-4 sm:p-5">
-                    <SiteBlock :block="item.block" placement="link_page" />
-                </div>
-            </section>
+            <!-- Site blocks of other modules placed before the calendar (link-page#48, #53) -->
+            <PageBlockSection
+                v-for="placed in blockGroups.before_calendar"
+                :key="`${placed.index}:${placed.item.block.key}`"
+                :item="placed.item"
+                :index="placed.index"
+            />
 
             <section aria-labelledby="link-page-calendar">
                 <h2 id="link-page-calendar" class="mb-3 text-lg font-semibold">
@@ -311,6 +319,14 @@ function formatStart(event: LinkPageEvent): string | null {
                 </div>
                 <CalendarSubscribe :links="calendarFeed" class="mt-4" />
             </section>
+
+            <!-- and those placed after it, before the social row at the bottom -->
+            <PageBlockSection
+                v-for="placed in blockGroups.after_calendar"
+                :key="`${placed.index}:${placed.item.block.key}`"
+                :item="placed.item"
+                :index="placed.index"
+            />
 
             <SocialRow v-if="social.position === 'bottom'" :links="social.links" />
 

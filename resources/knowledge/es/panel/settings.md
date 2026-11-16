@@ -5,7 +5,7 @@ summary: Enciende la página de enlaces, elige qué eventos, bloques y calendari
 category: content
 audience: panel
 order: 86
-keywords: [página de enlaces, enlaces, linktree, bio, qr, /enlaces, ajustes, configurar, presentación, próximos eventos, eventos fijados, eventos escondidos, calendario, bloques, boletín, suscripción, tarjeta, compartir, whatsapp, telegram, buscadores, apagar la página]
+keywords: [página de enlaces, enlaces, linktree, bio, qr, /enlaces, ajustes, configurar, presentación, próximos eventos, eventos fijados, eventos escondidos, calendario, bloques, posición de los bloques, boletín, suscripción, tarjeta, compartir, whatsapp, telegram, buscadores, apagar la página]
 related: [link-page.panel.appearance, link-page.panel.notice-and-featured-event, link-page.panel.links-and-socials, link-page.panel.qr-codes, link-page.panel.stats]
 conditions:
   permissions:
@@ -38,10 +38,13 @@ La sección **Próximos eventos** decide los botones de eventos de la página. S
 
 ## Bloques de otros módulos
 
-La sección **Bloques** añade a la página piezas que ofrecen otros módulos instalados, como el formulario para suscribirse al boletín. Salen después de los enlaces que van tras los eventos y antes del calendario, en el orden de la lista. Caben hasta 3.
+La sección **Bloques** añade a la página piezas que ofrecen otros módulos instalados, como el formulario para suscribirse al boletín. Caben hasta 3.
 
 - Pulsa **Añadir bloque** y elige uno. Cada bloque tiene un **Título** opcional (hasta 80 caracteres), que sale encima, y sus propios ajustes.
-- Arrastra los bloques para cambiar el orden, o bórralos con la papelera.
+- Elige su **Posición**:
+  - **Antes del calendario**: sale después de los enlaces que van tras los eventos. Es la posición de un bloque nuevo.
+  - **Después del calendario**: sale al final, tras el calendario y su botón de suscripción y antes de las redes, si las pones abajo.
+- Arrastra los bloques para cambiar el orden en que salen dentro de cada posición, o bórralos con la papelera.
 - Si ningún módulo activo ofrece bloques para la página de enlaces, la sección lo dice y no deja añadir ninguno.
 
 > [!IMPORTANT]

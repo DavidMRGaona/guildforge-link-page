@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\LinkPage\Domain\ValueObjects;
 
+use Modules\LinkPage\Domain\Enums\BlockPosition;
+
 /**
  * One site block placed on the link page (link-page#48): the key of a block some module offers for
- * the `link_page` placement, an optional title drawn above it and the block's own settings, which
- * only the block understands. The page stores a list of them under `blocks`.
+ * the `link_page` placement, an optional title drawn above it, the block's own settings, which
+ * only the block understands, and whether it goes before or after the calendar (link-page#53). The
+ * page stores a list of them under `blocks`.
  */
 final readonly class PageBlock
 {
@@ -26,11 +29,13 @@ final readonly class PageBlock
         public string $key,
         public ?string $title,
         public array $settings,
+        public BlockPosition $position = BlockPosition::BeforeCalendar,
     ) {}
 
     /**
      * The stored list, read tolerantly: anything that is not a list of entries with a key is left
-     * out, never an error, and at most MAX_BLOCKS are kept, in their order.
+     * out, never an error, and at most MAX_BLOCKS are kept, in their order. A missing or unknown
+     * position is before the calendar, where blocks went before they had one.
      *
      * @return list<self>
      */
@@ -70,7 +75,7 @@ final readonly class PageBlock
     }
 
     /**
-     * @return array{key: string, title: string|null, settings: array<string, mixed>}
+     * @return array{key: string, title: string|null, settings: array<string, mixed>, position: string}
      */
     public function toArray(): array
     {
@@ -78,6 +83,7 @@ final readonly class PageBlock
             'key' => $this->key,
             'title' => $this->title,
             'settings' => $this->settings,
+            'position' => $this->position->value,
         ];
     }
 
@@ -98,6 +104,7 @@ final readonly class PageBlock
             trim($key),
             self::titleFrom($entry['title'] ?? null),
             array_filter($settings, is_string(...), ARRAY_FILTER_USE_KEY),
+            BlockPosition::fromStored($entry['position'] ?? null),
         );
     }
 }

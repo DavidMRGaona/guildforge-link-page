@@ -11,6 +11,7 @@ use App\Domain\SiteBlocks\SiteBlockPlacement;
 use Filament\Schemas\Components\Component;
 use JsonException;
 use Modules\LinkPage\Application\Contracts\LinkPageSettingsInterface;
+use Modules\LinkPage\Domain\Enums\BlockPosition;
 use Modules\LinkPage\Domain\ValueObjects\PageBlock;
 use Throwable;
 
@@ -144,7 +145,7 @@ final class PageBlockCatalog
     public function formState(PageBlock $block): array
     {
         if ($this->hasForm($block->key)) {
-            return ['type' => $block->key, 'data' => ['title' => $block->title, 'settings' => $block->settings]];
+            return ['type' => $block->key, 'data' => ['title' => $block->title, 'position' => $block->position->value, 'settings' => $block->settings]];
         }
 
         try {
@@ -153,7 +154,7 @@ final class PageBlockCatalog
             $stored = '{}';
         }
 
-        return ['type' => $block->key, 'data' => ['title' => $block->title, self::STORED_SETTINGS => $stored]];
+        return ['type' => $block->key, 'data' => ['title' => $block->title, 'position' => $block->position->value, self::STORED_SETTINGS => $stored]];
     }
 
     /**
@@ -161,7 +162,7 @@ final class PageBlockCatalog
      * sent along with them); one without a form keeps its hidden copy, but only when it was stored, so
      * a key forged into the form is dropped.
      *
-     * @return list<array{key: string, title: string|null, settings: array<string, mixed>}>
+     * @return list<array{key: string, title: string|null, settings: array<string, mixed>, position: string}>
      */
     public function toStored(mixed $items): array
     {
@@ -187,18 +188,20 @@ final class PageBlockCatalog
         $key = $item['type'];
         $data = is_array($item['data'] ?? null) ? $item['data'] : [];
         $title = PageBlock::titleFrom($data['title'] ?? null);
+        // The select only takes its options; a hidden copy of a block without a form is read tolerantly
+        $position = BlockPosition::fromStored($data['position'] ?? null);
 
         if (! $this->hasForm($key)) {
             if (! in_array($key, $this->storedKeys(), true)) {
                 return null;
             }
 
-            return new PageBlock($key, $title, $this->storedSettings($data[self::STORED_SETTINGS] ?? null));
+            return new PageBlock($key, $title, $this->storedSettings($data[self::STORED_SETTINGS] ?? null), $position);
         }
 
         $settings = is_array($data['settings'] ?? null) ? $data['settings'] : [];
 
-        return new PageBlock($key, $title, array_filter($settings, is_string(...), ARRAY_FILTER_USE_KEY));
+        return new PageBlock($key, $title, array_filter($settings, is_string(...), ARRAY_FILTER_USE_KEY), $position);
     }
 
     /**
