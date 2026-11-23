@@ -6,6 +6,7 @@ namespace Modules\LinkPage\Filament\Media\Sources;
 
 use App\Application\Authorization\Services\AuthorizationServiceInterface;
 use App\Application\Media\Contracts\ReleasesMediaThroughCoreInterface;
+use App\Application\Media\Contracts\ShowsMediaPreviews;
 use App\Application\Media\Services\MediaFileIdResolverInterface;
 use App\Infrastructure\Media\Sources\EloquentColumnMediaSource;
 use Illuminate\Database\Eloquent\Model;
@@ -14,8 +15,10 @@ use Modules\LinkPage\Infrastructure\Persistence\Eloquent\Models\QrCodeModel;
 
 /**
  * The logos uploaded for QR codes (link-page/qr). QR codes are soft-deleted: one in the trash keeps its logo in use.
+ * The media library shows every logo: a QR design is the team's own, made to be printed, so an inactive or
+ * trashed one holds nothing that only some people may see.
  */
-final class QrLogoMediaSource extends EloquentColumnMediaSource implements ReleasesMediaThroughCoreInterface
+final class QrLogoMediaSource extends EloquentColumnMediaSource implements ReleasesMediaThroughCoreInterface, ShowsMediaPreviews
 {
     public const string TYPE = 'link-page.qr_logos';
 
