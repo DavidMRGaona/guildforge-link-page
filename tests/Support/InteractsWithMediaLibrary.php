@@ -13,18 +13,23 @@ use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Features\SupportTesting\Testable;
+use Tests\Support\Media\MarksMediaSourcesSynced;
 
 /**
  * Files of the core media library and the «Elegir de la biblioteca» picker on the module's fields.
  */
 trait InteractsWithMediaLibrary
 {
+    use MarksMediaSourcesSynced;
+
     /**
-     * Puts a file in the library index, as media:sync would after reading the catalog.
+     * Puts a file in the library index, as media:sync would after reading the catalog. The sync also records
+     * the sources as up to date, without which the library conceals their files and refuses to offer them (core#837).
      */
     protected function indexLibraryFile(string $fileId, string $format, int $bytes = 1000): MediaFileModel
     {
         $position = strrpos($fileId, '/');
+        $this->markMediaSourcesSynced();
 
         return MediaFileModel::query()->create([
             'file_id' => $fileId,

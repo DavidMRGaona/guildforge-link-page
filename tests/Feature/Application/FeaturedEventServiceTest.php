@@ -241,6 +241,8 @@ final class FeaturedEventServiceTest extends ModuleTestCase
 
     public function test_excluding_the_featured_event_from_the_list_leaves_the_others(): void
     {
+        // The list comes from the core's event query, which reads the real "now", not the module's clock
+        $this->travelTo($this->clock->now());
         $this->auto();
         $featured = $this->event('Featured', '2026-11-15 17:00:00');
         $this->event('Other', '2026-11-16 17:00:00');

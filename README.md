@@ -62,7 +62,7 @@ Página de enlaces para el móvil, con los próximos eventos y el calendario
 
 ## Requisitos
 
-- GuildForge core `^3.80` (sitio `link_page` de los bloques del sitio, core#755)
+- GuildForge core `^3.90` (miniaturas de la biblioteca de medios que se declaran con `ShowsMediaPreviews`, core#837)
 - PHP >= 8.5, Laravel >= 13, Filament 5
 
 El core rechaza el módulo si no se cumplen (`module.json` → `requires`).
@@ -129,3 +129,5 @@ make check MODULE=link-page
 ## Biblioteca de medios
 
 Registra dos fuentes para la biblioteca de medios del panel (core ≥ 3.53): `link-page.settings` (logo y fondo de la apariencia, imagen para compartir; reclama `link-page/` salvo `qr/`) y `link-page.qr_logos` (logos de los códigos QR en `link-page/qr/`; un QR en la papelera sigue usando su logo). Los usos se actualizan al guardar los ajustes o un QR. Las dos llevan la marca `ReleasesMediaThroughCoreInterface` (core ≥ 3.55, core#480): el módulo nunca borra archivos a mano, sino que los entrega a `MediaFileReleaserInterface::release()`, así que sus campos ofrecen el selector de la biblioteca. El logo del QR solo admite archivos de `link-page/qr/`, porque sus reglas (SVG saneado, tamaño) solo se aplican al subirlo.
+
+Las dos declaran también `ShowsMediaPreviews` (core ≥ 3.90, core#837), así que la biblioteca enseña sus miniaturas y las ofrece en «Elegir de la biblioteca». Ninguna imagen del módulo es privada: el logo, el fondo y la imagen para compartir son lo que dibujan la página pública y su tarjeta, y el logo de un QR es parte de un diseño del equipo hecho para imprimirse, así que se enseña también con el QR desactivado o en la papelera. Ningún uso se marca como oculto. Tras instalar la versión, la biblioteca las enseña desde la siguiente sincronización.
